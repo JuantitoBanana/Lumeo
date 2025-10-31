@@ -48,7 +48,6 @@ export default function LoginScreen() {
     if (error) {
       Alert.alert('Error al iniciar sesión', error.message);
     } else {
-      Alert.alert('Éxito', '¡Has iniciado sesión correctamente!');
       // Navigation will be handled automatically by the auth state change
       router.replace('/(tabs)');
     }
