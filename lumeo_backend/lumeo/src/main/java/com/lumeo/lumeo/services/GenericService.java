@@ -12,7 +12,6 @@ public abstract class GenericService<T, ID> {
     /**
      * Find all entities
      */
-    @Transactional(readOnly = true)
     public List<T> findAll() {
         return getRepository().findAll();
     }
@@ -20,7 +19,6 @@ public abstract class GenericService<T, ID> {
     /**
      * Find entity by ID
      */
-    @Transactional(readOnly = true)
     public Optional<T> findById(ID id) {
         return getRepository().findById(id);
     }
@@ -60,7 +58,6 @@ public abstract class GenericService<T, ID> {
     /**
      * Check if entity exists by ID
      */
-    @Transactional(readOnly = true)
     public boolean existsById(ID id) {
         return getRepository().existsById(id);
     }
@@ -68,7 +65,6 @@ public abstract class GenericService<T, ID> {
     /**
      * Count all entities
      */
-    @Transactional(readOnly = true)
     public long count() {
         return getRepository().count();
     }
