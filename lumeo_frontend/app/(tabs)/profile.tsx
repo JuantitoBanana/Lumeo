@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +9,14 @@ import { useRouter } from 'expo-router';
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
-  const { usuario, loading } = useUsuarioApi();
+  const { usuario, loading, refetchUsuario } = useUsuarioApi();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Función para refrescar
+  const handleRefresh = () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    refetchUsuario();
+  };
 
   const handleSignOut = async () => {
     try {
@@ -93,6 +100,7 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView 
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -192,7 +200,7 @@ export default function ProfileScreen() {
         <View style={styles.bottomSpace} />
       </ScrollView>
 
-      <BottomTabBar activeTab="profile" />
+      <BottomTabBar activeTab="profile" onTabRefresh={handleRefresh} />
     </View>
   );
 }

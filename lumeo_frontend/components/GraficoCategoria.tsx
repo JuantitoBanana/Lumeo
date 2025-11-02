@@ -44,8 +44,11 @@ export const GraficoCategoria: React.FC<GraficoCategoriaProps> = ({ gastos, load
         <Text style={styles.title}>Gastos por Categoría</Text>
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>
-            {loading ? 'Cargando...' : 'No hay gastos este mes'}
+            {loading ? 'Cargando...' : 'No hay gastos'}
           </Text>
+          {!loading && (
+            <Text style={styles.emptyText}>este mes</Text>
+          )}
         </View>
       </View>
     );

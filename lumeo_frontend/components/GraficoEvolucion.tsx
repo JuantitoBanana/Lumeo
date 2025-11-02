@@ -23,33 +23,36 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, l
       borderRadius: 16,
     },
     propsForLabels: {
-      fontSize: 12, // Aumentar tamaño de fuente para etiquetas
+      fontSize: 12,
       fontWeight: '600',
     },
-    propsForDots: {
-      r: '6',
-      strokeWidth: '2',
-      stroke: '#ffa726',
-    },
+    barPercentage: 0.5, // Reducir ancho de barras al 50%
   };
 
   // Transformar datos para el gráfico (solo últimos 2 meses)
   const ultimos2Meses = evolucion.slice(-2); // Tomar solo los últimos 2 elementos
+  
+  // Crear arrays intercalados para mostrar barras lado a lado
+  const ingresosYGastos: number[] = [];
+  const labels: string[] = [];
+  
+  ultimos2Meses.forEach((mes, index) => {
+    ingresosYGastos.push(mes.totalIngresos);
+    ingresosYGastos.push(mes.totalGastos);
+    // Agregar etiqueta con espacios para centrarla visualmente
+    labels.push(`  ${mes.abreviaturaMes}`);
+    labels.push('');
+  });
+  
   const chartData = {
-    labels: ultimos2Meses.map(mes => mes.abreviaturaMes),
-    datasets: [
-      {
-        data: ultimos2Meses.map(mes => mes.totalIngresos),
-        color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`, // Verde para ingresos
-        strokeWidth: 2,
-      },
-      {
-        data: ultimos2Meses.map(mes => mes.totalGastos),
-        color: (opacity = 1) => `rgba(244, 67, 54, ${opacity})`, // Rojo para gastos
-        strokeWidth: 2,
-      },
-    ],
-    legend: ['Ingresos', 'Gastos'],
+    labels: labels,
+    datasets: [{
+      data: ingresosYGastos,
+      colors: ultimos2Meses.flatMap(() => [
+        (opacity = 1) => `rgba(76, 175, 80, 0.4)`, // Verde para ingresos con menor opacidad
+        (opacity = 1) => `rgba(244, 67, 54, 0.4)`, // Rojo para gastos con menor opacidad
+      ]),
+    }],
   };
 
   // Si no hay datos o hay error
@@ -77,8 +80,8 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, l
         <BarChart
           style={styles.chart}
           data={chartData}
-          width={screenWidth * 0.6} // Aumentado para más espacio entre etiquetas
-          height={160} // Aumentado para evitar entrecortado
+          width={screenWidth * 0.42}
+          height={160}
           yAxisLabel=""
           yAxisSuffix="€"
           chartConfig={chartConfig}
@@ -86,8 +89,8 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, l
           fromZero={true}
           showBarTops={false}
           showValuesOnTopOfBars={false}
-          yLabelsOffset={35} // Mover etiquetas Y hacia la izquierda
-          xLabelsOffset={-15} // Mover etiquetas X más hacia el centro
+          withCustomBarColorFromData={true}
+          flatColor={true}
         />
       )}
     </View>

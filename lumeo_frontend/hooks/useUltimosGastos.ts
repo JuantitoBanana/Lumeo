@@ -8,6 +8,10 @@ export interface UltimoGasto {
   fechaTransaccion: string;
   nota?: string;
   idCategoria?: number;
+  nombreCategoria?: string;
+  iconoCategoria?: string;
+  colorCategoria?: string;
+  // Objeto de categoría para compatibilidad
   categoria?: {
     nombre: string;
     icono?: string;
@@ -66,8 +70,18 @@ export const useUltimosGastos = (usuarioId: number | null | undefined) => {
         );
 
         if (isMountedRef.current) {
-          setGastos(data);
-          console.log('✅ Últimos gastos obtenidos:', data.length);
+          // Transformar los datos para que tengan el objeto categoria
+          const gastosTransformados = data.map(gasto => ({
+            ...gasto,
+            categoria: {
+              nombre: gasto.nombreCategoria || 'Sin categoría',
+              icono: gasto.iconoCategoria || 'pricetag-outline',
+              color: gasto.colorCategoria || '#007AFF'
+            }
+          }));
+          
+          setGastos(gastosTransformados);
+          console.log('✅ Últimos gastos obtenidos:', gastosTransformados.length);
         }
       } catch (err: any) {
         if (err.message === 'CANCELED') {

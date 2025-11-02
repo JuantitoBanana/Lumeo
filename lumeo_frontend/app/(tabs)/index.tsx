@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,9 +19,21 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { usuario, loading: loadingUsuario, error: errorUsuario, refetchUsuario } = useUsuarioApi();
-  const { resumen, loading: loadingResumen, error: errorResumen } = useResumenFinanciero(usuario?.id || null);
-  const { gastos, loading: loadingGastos, error: errorGastos } = useGastosPorCategoria(usuario?.id || null);
-  const { evolucion, loading: loadingEvolucion, error: errorEvolucion } = useEvolucionMensual(usuario?.id || null, 2);
+  const { resumen, loading: loadingResumen, error: errorResumen, refetch: refetchResumen } = useResumenFinanciero(usuario?.id || null);
+  const { gastos, loading: loadingGastos, error: errorGastos, refetch: refetchGastos } = useGastosPorCategoria(usuario?.id || null);
+  const { evolucion, loading: loadingEvolucion, error: errorEvolucion, refetch: refetchEvolucion } = useEvolucionMensual(usuario?.id || null, 2);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Función para refrescar todo el contenido
+  const handleRefresh = () => {
+    // Hacer scroll al inicio
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    // Refrescar todos los datos
+    refetchUsuario();
+    refetchResumen();
+    refetchGastos();
+    refetchEvolucion();
+  };
 
   // Cleanup: Cancelar todas las peticiones pendientes cuando se desmonta el componente
   useEffect(() => {
@@ -127,6 +139,7 @@ export default function HomeScreen() {
 
         {/* Contenido principal con scroll */}
         <ScrollView 
+          ref={scrollViewRef}
           style={styles.mainContent}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -213,7 +226,7 @@ export default function HomeScreen() {
           <UltimosGastos usuarioId={usuario?.id} />
         </ScrollView>
 
-        <BottomTabBar activeTab="home" />
+        <BottomTabBar activeTab="home" onTabRefresh={handleRefresh} />
       </View>
     );
   }
@@ -585,10 +598,6 @@ const styles = StyleSheet.create({
   // Estilos para la sección de gráficos
   chartsSection: {
     marginVertical: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E0E0E0',
   },
   chartsRow: {
     flexDirection: 'row',

@@ -47,7 +47,7 @@ export class TransaccionService {
    * Obtiene transacciones por usuario
    */
   async getByUsuario(idUsuario: number): Promise<Transaccion[]> {
-    return apiClient.get<Transaccion[]>(`${this.endpoint}?idUsuario=${idUsuario}`);
+    return apiClient.get<Transaccion[]>(`${this.endpoint}/usuario/${idUsuario}`);
   }
 
   /**
