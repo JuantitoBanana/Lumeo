@@ -3,7 +3,11 @@ package com.lumeo.lumeo.services;
 import com.lumeo.lumeo.dtos.GastoPorCategoriaDTO;
 import com.lumeo.lumeo.dtos.EvolucionMensualDTO;
 import com.lumeo.lumeo.models.TransaccionModel;
+import com.lumeo.lumeo.models.usuarioModel;
+import com.lumeo.lumeo.models.DivisaModel;
 import com.lumeo.lumeo.repositories.TransaccionRepository;
+import com.lumeo.lumeo.repositories.UsuarioRepository;
+import com.lumeo.lumeo.repositories.DivisaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +19,22 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 public class GraficosService {
     
     @Autowired
     private TransaccionRepository transaccionRepository;
+    
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private DivisaRepository divisaRepository;
+    
+    @Autowired
+    private ConversionDivisaService conversionDivisaService;
     
     // Colores predefinidos para el gráfico circular
     private static final String[] COLORES_GRAFICOS = {
@@ -35,6 +49,16 @@ public class GraficosService {
      */
     public List<GastoPorCategoriaDTO> obtenerGastosPorCategoria(Long usuarioId) {
         System.out.println("🔍 Obteniendo gastos por categoría para usuario: " + usuarioId);
+        
+        // Obtener la divisa del usuario
+        String codigoDivisaUsuario = "EUR";
+        Optional<usuarioModel> usuarioOpt = usuarioRepository.findById(usuarioId);
+        if (usuarioOpt.isPresent() && usuarioOpt.get().getIdDivisa() != null) {
+            Optional<DivisaModel> divisaOpt = divisaRepository.findById(usuarioOpt.get().getIdDivisa());
+            if (divisaOpt.isPresent()) {
+                codigoDivisaUsuario = divisaOpt.get().getIso();
+            }
+        }
         
         // Obtener fechas del mes actual
         LocalDate hoy = LocalDate.now();
@@ -55,7 +79,23 @@ public class GraficosService {
             if (transaccion.getIdTipo() != null && transaccion.getIdTipo() == 2L && 
                 transaccion.getIdCategoria() != null) {
                 
-                Double importe = transaccion.getImporte();
+                // El campo 'importe' contiene el importe ORIGINAL
+                Double importeOriginal = transaccion.getImporte();
+                
+                // Convertir desde la divisa original a la divisa actual del usuario
+                Double importe = importeOriginal;
+                if (transaccion.getIdDivisaOriginal() != null) {
+                    Optional<DivisaModel> divisaOriginalOpt = divisaRepository.findById(transaccion.getIdDivisaOriginal());
+                    if (divisaOriginalOpt.isPresent()) {
+                        String isoOriginal = divisaOriginalOpt.get().getIso();
+                        importe = conversionDivisaService.convertirMonto(
+                            importeOriginal,
+                            isoOriginal,
+                            codigoDivisaUsuario
+                        );
+                    }
+                }
+                
                 Long idCategoria = transaccion.getIdCategoria();
                 
                 if (importe != null) {
@@ -123,6 +163,16 @@ public class GraficosService {
     public List<EvolucionMensualDTO> obtenerEvolucionMensual(Long usuarioId, int numeroMeses) {
         System.out.println("🔍 Obteniendo evolución mensual para usuario: " + usuarioId + ", últimos " + numeroMeses + " meses");
         
+        // Obtener la divisa del usuario
+        String codigoDivisaUsuario = "EUR";
+        Optional<usuarioModel> usuarioOpt = usuarioRepository.findById(usuarioId);
+        if (usuarioOpt.isPresent() && usuarioOpt.get().getIdDivisa() != null) {
+            Optional<DivisaModel> divisaOpt = divisaRepository.findById(usuarioOpt.get().getIdDivisa());
+            if (divisaOpt.isPresent()) {
+                codigoDivisaUsuario = divisaOpt.get().getIso();
+            }
+        }
+        
         List<EvolucionMensualDTO> evolucion = new ArrayList<>();
         LocalDate fechaActual = LocalDate.now();
         
@@ -141,7 +191,23 @@ public class GraficosService {
             
             // Procesar transacciones
             for (TransaccionModel transaccion : transacciones) {
-                Double importe = transaccion.getImporte();
+                // El campo 'importe' contiene el importe ORIGINAL
+                Double importeOriginal = transaccion.getImporte();
+                
+                // Convertir desde la divisa original a la divisa actual del usuario
+                Double importe = importeOriginal;
+                if (transaccion.getIdDivisaOriginal() != null) {
+                    Optional<DivisaModel> divisaOriginalOpt = divisaRepository.findById(transaccion.getIdDivisaOriginal());
+                    if (divisaOriginalOpt.isPresent()) {
+                        String isoOriginal = divisaOriginalOpt.get().getIso();
+                        importe = conversionDivisaService.convertirMonto(
+                            importeOriginal,
+                            isoOriginal,
+                            codigoDivisaUsuario
+                        );
+                    }
+                }
+                
                 Long idTipo = transaccion.getIdTipo();
                 
                 if (importe != null && idTipo != null) {

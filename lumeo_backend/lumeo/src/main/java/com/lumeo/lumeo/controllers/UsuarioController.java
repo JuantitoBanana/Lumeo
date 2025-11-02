@@ -4,6 +4,7 @@ import com.lumeo.lumeo.models.usuarioModel;
 import com.lumeo.lumeo.services.UsuarioService;
 import com.lumeo.lumeo.services.ResumenFinancieroService;
 import com.lumeo.lumeo.services.GraficosService;
+import com.lumeo.lumeo.services.ConversionDivisaService;
 import com.lumeo.lumeo.dtos.ResumenFinancieroDTO;
 import com.lumeo.lumeo.dtos.GastoPorCategoriaDTO;
 import com.lumeo.lumeo.dtos.EvolucionMensualDTO;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 import java.math.BigDecimal;
 
 @RestController
@@ -27,6 +29,9 @@ public class UsuarioController {
     @Autowired
     private GraficosService graficosService;
     
+    @Autowired
+    private ConversionDivisaService conversionDivisaService;
+    
     @GetMapping
     public ResponseEntity<List<usuarioModel>> findAll() {
         return ResponseEntity.ok(usuarioService.findAll());
@@ -39,6 +44,18 @@ public class UsuarioController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
+    @GetMapping("/uid/{uid}")
+    public ResponseEntity<usuarioModel> findByUid(@PathVariable String uid) {
+        try {
+            java.util.UUID uuid = java.util.UUID.fromString(uid);
+            return usuarioService.findByUid(uuid)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
     @PostMapping
     public ResponseEntity<usuarioModel> create(@RequestBody usuarioModel usuario) {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.create(usuario));
@@ -49,6 +66,63 @@ public class UsuarioController {
         return usuarioService.editById(id, usuario)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PutMapping("/uid/{uid}")
+    public ResponseEntity<usuarioModel> editByUid(@PathVariable String uid, @RequestBody usuarioModel usuario) {
+        try {
+            java.util.UUID uuid = java.util.UUID.fromString(uid);
+            Optional<usuarioModel> usuarioExistente = usuarioService.findByUid(uuid);
+            
+            if (usuarioExistente.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            usuarioModel usuarioActual = usuarioExistente.get();
+            Long idDivisaAnterior = usuarioActual.getIdDivisa();
+            
+            // Actualizar solo los campos que no son null
+            if (usuario.getNombre() != null) {
+                usuarioActual.setNombre(usuario.getNombre());
+            }
+            if (usuario.getApellido() != null) {
+                usuarioActual.setApellido(usuario.getApellido());
+            }
+            if (usuario.getEmail() != null) {
+                usuarioActual.setEmail(usuario.getEmail());
+            }
+            
+            // Si se está cambiando la divisa, convertir todos los montos
+            if (usuario.getIdDivisa() != null && !usuario.getIdDivisa().equals(idDivisaAnterior)) {
+                Long idDivisaNueva = usuario.getIdDivisa();
+                
+                // Si el usuario no tenía divisa asignada, usar EUR (id=1) como default
+                if (idDivisaAnterior == null) {
+                    idDivisaAnterior = 1L; // EUR por defecto
+                }
+                
+                System.out.println("🔄 Convirtiendo montos del usuario " + usuarioActual.getId() + 
+                                 " de divisa " + idDivisaAnterior + " a " + idDivisaNueva);
+                
+                // Convertir todos los montos del usuario
+                conversionDivisaService.convertirTodosMontosUsuario(
+                    usuarioActual.getId(), 
+                    idDivisaAnterior, 
+                    idDivisaNueva
+                );
+                
+                usuarioActual.setIdDivisa(idDivisaNueva);
+            }
+            
+            usuarioModel usuarioActualizado = usuarioService.create(usuarioActual);
+            return ResponseEntity.ok(usuarioActualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            System.err.println("Error al actualizar usuario: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @DeleteMapping("/{id}")
@@ -72,6 +146,7 @@ public class UsuarioController {
                 BigDecimal.ZERO,
                 "EUR",
                 "€",
+                "DESPUES",
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO

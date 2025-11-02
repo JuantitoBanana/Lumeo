@@ -24,7 +24,10 @@ public class TransaccionModel {
     private String titulo;
     
     @Column(name = "importe")
-    private Double importe;
+    private Double importe; // Importe ORIGINAL en la divisa con la que se creó
+    
+    @Column(name = "id_divisa_original")
+    private Long idDivisaOriginal; // Divisa en la que se creó la transacción
     
     @Column(name = "fecha_transaccion")
     private LocalDate fechaTransaccion;

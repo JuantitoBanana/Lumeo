@@ -2,22 +2,33 @@ package com.lumeo.lumeo.services;
 
 import com.lumeo.lumeo.dtos.ResumenFinancieroDTO;
 import com.lumeo.lumeo.models.TransaccionModel;
+import com.lumeo.lumeo.models.usuarioModel;
+import com.lumeo.lumeo.models.DivisaModel;
 import com.lumeo.lumeo.repositories.TransaccionRepository;
+import com.lumeo.lumeo.repositories.UsuarioRepository;
+import com.lumeo.lumeo.repositories.DivisaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.money.Monetary;
-import javax.money.MonetaryAmount;
-import javax.money.CurrencyUnit;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ResumenFinancieroService {
     
     @Autowired
     private TransaccionRepository transaccionRepository;
+    
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private DivisaRepository divisaRepository;
+    
+    @Autowired
+    private ConversionDivisaService conversionDivisaService;
     
     /**
      * Calcula el resumen financiero para un usuario específico
@@ -27,6 +38,23 @@ public class ResumenFinancieroService {
     public ResumenFinancieroDTO calcularResumenFinanciero(Long usuarioId) {
         System.out.println("🔍 Calculando resumen financiero para usuario: " + usuarioId);
         
+        // Obtener la divisa del usuario
+        String codigoDivisa = "EUR"; // Por defecto EUR
+        String simboloDivisa = "€";
+        String posicionSimbolo = "DESPUES"; // Por defecto después (como EUR)
+        
+        Optional<usuarioModel> usuarioOpt = usuarioRepository.findById(usuarioId);
+        if (usuarioOpt.isPresent() && usuarioOpt.get().getIdDivisa() != null) {
+            Optional<DivisaModel> divisaOpt = divisaRepository.findById(usuarioOpt.get().getIdDivisa());
+            if (divisaOpt.isPresent()) {
+                DivisaModel divisa = divisaOpt.get();
+                codigoDivisa = divisa.getIso();
+                simboloDivisa = divisa.getSimbolo() != null ? divisa.getSimbolo() : divisa.getIso();
+                posicionSimbolo = divisa.getPosicionSimbolo() != null ? divisa.getPosicionSimbolo() : "DESPUES";
+                System.out.println("💱 Divisa del usuario: " + codigoDivisa + " (" + simboloDivisa + ") - Posición: " + posicionSimbolo);
+            }
+        }
+        
         // Obtener todas las transacciones del usuario
         List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuario(usuarioId);
         System.out.println("📊 Transacciones encontradas: " + transacciones.size());
@@ -34,14 +62,30 @@ public class ResumenFinancieroService {
         // Inicializar variables para cálculos
         BigDecimal totalIngresos = BigDecimal.ZERO;
         BigDecimal totalGastos = BigDecimal.ZERO;
-        String codigoDivisa = "EUR"; // Por defecto EUR
-        String simboloDivisa = "€";
         
         // Procesar cada transacción
         for (TransaccionModel transaccion : transacciones) {
             System.out.println("🔍 Procesando transacción: " + transaccion.getId() + " - " + transaccion.getTitulo());
             
-            Double importe = transaccion.getImporte();
+            // El campo 'importe' ahora contiene el importe ORIGINAL
+            Double importeOriginal = transaccion.getImporte();
+            
+            // Convertir desde la divisa original a la divisa actual del usuario
+            Double importe = importeOriginal;
+            if (transaccion.getIdDivisaOriginal() != null) {
+                Optional<DivisaModel> divisaOriginalOpt = divisaRepository.findById(transaccion.getIdDivisaOriginal());
+                if (divisaOriginalOpt.isPresent()) {
+                    String isoOriginal = divisaOriginalOpt.get().getIso();
+                    importe = conversionDivisaService.convertirMonto(
+                        importeOriginal, 
+                        isoOriginal, 
+                        codigoDivisa
+                    );
+                    System.out.println("💱 Convertido de " + isoOriginal + " a " + codigoDivisa + ": " + 
+                                     importeOriginal + " → " + importe);
+                }
+            }
+            
             Long idTipo = transaccion.getIdTipo();
             
             System.out.println("💰 Importe: " + importe + ", Tipo: " + idTipo);
@@ -63,9 +107,6 @@ public class ResumenFinancieroService {
                 System.out.println("⚠️ Transacción con valores nulos: importe=" + importe + ", idTipo=" + idTipo);
             }
         }
-        
-        // Por ahora usamos EUR como divisa por defecto
-        // En el futuro se puede obtener de la configuración del usuario
         
         // Calcular saldo total (ingresos - gastos)
         BigDecimal saldoTotal = totalIngresos.subtract(totalGastos);
@@ -91,7 +132,23 @@ public class ResumenFinancieroService {
         
         // Procesar transacciones del mes
         for (TransaccionModel transaccion : transaccionesMes) {
-            Double importe = transaccion.getImporte();
+            // El campo 'importe' contiene el importe ORIGINAL
+            Double importeOriginal = transaccion.getImporte();
+            
+            // Convertir desde la divisa original a la divisa actual del usuario
+            Double importe = importeOriginal;
+            if (transaccion.getIdDivisaOriginal() != null) {
+                Optional<DivisaModel> divisaOriginalOpt = divisaRepository.findById(transaccion.getIdDivisaOriginal());
+                if (divisaOriginalOpt.isPresent()) {
+                    String isoOriginal = divisaOriginalOpt.get().getIso();
+                    importe = conversionDivisaService.convertirMonto(
+                        importeOriginal, 
+                        isoOriginal, 
+                        codigoDivisa
+                    );
+                }
+            }
+            
             Long idTipo = transaccion.getIdTipo();
             
             if (importe != null && idTipo != null) {
@@ -115,26 +172,7 @@ public class ResumenFinancieroService {
         System.out.println("   Ahorro Mensual: " + ahorroMensual);
         
         return new ResumenFinancieroDTO(totalIngresos, totalGastos, saldoTotal, codigoDivisa, simboloDivisa,
-                                       ingresosMensuales, gastosMensuales, ahorroMensual);
-    }
-    
-    /**
-     * Convierte un monto usando JavaMoney API (preparado para conversiones futuras)
-     * @param monto Monto a convertir
-     * @param codigoDivisaOrigen Código de divisa origen
-     * @param codigoDivisaDestino Código de divisa destino
-     * @return Monto convertido
-     */
-    public MonetaryAmount convertirDivisa(BigDecimal monto, String codigoDivisaOrigen, String codigoDivisaDestino) {
-        CurrencyUnit divisaOrigen = Monetary.getCurrency(codigoDivisaOrigen);
-        MonetaryAmount montoOrigen = Monetary.getDefaultAmountFactory()
-                .setCurrency(divisaOrigen)
-                .setNumber(monto)
-                .create();
-        
-        // Por ahora retornamos el mismo monto (en el futuro se puede agregar conversión real)
-        // Para conversión real necesitarías un proveedor de tasas de cambio
-        return montoOrigen;
+                                       posicionSimbolo, ingresosMensuales, gastosMensuales, ahorroMensual);
     }
     
     /**

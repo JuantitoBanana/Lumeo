@@ -12,6 +12,7 @@ public class ResumenFinancieroDTO {
     private BigDecimal saldoTotal;
     private String codigoDivisa;
     private String simboloDivisa;
+    private String posicionSimbolo; // "ANTES" o "DESPUES"
     
     // Datos mensuales (mes actual)
     private BigDecimal ingresosMensuales;
@@ -22,12 +23,14 @@ public class ResumenFinancieroDTO {
     
     public ResumenFinancieroDTO(BigDecimal totalIngresos, BigDecimal totalGastos, 
                                BigDecimal saldoTotal, String codigoDivisa, String simboloDivisa,
+                               String posicionSimbolo,
                                BigDecimal ingresosMensuales, BigDecimal gastosMensuales, BigDecimal ahorroMensual) {
         this.totalIngresos = totalIngresos != null ? totalIngresos : BigDecimal.ZERO;
         this.totalGastos = totalGastos != null ? totalGastos : BigDecimal.ZERO;
         this.saldoTotal = saldoTotal != null ? saldoTotal : BigDecimal.ZERO;
         this.codigoDivisa = codigoDivisa != null ? codigoDivisa : "EUR";
         this.simboloDivisa = simboloDivisa != null ? simboloDivisa : "€";
+        this.posicionSimbolo = posicionSimbolo != null ? posicionSimbolo : "DESPUES";
         this.ingresosMensuales = ingresosMensuales != null ? ingresosMensuales : BigDecimal.ZERO;
         this.gastosMensuales = gastosMensuales != null ? gastosMensuales : BigDecimal.ZERO;
         this.ahorroMensual = ahorroMensual != null ? ahorroMensual : BigDecimal.ZERO;
@@ -72,6 +75,14 @@ public class ResumenFinancieroDTO {
 
     public void setSimboloDivisa(String simboloDivisa) {
         this.simboloDivisa = simboloDivisa;
+    }
+
+    public String getPosicionSimbolo() {
+        return posicionSimbolo;
+    }
+
+    public void setPosicionSimbolo(String posicionSimbolo) {
+        this.posicionSimbolo = posicionSimbolo;
     }
 
     // Getters y Setters para datos mensuales

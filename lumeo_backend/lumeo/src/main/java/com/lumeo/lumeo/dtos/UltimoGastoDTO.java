@@ -21,4 +21,7 @@ public class UltimoGastoDTO {
     private String nombreCategoria;
     private String iconoCategoria;
     private String colorCategoria;
+    
+    // Información de la divisa
+    private String posicionSimbolo; // "ANTES" o "DESPUES"
 }

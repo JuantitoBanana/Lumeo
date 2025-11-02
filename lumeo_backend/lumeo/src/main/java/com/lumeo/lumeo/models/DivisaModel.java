@@ -20,4 +20,10 @@ public class DivisaModel {
     
     @Column(name = "iso")
     private String iso;
+    
+    @Column(name = "simbolo")
+    private String simbolo;
+    
+    @Column(name = "posicion_simbolo")
+    private String posicionSimbolo; // "ANTES" o "DESPUES" de la cantidad
 }

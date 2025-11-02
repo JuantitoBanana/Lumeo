@@ -74,20 +74,6 @@
 			<version>3.0.0</version>
 		</dependency>
 
-		<!-- JavaMoney API para manejo de divisas -->
-		<dependency>
-			<groupId>javax.money</groupId>
-			<artifactId>money-api</artifactId>
-			<version>1.1</version>
-		</dependency>
-		
-		<!-- Implementación de referencia de JavaMoney -->
-		<dependency>
-			<groupId>org.javamoney</groupId>
-			<artifactId>moneta</artifactId>
-			<version>1.4.2</version>
-			<type>pom</type>
-		</dependency>
 	</dependencies>
 
 	<build>

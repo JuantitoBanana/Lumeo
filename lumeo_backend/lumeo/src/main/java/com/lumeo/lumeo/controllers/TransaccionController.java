@@ -1,6 +1,7 @@
 package com.lumeo.lumeo.controllers;
 
 import com.lumeo.lumeo.dtos.UltimoGastoDTO;
+import com.lumeo.lumeo.dtos.TransaccionDTO;
 import com.lumeo.lumeo.models.TransaccionModel;
 import com.lumeo.lumeo.services.TransaccionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +30,8 @@ public class TransaccionController {
     }
     
     @GetMapping("/usuario/{idUsuario}")
-    public ResponseEntity<List<TransaccionModel>> findByUsuario(@PathVariable Long idUsuario) {
-        return ResponseEntity.ok(transaccionService.findByIdUsuario(idUsuario));
+    public ResponseEntity<List<TransaccionDTO>> findByUsuario(@PathVariable Long idUsuario) {
+        return ResponseEntity.ok(transaccionService.findByIdUsuarioConvertidas(idUsuario));
     }
     
     @PostMapping

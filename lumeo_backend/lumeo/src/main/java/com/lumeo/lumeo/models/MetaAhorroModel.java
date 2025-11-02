@@ -26,10 +26,13 @@ public class MetaAhorroModel {
     private String titulo;
     
     @Column(name = "cantidad_objetivo")
-    private Double cantidadObjetivo;
+    private Double cantidadObjetivo; // Cantidad ORIGINAL
     
     @Column(name = "cantidad_actual")
-    private Double cantidadActual;
+    private Double cantidadActual; // Cantidad ORIGINAL
+    
+    @Column(name = "id_divisa_original")
+    private Long idDivisaOriginal; // Divisa en la que se creó la meta
     
     @Column(name = "id_usuario")
     private Long idUsuario;
