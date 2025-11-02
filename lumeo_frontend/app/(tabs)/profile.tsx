@@ -1,16 +1,108 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Modal, Pressable, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useRouter } from 'expo-router';
+import { DivisaService, Divisa } from '@/services/divisa.service';
+import { usuarioService } from '@/services/usuario.service';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { usuario, loading, refetchUsuario } = useUsuarioApi();
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Estados para el selector de divisas
+  const [showDivisaModal, setShowDivisaModal] = useState(false);
+  const [divisas, setDivisas] = useState<Divisa[]>([]);
+  const [loadingDivisas, setLoadingDivisas] = useState(false);
+  const [selectedDivisa, setSelectedDivisa] = useState<Divisa | null>(null);
+  const [divisaActual, setDivisaActual] = useState<Divisa | null>(null);
+  const [savingDivisa, setSavingDivisa] = useState(false);
+
+  // Cargar divisas al montar el componente
+  useEffect(() => {
+    loadDivisas();
+  }, []);
+
+  // Cargar divisa actual del usuario
+  useEffect(() => {
+    if (usuario?.idDivisa) {
+      loadDivisaActual(usuario.idDivisa);
+    }
+  }, [usuario?.idDivisa]);
+
+  const loadDivisas = async () => {
+    try {
+      setLoadingDivisas(true);
+      const divisasData = await DivisaService.getAll();
+      setDivisas(divisasData);
+    } catch (error) {
+      console.error('Error al cargar divisas:', error);
+    } finally {
+      setLoadingDivisas(false);
+    }
+  };
+
+  const loadDivisaActual = async (divisaId: number) => {
+    try {
+      const divisa = await DivisaService.getById(divisaId);
+      setDivisaActual(divisa);
+    } catch (error: any) {
+      // Solo loguear si no fue cancelado
+      if (error?.message !== 'CANCELED' && !error?.canceled) {
+        console.error('Error al cargar divisa actual:', error);
+      }
+    }
+  };
+
+  const handleOpenDivisaModal = () => {
+    setSelectedDivisa(divisaActual);
+    setShowDivisaModal(true);
+  };
+
+  const handleSelectDivisa = (divisa: Divisa) => {
+    setSelectedDivisa(divisa);
+  };
+
+  const handleConfirmDivisa = async () => {
+    if (!selectedDivisa || !user?.id) return;
+
+    try {
+      setSavingDivisa(true);
+      console.log('💱 Actualizando divisa del usuario a:', selectedDivisa.iso);
+      
+      // Actualizar la divisa en el backend (esto también convierte todas las transacciones)
+      await usuarioService.updateByUid(user.id, { idDivisa: selectedDivisa.id });
+      
+      console.log('✅ Divisa actualizada en el backend, esperando conversión...');
+      
+      // Esperar un momento para que el backend complete la conversión de todas las transacciones
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('🔄 Conversión completada, actualizando UI...');
+      
+      setDivisaActual(selectedDivisa);
+      setShowDivisaModal(false);
+      refetchUsuario();
+      
+      // Emitir evento de cambio de divisa para que otros componentes se actualicen
+      const { eventEmitter, APP_EVENTS } = require('@/lib/event-emitter');
+      console.log('📢 Emitiendo evento CURRENCY_CHANGED');
+      eventEmitter.emit(APP_EVENTS.CURRENCY_CHANGED);
+    } catch (error) {
+      console.error('❌ Error al actualizar divisa:', error);
+    } finally {
+      setSavingDivisa(false);
+    }
+  };
+
+  const handleCancelDivisa = () => {
+    setShowDivisaModal(false);
+    setSelectedDivisa(divisaActual);
+  };
 
   // Función para refrescar
   const handleRefresh = () => {
@@ -135,7 +227,7 @@ export default function ProfileScreen() {
               {/* Divisa debajo del email */}
               <TouchableOpacity 
                 style={styles.divisaSection}
-                onPress={() => console.log('Divisa')}
+                onPress={handleOpenDivisaModal}
                 activeOpacity={0.7}
               >
                 <View style={styles.divisaLeft}>
@@ -144,7 +236,7 @@ export default function ProfileScreen() {
                 </View>
                 <View style={styles.divisaRight}>
                   <Text style={styles.divisaValue}>
-                    {usuario?.idDivisa ? `ID: ${usuario.idDivisa}` : 'EUR'}
+                    {divisaActual?.simbolo ? `${divisaActual.simbolo} (${divisaActual.iso})` : divisaActual?.iso || 'EUR'}
                   </Text>
                   <Ionicons name="chevron-forward" size={16} color="#CCC" />
                 </View>
@@ -201,6 +293,70 @@ export default function ProfileScreen() {
       </ScrollView>
 
       <BottomTabBar activeTab="profile" onTabRefresh={handleRefresh} />
+
+      {/* Modal de selector de divisas */}
+      <Modal visible={showDivisaModal} transparent={true} animationType="fade">
+        <Pressable style={styles.divisaModalOverlay} onPress={handleCancelDivisa}>
+          <Pressable style={styles.divisaModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.divisaModalHeader}>
+              <Text style={styles.divisaModalTitle}>Seleccionar Divisa</Text>
+              <TouchableOpacity onPress={handleCancelDivisa}>
+                <Ionicons name="close" size={28} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.divisaList} showsVerticalScrollIndicator={false}>
+              {loadingDivisas ? (
+                <View style={styles.divisaLoadingContainer}>
+                  <ActivityIndicator size="large" color="#007AFF" />
+                  <Text style={styles.divisaLoadingText}>Cargando divisas...</Text>
+                </View>
+              ) : (
+                divisas.map((divisa) => (
+                  <TouchableOpacity
+                    key={divisa.id}
+                    style={[
+                      styles.divisaItem,
+                      selectedDivisa?.id === divisa.id && styles.divisaItemSelected
+                    ]}
+                    onPress={() => handleSelectDivisa(divisa)}
+                  >
+                    <View style={styles.divisaItemContent}>
+                      <Text style={styles.divisaItemISO}>
+                        {divisa.simbolo ? `${divisa.simbolo} ${divisa.iso}` : divisa.iso}
+                      </Text>
+                      <Text style={styles.divisaItemDescripcion}>{divisa.descripcion}</Text>
+                    </View>
+                    {selectedDivisa?.id === divisa.id && (
+                      <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                    )}
+                  </TouchableOpacity>
+                ))
+              )}
+            </ScrollView>
+
+            <View style={styles.divisaModalButtons}>
+              <TouchableOpacity 
+                style={styles.divisaCancelButton} 
+                onPress={handleCancelDivisa}
+              >
+                <Text style={styles.divisaCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.divisaConfirmButton, savingDivisa && styles.divisaConfirmButtonDisabled]} 
+                onPress={handleConfirmDivisa}
+                disabled={savingDivisa}
+              >
+                {savingDivisa ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.divisaConfirmText}>Confirmar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -434,5 +590,116 @@ const styles = StyleSheet.create({
   },
   bottomSpace: {
     height: 100,
+  },
+  // Estilos del modal de divisas
+  divisaModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  divisaModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    width: '85%',
+    maxWidth: 400,
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  divisaModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  divisaModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  divisaList: {
+    maxHeight: 300,
+    marginBottom: 16,
+  },
+  divisaLoadingContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    gap: 12,
+  },
+  divisaLoadingText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  divisaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  divisaItemSelected: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#007AFF',
+    borderWidth: 2,
+  },
+  divisaItemContent: {
+    flex: 1,
+  },
+  divisaItemISO: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  divisaItemDescripcion: {
+    fontSize: 13,
+    color: '#666',
+  },
+  divisaModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  divisaCancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+  },
+  divisaCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  divisaConfirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+  },
+  divisaConfirmButtonDisabled: {
+    backgroundColor: '#B0B0B0',
+  },
+  divisaConfirmText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

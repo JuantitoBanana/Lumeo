@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUltimosGastos } from '@/hooks/useUltimosGastos';
+import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
+import { formatearCantidad } from '@/lib/currency-utils';
 
 interface UltimosGastosProps {
   usuarioId: number | null | undefined;
@@ -9,6 +11,7 @@ interface UltimosGastosProps {
 
 export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
   const { gastos, loading, error } = useUltimosGastos(usuarioId);
+  const { currencySymbol } = useCurrencySymbol();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -17,12 +20,9 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
     return `${day}/${month}`;
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 2,
-    }).format(amount);
+  const formatCurrency = (amount: number, posicionSimbolo?: string) => {
+    const position = posicionSimbolo || 'DESPUES';
+    return formatearCantidad(Math.abs(amount), currencySymbol, position);
   };
 
   if (loading) {
@@ -88,7 +88,7 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
               </View>
             </View>
             <Text style={styles.gastoImporte}>
-              -{formatCurrency(gasto.importe)}
+              -{formatCurrency(gasto.importe, gasto.posicionSimbolo)}
             </Text>
           </View>
         ))}

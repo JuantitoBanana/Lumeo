@@ -14,6 +14,7 @@ import GraficoCategoria from '@/components/GraficoCategoria';
 import GraficoEvolucion from '@/components/GraficoEvolucion';
 import UltimosGastos from '@/components/UltimosGastos';
 import { apiClient } from '@/lib/api-client';
+import { eventEmitter, APP_EVENTS } from '@/lib/event-emitter';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -35,6 +36,26 @@ export default function HomeScreen() {
     refetchEvolucion();
   };
 
+  // Escuchar cambios de divisa
+  useEffect(() => {
+    const unsubscribe = eventEmitter.on(APP_EVENTS.CURRENCY_CHANGED, () => {
+      console.log('💱 Dashboard: Detectado cambio de divisa, recargando datos...');
+      // Pequeño delay para asegurar que el backend terminó la conversión
+      setTimeout(() => {
+        console.log('🔄 Refrescando datos del dashboard...');
+        // Recargar todos los datos del dashboard
+        refetchUsuario();
+        refetchResumen();
+        refetchGastos();
+        refetchEvolucion();
+      }, 500); // 500ms de delay
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [refetchUsuario, refetchResumen, refetchGastos, refetchEvolucion]);
+
   // Cleanup: Cancelar todas las peticiones pendientes cuando se desmonta el componente
   useEffect(() => {
     return () => {
@@ -44,14 +65,14 @@ export default function HomeScreen() {
   }, []);
 
   // Función para formatear cantidades monetarias
-  const formatearCantidad = (cantidad: number, simbolo: string, codigo: string) => {
+  const formatearCantidad = (cantidad: number, simbolo: string, posicion: string = 'DESPUES') => {
     const cantidadFormateada = cantidad.toFixed(2);
-    // Si es EUR, poner el símbolo a la derecha
-    if (codigo === 'EUR') {
+    // Respetar la posición del símbolo según la divisa
+    if (posicion === 'ANTES') {
+      return `${simbolo}${cantidadFormateada}`;
+    } else {
       return `${cantidadFormateada}${simbolo}`;
     }
-    // Para otras divisas, mantener el símbolo a la izquierda
-    return `${simbolo}${cantidadFormateada}`;
   };
 
   // Debug logs
@@ -155,7 +176,7 @@ export default function HomeScreen() {
                     styles.dashboardBalance,
                     { color: resumen.saldoTotal >= 0 ? '#4CAF50' : '#F44336' }
                   ]}>
-                    {formatearCantidad(resumen.saldoTotal, resumen.simboloDivisa, resumen.codigoDivisa)}
+                    {formatearCantidad(resumen.saldoTotal, resumen.simboloDivisa, resumen.posicionSimbolo)}
                   </Text>
                 </View>
               ) : (
@@ -199,13 +220,13 @@ export default function HomeScreen() {
                   <View style={styles.monthlyItem}>
                     <Text style={styles.monthlyLabel}>Ingresos</Text>
                     <Text style={[styles.monthlyValue, { color: '#4CAF50' }]}>
-                      {formatearCantidad(resumen.ingresosMensuales, resumen.simboloDivisa, resumen.codigoDivisa)}
+                      {formatearCantidad(resumen.ingresosMensuales, resumen.simboloDivisa, resumen.posicionSimbolo)}
                     </Text>
                   </View>
                   <View style={styles.monthlyItem}>
                     <Text style={styles.monthlyLabel}>Gastos</Text>
                     <Text style={[styles.monthlyValue, { color: '#F44336' }]}>
-                      {formatearCantidad(resumen.gastosMensuales, resumen.simboloDivisa, resumen.codigoDivisa)}
+                      {formatearCantidad(resumen.gastosMensuales, resumen.simboloDivisa, resumen.posicionSimbolo)}
                     </Text>
                   </View>
                   <View style={styles.monthlyItem}>
@@ -214,7 +235,7 @@ export default function HomeScreen() {
                       styles.monthlyValue,
                       { color: resumen.ahorroMensual >= 0 ? '#4CAF50' : '#F44336' }
                     ]}>
-                      {formatearCantidad(resumen.ahorroMensual, resumen.simboloDivisa, resumen.codigoDivisa)}
+                      {formatearCantidad(resumen.ahorroMensual, resumen.simboloDivisa, resumen.posicionSimbolo)}
                     </Text>
                   </View>
                 </View>

@@ -17,6 +17,8 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useTransacciones } from '@/hooks/useTransacciones';
+import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
+import { formatearCantidad } from '@/lib/currency-utils';
 import { Transaccion } from '@/types/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -25,9 +27,10 @@ interface TransactionDetailModalProps {
   visible: boolean;
   onClose: () => void;
   transaction: Transaccion | null;
+  currencySymbol: string;
 }
 
-function TransactionDetailModal({ visible, onClose, transaction }: TransactionDetailModalProps) {
+function TransactionDetailModal({ visible, onClose, transaction, currencySymbol }: TransactionDetailModalProps) {
   if (!transaction) return null;
 
   const formatDate = (dateString: string) => {
@@ -42,6 +45,11 @@ function TransactionDetailModal({ visible, onClose, transaction }: TransactionDe
   // Determinar si es ingreso o gasto basado en el tipo de transacción
   const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') || 
                    transaction.idTipo === 1; // Asumiendo que 1 es ingreso
+  
+  const formatAmount = (amount: number) => {
+    const position = transaction.posicionSimbolo || 'DESPUES';
+    return formatearCantidad(Math.abs(amount), currencySymbol, position);
+  };
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose}>
@@ -110,7 +118,7 @@ function TransactionDetailModal({ visible, onClose, transaction }: TransactionDe
                   { color: isIncome ? '#4CAF50' : '#F44336' },
                 ]}
               >
-                {isIncome ? '+' : '-'}€{Math.abs(transaction.importe).toFixed(2)}
+                {isIncome ? '+' : '-'}{formatAmount(transaction.importe)}
               </Text>
             </View>
 
@@ -167,6 +175,7 @@ export default function TransactionsScreen() {
   const { user } = useAuth();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
   const { transacciones, loading, error, refetchTransacciones } = useTransacciones(usuario?.id);
+  const { currencySymbol } = useCurrencySymbol();
   const scrollViewRef = useRef<ScrollView>(null);
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -463,6 +472,11 @@ export default function TransactionsScreen() {
             const categoryIcon = transaction.categoria?.icono || 'pricetag-outline';
             const categoryColor = transaction.categoria?.color || (isIncome ? '#4CAF50' : '#F44336');
             
+            const formatAmount = (amount: number) => {
+              const position = transaction.posicionSimbolo || 'DESPUES';
+              return formatearCantidad(Math.abs(amount), currencySymbol, position);
+            };
+            
             return (
               <View key={transaction.id} style={styles.transactionCard}>
                 <View style={styles.transactionLeft}>
@@ -492,7 +506,7 @@ export default function TransactionsScreen() {
                       { color: isIncome ? '#4CAF50' : '#F44336' },
                     ]}
                   >
-                    {isIncome ? '+' : '-'}€{Math.abs(transaction.importe).toFixed(2)}
+                    {isIncome ? '+' : '-'}{formatAmount(transaction.importe)}
                   </Text>
                   <TouchableOpacity
                     style={styles.detailButton}
@@ -516,6 +530,7 @@ export default function TransactionsScreen() {
         visible={modalVisible}
         onClose={handleCloseModal}
         transaction={selectedTransaction}
+        currencySymbol={currencySymbol}
       />
 
       {/* Modal de Date Picker para Fecha Inicio */}

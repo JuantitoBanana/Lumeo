@@ -11,6 +11,7 @@ export interface UltimoGasto {
   nombreCategoria?: string;
   iconoCategoria?: string;
   colorCategoria?: string;
+  posicionSimbolo?: string; // "ANTES" o "DESPUES"
   // Objeto de categoría para compatibilidad
   categoria?: {
     nombre: string;

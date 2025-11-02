@@ -23,6 +23,13 @@ export class UsuarioService {
   }
 
   /**
+   * Obtiene un usuario por UID (Supabase UUID)
+   */
+  async getByUid(uid: string): Promise<Usuario> {
+    return apiClient.get<Usuario>(`${this.endpoint}/uid/${uid}`);
+  }
+
+  /**
    * Crea un nuevo usuario
    */
   async create(usuario: Omit<Usuario, 'id' | 'fechaCreacion' | 'fechaModificacion'>): Promise<Usuario> {
@@ -34,6 +41,13 @@ export class UsuarioService {
    */
   async update(id: number, usuario: Partial<Usuario>): Promise<Usuario> {
     return apiClient.put<Usuario>(`${this.endpoint}/${id}`, usuario);
+  }
+
+  /**
+   * Actualiza un usuario existente por UID
+   */
+  async updateByUid(uid: string, usuario: Partial<Usuario>): Promise<Usuario> {
+    return apiClient.put<Usuario>(`${this.endpoint}/uid/${uid}`, usuario);
   }
 
   /**

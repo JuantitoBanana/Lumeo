@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { EvolucionMensual } from '@/services/graficos.service';
+import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 
 interface GraficoEvolucionProps {
   evolucion: EvolucionMensual[];
@@ -11,6 +12,8 @@ interface GraficoEvolucionProps {
 const screenWidth = Dimensions.get('window').width;
 
 export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, loading }) => {
+  const { currencySymbol, symbolPosition } = useCurrencySymbol();
+  
   // Configuración del gráfico
   const chartConfig = {
     backgroundColor: '#ffffff',
@@ -82,8 +85,8 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, l
           data={chartData}
           width={screenWidth * 0.42}
           height={160}
-          yAxisLabel=""
-          yAxisSuffix="€"
+          yAxisLabel={symbolPosition === 'ANTES' ? currencySymbol : ''}
+          yAxisSuffix={symbolPosition === 'DESPUES' ? currencySymbol : ''}
           chartConfig={chartConfig}
           verticalLabelRotation={0}
           fromZero={true}

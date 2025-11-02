@@ -22,6 +22,8 @@ export interface Divisa {
   id: number;
   descripcion: string | null;      // Currency description
   iso: string | null;               // ISO code (USD, EUR, etc.)
+  simbolo?: string | null;          // Currency symbol (€, $, £, etc.)
+  posicionSimbolo?: string | null;  // Symbol position: "ANTES" or "DESPUES"
 }
 
 // Transaction table

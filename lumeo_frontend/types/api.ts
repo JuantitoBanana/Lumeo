@@ -29,6 +29,7 @@ export interface Transaccion {
   idTipo?: number;
   idEstado?: number;
   idAdjunto?: number;
+  posicionSimbolo?: string; // "ANTES" o "DESPUES"
   // Relationships (populated when fetched from API)
   usuario?: Usuario;
   categoria?: Categoria;
@@ -74,6 +75,7 @@ export interface Divisa {
   nombre: string;
   codigo: string;
   simbolo: string;
+  posicionSimbolo?: string; // "ANTES" o "DESPUES"
 }
 
 // Meta de Ahorro

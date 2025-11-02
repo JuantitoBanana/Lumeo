@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import { GastoPorCategoria } from '@/services/graficos.service';
+import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
+import { formatearCantidad } from '@/lib/currency-utils';
 
 interface GraficoCategoriaProps {
   gastos: GastoPorCategoria[];
@@ -11,6 +13,8 @@ interface GraficoCategoriaProps {
 const screenWidth = Dimensions.get('window').width;
 
 export const GraficoCategoria: React.FC<GraficoCategoriaProps> = ({ gastos, loading }) => {
+  const { currencySymbol, symbolPosition } = useCurrencySymbol();
+  
   // Configuración del gráfico
   const chartConfig = {
     backgroundGradientFrom: '#ffffff',
@@ -83,7 +87,7 @@ export const GraficoCategoria: React.FC<GraficoCategoriaProps> = ({ gastos, load
               <View key={index} style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: item.color }]} />
                 <Text style={styles.legendText}>
-                  {item.name}: {item.amount.toFixed(0)}€
+                  {item.name}: {formatearCantidad(item.amount, currencySymbol, symbolPosition, 0)}
                 </Text>
               </View>
             ))}

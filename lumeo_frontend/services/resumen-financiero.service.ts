@@ -6,6 +6,7 @@ export interface ResumenFinanciero {
   saldoTotal: number;
   codigoDivisa: string;
   simboloDivisa: string;
+  posicionSimbolo: string; // "ANTES" o "DESPUES"
   // Datos mensuales
   ingresosMensuales: number;
   gastosMensuales: number;

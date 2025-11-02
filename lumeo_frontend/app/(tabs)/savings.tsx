@@ -12,11 +12,14 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useMetasAhorro } from '@/hooks/useMetasAhorro';
+import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
+import { formatearCantidad } from '@/lib/currency-utils';
 import AddMoneyModal from '@/app/add-money-modal';
 
 export default function SavingsScreen() {
   const router = useRouter();
   const { metas, loading, error, refetch } = useMetasAhorro();
+  const { currencySymbol } = useCurrencySymbol();
   const scrollViewRef = useRef<ScrollView>(null);
   
   const [modalVisible, setModalVisible] = useState(false);
@@ -59,11 +62,9 @@ export default function SavingsScreen() {
     refetch();
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
+  const formatCurrency = (amount: number, posicionSimbolo?: string) => {
+    const position = posicionSimbolo || 'DESPUES';
+    return formatearCantidad(Math.abs(amount), currencySymbol, position);
   };
 
   const calculatePercentage = (current: number, goal: number) => {
@@ -147,7 +148,7 @@ export default function SavingsScreen() {
               {/* Montos */}
               <View style={styles.metaFooter}>
                 <Text style={styles.amountText}>
-                  {formatCurrency(meta.cantidadActual)} / {formatCurrency(meta.cantidadObjetivo)}
+                  {formatCurrency(meta.cantidadActual, meta.posicionSimbolo)} / {formatCurrency(meta.cantidadObjetivo, meta.posicionSimbolo)}
                 </Text>
               </View>
             </View>

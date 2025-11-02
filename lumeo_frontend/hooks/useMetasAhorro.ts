@@ -10,6 +10,7 @@ export interface MetaAhorro {
   idUsuario: number;
   fechaCreacion: string;
   fechaModificacion: string;
+  posicionSimbolo?: string; // "ANTES" o "DESPUES"
 }
 
 export function useMetasAhorro() {

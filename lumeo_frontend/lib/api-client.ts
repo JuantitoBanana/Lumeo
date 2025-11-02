@@ -8,14 +8,20 @@ import { ApiError } from '../types/api';
 class RequestQueue {
   private queue: Array<{ key: string; fn: () => Promise<any> }> = [];
   private pending = 0;
-  private maxConcurrent = 3; // Máximo 3 peticiones simultáneas
-  private activeRequests = new Set<string>();
+  private maxConcurrent = 5; // Aumentar a 5 peticiones simultáneas
+  private activeRequests = new Map<string, number>(); // Contar peticiones activas por key
 
   async add<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
-    // Solo rechazar si la petición está ACTIVA (en progreso), no si está en cola esperando
-    if (this.activeRequests.has(key)) {
-      console.log('⏭️ Petición duplicada descartada (ya en ejecución):', key);
-      throw new Error('CANCELED');
+    // Para GET, permitir múltiples peticiones simultáneas
+    const isGetRequest = key.startsWith('GET:');
+    
+    if (!isGetRequest) {
+      // Solo para POST, PUT, DELETE rechazar duplicados exactos
+      const activeCount = this.activeRequests.get(key) || 0;
+      if (activeCount > 0) {
+        console.log('⏭️ Petición duplicada descartada (ya en ejecución):', key);
+        throw new Error('CANCELED');
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -24,14 +30,21 @@ class RequestQueue {
         fn: async () => {
           try {
             this.pending++;
-            this.activeRequests.add(key);
+            const currentCount = this.activeRequests.get(key) || 0;
+            this.activeRequests.set(key, currentCount + 1);
+            
             const result = await requestFn();
             resolve(result);
           } catch (error) {
             reject(error);
           } finally {
             this.pending--;
-            this.activeRequests.delete(key);
+            const currentCount = this.activeRequests.get(key) || 0;
+            if (currentCount <= 1) {
+              this.activeRequests.delete(key);
+            } else {
+              this.activeRequests.set(key, currentCount - 1);
+            }
             this.processNext();
           }
         }
