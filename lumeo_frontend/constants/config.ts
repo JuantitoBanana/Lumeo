@@ -12,7 +12,7 @@ export const RESET_PASSWORD_URL = __DEV__
 // URL base de la aplicación
 export const APP_URL = __DEV__
   ? 'http://localhost:8082'
-  : 'https://tu-dominio.com';
+  : 'https://original-wallie-lumeo-team-b6b2ddc2.koyeb.app';
 
 // URL base para la API de Java Spring Boot
 // Por defecto Spring Boot corre en el puerto 8080
@@ -41,15 +41,16 @@ if (debuggerHost) {
 
 export const API_BASE_URL = __DEV__
   ? `http://${devHost}:8080/api` // URL de desarrollo del backend Java (auto-detect)
-  : 'https://tu-api-backend.com/api'; // URL de producción - CAMBIAR ESTO
+  : 'https://original-wallie-lumeo-team-b6b2ddc2.koyeb.app/api'; // URL de producción en Koyeb
 
-// Log para debugging (comentado para evitar errores)
-// console.log('🔍 API Configuration:', {
-//   devHost,
-//   debuggerHost,
-//   platform: Platform.OS,
-//   API_BASE_URL: __DEV__ ? `http://${devHost}:8080/api` : 'https://tu-api-backend.com/api'
-// });
+// Log para debugging
+console.log('🔍 API Configuration:', {
+  devHost,
+  debuggerHost,
+  platform: Platform.OS,
+  isDev: __DEV__,
+  API_BASE_URL
+});
 
 // Timeout para las peticiones HTTP (en milisegundos)
 // Aumentado a 15 segundos para dar más margen a respuestas lentas
