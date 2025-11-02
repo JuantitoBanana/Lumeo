@@ -56,6 +56,26 @@ export default function HomeScreen() {
     };
   }, [refetchUsuario, refetchResumen, refetchGastos, refetchEvolucion]);
 
+  // Escuchar eliminación de transacciones
+  useEffect(() => {
+    const unsubscribe = eventEmitter.on(APP_EVENTS.TRANSACTION_DELETED, () => {
+      console.log('🗑️ Dashboard: Detectada eliminación de transacción, recargando datos...');
+      // Pequeño delay para asegurar que el backend procesó la eliminación
+      setTimeout(() => {
+        console.log('🔄 Refrescando datos del dashboard...');
+        // Recargar todos los datos del dashboard
+        refetchUsuario();
+        refetchResumen();
+        refetchGastos();
+        refetchEvolucion();
+      }, 300); // 300ms de delay
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [refetchUsuario, refetchResumen, refetchGastos, refetchEvolucion]);
+
   // Cleanup: Cancelar todas las peticiones pendientes cuando se desmonta el componente
   useEffect(() => {
     return () => {

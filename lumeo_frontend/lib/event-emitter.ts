@@ -34,4 +34,5 @@ export const eventEmitter = new EventEmitter();
 // Eventos de la aplicación
 export const APP_EVENTS = {
   CURRENCY_CHANGED: 'currency_changed',
+  TRANSACTION_DELETED: 'transaction_deleted',
 };

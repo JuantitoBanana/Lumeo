@@ -9,6 +9,7 @@ import {
   Modal,
   Pressable,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -19,8 +20,10 @@ import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useTransacciones } from '@/hooks/useTransacciones';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
+import apiClient from '@/lib/api-client';
 import { Transaccion } from '@/types/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { eventEmitter, APP_EVENTS } from '@/lib/event-emitter';
 
 // Modal de detalle de transacción
 interface TransactionDetailModalProps {
@@ -28,9 +31,10 @@ interface TransactionDetailModalProps {
   onClose: () => void;
   transaction: Transaccion | null;
   currencySymbol: string;
+  onDelete: (transaction: Transaccion) => void;
 }
 
-function TransactionDetailModal({ visible, onClose, transaction, currencySymbol }: TransactionDetailModalProps) {
+function TransactionDetailModal({ visible, onClose, transaction, currencySymbol, onDelete }: TransactionDetailModalProps) {
   if (!transaction) return null;
 
   const formatDate = (dateString: string) => {
@@ -49,6 +53,10 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol 
   const formatAmount = (amount: number) => {
     const position = transaction.posicionSimbolo || 'DESPUES';
     return formatearCantidad(Math.abs(amount), currencySymbol, position);
+  };
+
+  const handleDelete = () => {
+    onDelete(transaction);
   };
 
   return (
@@ -152,6 +160,14 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol 
               </View>
             )}
           </View>
+
+          {/* Botón de eliminar - posicionado absolutamente */}
+          <TouchableOpacity 
+            style={styles.deleteTransactionButton}
+            onPress={handleDelete}
+          >
+            <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
+          </TouchableOpacity>
         </Pressable>
       </Pressable>
     </Modal>
@@ -182,6 +198,9 @@ export default function TransactionsScreen() {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaccion | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaccion | null>(null);
+  const [deleting, setDeleting] = useState(false);
   
   // Estados para el rango de fechas
   const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
@@ -273,6 +292,40 @@ export default function TransactionsScreen() {
   const handleCloseModal = () => {
     setModalVisible(false);
     setTimeout(() => setSelectedTransaction(null), 300);
+  };
+
+  const handleOpenDeleteModal = (transaction: Transaccion) => {
+    setTransactionToDelete(transaction);
+    setModalVisible(false); // Cerrar modal de detalle
+    setDeleteModalVisible(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModalVisible(false);
+    setTransactionToDelete(null);
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!transactionToDelete?.id) return;
+
+    setDeleting(true);
+    try {
+      await apiClient.delete(`/transacciones/${transactionToDelete.id}`);
+      
+      // Cerrar modales y refrescar lista
+      setDeleteModalVisible(false);
+      setTransactionToDelete(null);
+      setSelectedTransaction(null);
+      refetchTransacciones();
+      
+      // Emitir evento para actualizar el dashboard
+      eventEmitter.emit(APP_EVENTS.TRANSACTION_DELETED);
+    } catch (err: any) {
+      console.error('Error al eliminar transacción:', err);
+      Alert.alert('Error', 'No se pudo eliminar la transacción');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   // Filtrar transacciones
@@ -531,7 +584,54 @@ export default function TransactionsScreen() {
         onClose={handleCloseModal}
         transaction={selectedTransaction}
         currencySymbol={currencySymbol}
+        onDelete={handleOpenDeleteModal}
       />
+
+      {/* Modal de confirmación para eliminar transacción */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseDeleteModal}
+      >
+        <Pressable style={styles.deleteModalOverlay} onPress={handleCloseDeleteModal}>
+          <Pressable style={styles.deleteModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.deleteModalHeader}>
+              <Ionicons name="warning" size={48} color="#FF3B30" />
+              <Text style={styles.deleteModalTitle}>Eliminar Transacción</Text>
+            </View>
+            
+            <Text style={styles.deleteModalMessage}>
+              ¿Estás seguro de que deseas eliminar la transacción "{transactionToDelete?.titulo}"?
+            </Text>
+            <Text style={styles.deleteModalWarning}>
+              Esta acción no se puede deshacer.
+            </Text>
+
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCloseDeleteModal}
+                disabled={deleting}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.confirmDeleteButton, deleting && styles.confirmDeleteButtonDisabled]}
+                onPress={handleDeleteTransaction}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmDeleteButtonText}>Eliminar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Modal de Date Picker para Fecha Inicio */}
       <Modal visible={showDatePickerInicio} transparent={true} animationType="fade">
@@ -1008,6 +1108,95 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   datePickerConfirmText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  // Estilos para el botón de eliminar en el modal de detalle
+  deleteTransactionButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#FF3B30',
+  },
+  deleteTransactionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  // Estilos del modal de confirmación de eliminación
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  deleteModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  deleteModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: 12,
+  },
+  deleteModalMessage: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  deleteModalWarning: {
+    fontSize: 14,
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '600',
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#FF3B30',
+    alignItems: 'center',
+  },
+  confirmDeleteButtonDisabled: {
+    opacity: 0.6,
+  },
+  confirmDeleteButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',

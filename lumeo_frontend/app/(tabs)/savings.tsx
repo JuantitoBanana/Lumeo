@@ -6,6 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
+  Pressable,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -14,6 +17,7 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useMetasAhorro } from '@/hooks/useMetasAhorro';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
+import apiClient from '@/lib/api-client';
 import AddMoneyModal from '@/app/add-money-modal';
 
 export default function SavingsScreen() {
@@ -23,12 +27,18 @@ export default function SavingsScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedMeta, setSelectedMeta] = useState<{
     id: number;
     titulo: string;
     cantidadActual: number;
     cantidadObjetivo: number;
   } | null>(null);
+  const [metaToDelete, setMetaToDelete] = useState<{
+    id: number;
+    titulo: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Recargar metas cuando la pantalla recibe foco
   useFocusEffect(
@@ -60,6 +70,38 @@ export default function SavingsScreen() {
 
   const handleSuccess = () => {
     refetch();
+  };
+
+  const handleOpenDeleteModal = (meta: any) => {
+    setMetaToDelete({
+      id: meta.id,
+      titulo: meta.titulo,
+    });
+    setDeleteModalVisible(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModalVisible(false);
+    setMetaToDelete(null);
+  };
+
+  const handleDeleteMeta = async () => {
+    if (!metaToDelete) return;
+
+    setDeleting(true);
+    try {
+      await apiClient.delete(`/metas-ahorro/${metaToDelete.id}`);
+      
+      // Cerrar modal y refrescar lista
+      setDeleteModalVisible(false);
+      setMetaToDelete(null);
+      refetch();
+    } catch (err: any) {
+      console.error('Error al eliminar meta:', err);
+      Alert.alert('Error', 'No se pudo eliminar la meta de ahorro');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const formatCurrency = (amount: number, posicionSimbolo?: string) => {
@@ -129,6 +171,12 @@ export default function SavingsScreen() {
                     onPress={() => handleOpenModal(meta)}
                   >
                     <Ionicons name="add-circle" size={32} color="#007AFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.deleteButton}
+                    onPress={() => handleOpenDeleteModal(meta)}
+                  >
+                    <Ionicons name="trash-outline" size={28} color="#FF3B30" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -201,6 +249,52 @@ export default function SavingsScreen() {
           onSuccess={handleSuccess}
         />
       )}
+
+      {/* Modal de confirmación para eliminar */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseDeleteModal}
+      >
+        <Pressable style={styles.modalOverlay} onPress={handleCloseDeleteModal}>
+          <Pressable style={styles.deleteModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.deleteModalHeader}>
+              <Ionicons name="warning" size={48} color="#FF3B30" />
+              <Text style={styles.deleteModalTitle}>Eliminar Meta</Text>
+            </View>
+            
+            <Text style={styles.deleteModalMessage}>
+              ¿Estás seguro de que deseas eliminar la meta "{metaToDelete?.titulo}"?
+            </Text>
+            <Text style={styles.deleteModalWarning}>
+              Esta acción no se puede deshacer.
+            </Text>
+
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCloseDeleteModal}
+                disabled={deleting}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.confirmDeleteButton, deleting && styles.confirmDeleteButtonDisabled]}
+                onPress={handleDeleteMeta}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmDeleteButtonText}>Eliminar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -333,6 +427,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  deleteButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
   progressBarContainer: {
     marginBottom: 12,
   },
@@ -373,5 +474,79 @@ const styles = StyleSheet.create({
   },
   bottomSpace: {
     height: 100,
+  },
+  // Estilos del modal de confirmación de eliminación
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  deleteModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  deleteModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: 12,
+  },
+  deleteModalMessage: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  deleteModalWarning: {
+    fontSize: 14,
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '600',
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#FF3B30',
+    alignItems: 'center',
+  },
+  confirmDeleteButtonDisabled: {
+    opacity: 0.6,
+  },
+  confirmDeleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
