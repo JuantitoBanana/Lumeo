@@ -1,5 +1,6 @@
 package com.lumeo.lumeo.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "transaccion")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class TransaccionModel {
     
     @Id

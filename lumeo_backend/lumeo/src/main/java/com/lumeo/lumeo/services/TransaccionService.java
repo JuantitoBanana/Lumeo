@@ -21,6 +21,15 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
     }
     
     /**
+     * Obtiene todas las transacciones de un usuario
+     * @param idUsuario ID del usuario
+     * @return Lista de transacciones del usuario
+     */
+    public List<TransaccionModel> findByIdUsuario(Long idUsuario) {
+        return transaccionRepository.findByIdUsuario(idUsuario);
+    }
+    
+    /**
      * Obtiene los últimos 5 gastos de un usuario
      * @param idUsuario ID del usuario
      * @return Lista de los últimos 5 gastos como DTO
@@ -55,9 +64,8 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         if (transaccion.getCategoria() != null) {
             try {
                 dto.setNombreCategoria(transaccion.getCategoria().getNombre());
-                // Por ahora, icono y color serán null (se pueden agregar después al modelo)
-                dto.setIconoCategoria(null);
-                dto.setColorCategoria(null);
+                dto.setIconoCategoria(transaccion.getCategoria().getIcono());
+                dto.setColorCategoria(transaccion.getCategoria().getColor());
             } catch (Exception e) {
                 // Si falla al cargar la categoría, continuar sin ella
                 System.out.println("⚠️ No se pudo cargar la categoría para transacción " + transaccion.getId());

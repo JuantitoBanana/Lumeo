@@ -1,5 +1,6 @@
 package com.lumeo.lumeo.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "categoria")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class CategoriaModel {
     
     @Id
@@ -24,6 +26,12 @@ public class CategoriaModel {
     
     @Column(name = "id_usuario")
     private Long idUsuario;
+    
+    @Column(name = "icono")
+    private String icono;
+    
+    @Column(name = "color")
+    private String color;
     
     // Relationship with Usuario
     @ManyToOne(fetch = FetchType.LAZY)

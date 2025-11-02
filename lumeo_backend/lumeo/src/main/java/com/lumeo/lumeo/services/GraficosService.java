@@ -51,12 +51,14 @@ public class GraficosService {
         Map<Long, GastoPorCategoriaDTO> gastosPorCategoria = new HashMap<>();
         
         for (TransaccionModel transaccion : transacciones) {
-            // Solo procesar gastos (id_tipo = 2)
-            if (transaccion.getIdTipo() != null && transaccion.getIdTipo() == 2L) {
+            // Solo procesar gastos (id_tipo = 2) que tengan categoría
+            if (transaccion.getIdTipo() != null && transaccion.getIdTipo() == 2L && 
+                transaccion.getIdCategoria() != null) {
+                
                 Double importe = transaccion.getImporte();
                 Long idCategoria = transaccion.getIdCategoria();
                 
-                if (importe != null && idCategoria != null) {
+                if (importe != null) {
                     BigDecimal montoGasto = BigDecimal.valueOf(Math.abs(importe));
                     
                     if (gastosPorCategoria.containsKey(idCategoria)) {
@@ -66,7 +68,7 @@ public class GraficosService {
                     } else {
                         // Crear nueva entrada
                         String nombreCategoria = obtenerNombreCategoria(transaccion);
-                        String color = COLORES_GRAFICOS[gastosPorCategoria.size() % COLORES_GRAFICOS.length];
+                        String color = obtenerColorCategoria(transaccion, gastosPorCategoria.size());
                         
                         GastoPorCategoriaDTO nuevoGasto = new GastoPorCategoriaDTO(
                             idCategoria, nombreCategoria, montoGasto, color
@@ -87,10 +89,29 @@ public class GraficosService {
      * Obtiene el nombre de la categoría de una transacción
      */
     private String obtenerNombreCategoria(TransaccionModel transaccion) {
-        if (transaccion.getCategoria() != null && transaccion.getCategoria().getNombre() != null) {
-            return transaccion.getCategoria().getNombre();
+        try {
+            if (transaccion.getCategoria() != null && transaccion.getCategoria().getNombre() != null) {
+                return transaccion.getCategoria().getNombre();
+            }
+        } catch (Exception e) {
+            System.out.println("⚠️ No se pudo obtener nombre de categoría: " + e.getMessage());
         }
         return "Categoría " + transaccion.getIdCategoria();
+    }
+    
+    /**
+     * Obtiene el color de la categoría de una transacción
+     */
+    private String obtenerColorCategoria(TransaccionModel transaccion, int indice) {
+        try {
+            if (transaccion.getCategoria() != null && transaccion.getCategoria().getColor() != null) {
+                return transaccion.getCategoria().getColor();
+            }
+        } catch (Exception e) {
+            System.out.println("⚠️ No se pudo obtener color de categoría: " + e.getMessage());
+        }
+        // Usar color por defecto si no está disponible
+        return COLORES_GRAFICOS[indice % COLORES_GRAFICOS.length];
     }
     
     /**

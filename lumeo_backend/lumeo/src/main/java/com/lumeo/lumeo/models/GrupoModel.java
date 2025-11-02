@@ -1,5 +1,6 @@
 package com.lumeo.lumeo.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "grupo")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class GrupoModel {
     
     @Id

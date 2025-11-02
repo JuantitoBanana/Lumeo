@@ -28,6 +28,11 @@ public class TransaccionController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<List<TransaccionModel>> findByUsuario(@PathVariable Long idUsuario) {
+        return ResponseEntity.ok(transaccionService.findByIdUsuario(idUsuario));
+    }
+    
     @PostMapping
     public ResponseEntity<TransaccionModel> create(@RequestBody TransaccionModel transaccion) {
         return ResponseEntity.status(HttpStatus.CREATED).body(transaccionService.create(transaccion));

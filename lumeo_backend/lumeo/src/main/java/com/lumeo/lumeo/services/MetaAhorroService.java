@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 public class MetaAhorroService extends GenericService<MetaAhorroModel, Long> {
     
@@ -15,5 +18,13 @@ public class MetaAhorroService extends GenericService<MetaAhorroModel, Long> {
     @Override
     protected JpaRepository<MetaAhorroModel, Long> getRepository() {
         return metaAhorroRepository;
+    }
+    
+    public List<MetaAhorroModel> findByUsuario(Long idUsuario) {
+        return metaAhorroRepository.findByIdUsuario(idUsuario);
+    }
+    
+    public List<MetaAhorroModel> findByUsuarioUid(UUID uid) {
+        return metaAhorroRepository.findByUsuarioUid(uid);
     }
 }
