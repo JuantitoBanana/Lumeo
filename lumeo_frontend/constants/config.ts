@@ -30,10 +30,12 @@ const debuggerHost: string | undefined =
 
 let devHost = 'localhost';
 if (debuggerHost) {
+  // Expo detectó la IP automáticamente (dispositivo físico o emulador)
   devHost = debuggerHost.split(':')[0];
 } else if (Platform.OS === 'android') {
-  // AVD emulator DNS to host machine
-  devHost = '10.0.2.2';
+  // Para dispositivo físico Android, usar la IP local del PC
+  // Para emulador Android, usar 10.0.2.2
+  devHost = '192.168.1.136'; // Cambiar por tu IP local si es diferente
 } else if (Platform.OS === 'ios') {
   // iOS Simulator necesita la IP real de la máquina host
   devHost = '192.168.1.136';

@@ -81,12 +81,12 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    height: Platform.OS === 'ios' ? 80 : 70,
+    height: Platform.OS === 'ios' ? 80 : 90,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 0,
+    paddingBottom: Platform.OS === 'ios' ? 25 : 20,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {

@@ -67,7 +67,11 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
         <Ionicons name="receipt-outline" size={24} color="#007AFF" />
       </View>
 
-      <ScrollView style={styles.listContainer}>
+      <ScrollView 
+        style={styles.listContainer}
+        nestedScrollEnabled={true}
+        showsVerticalScrollIndicator={true}
+      >
         {gastos.map((gasto) => (
           <View key={gasto.id} style={styles.gastoItem}>
             <View style={styles.gastoLeft}>
