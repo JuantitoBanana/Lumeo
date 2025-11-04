@@ -35,4 +35,37 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
      */
     @Query("SELECT t FROM TransaccionModel t WHERE t.idUsuario = :idUsuario AND t.idTipo = 2 ORDER BY t.fechaTransaccion DESC")
     List<TransaccionModel> findUltimosGastosByIdUsuario(@Param("idUsuario") Long idUsuario);
+    
+    /**
+     * Calcula el total de gastos de un usuario para un mes y año específicos
+     * @param idUsuario ID del usuario
+     * @param mes Número del mes (1-12)
+     * @param anio Año
+     * @return Total de gastos del mes/año especificado
+     */
+    @Query(value = "SELECT COALESCE(SUM(t.importe), 0.0) FROM transaccion t " +
+           "WHERE t.id_usuario = :idUsuario " +
+           "AND t.id_tipo = 2 " +
+           "AND EXTRACT(MONTH FROM t.fecha_transaccion) = :mes " +
+           "AND EXTRACT(YEAR FROM t.fecha_transaccion) = :anio", nativeQuery = true)
+    Double calcularGastosPorMesAnio(@Param("idUsuario") Long idUsuario, 
+                                     @Param("mes") Integer mes, 
+                                     @Param("anio") Integer anio);
+    
+    /**
+     * Busca transacciones de un usuario filtradas por mes y año
+     * @param idUsuario ID del usuario
+     * @param mes Número del mes (1-12)
+     * @param anio Año como String
+     * @return Lista de transacciones que coinciden con el mes y año
+     */
+    @Query(value = "SELECT * FROM transaccion t " +
+           "WHERE t.id_usuario = :idUsuario " +
+           "AND t.id_tipo = 2 " +
+           "AND EXTRACT(MONTH FROM t.fecha_transaccion) = :mes " +
+           "AND EXTRACT(YEAR FROM t.fecha_transaccion) = :anio " +
+           "ORDER BY t.fecha_transaccion DESC", nativeQuery = true)
+    List<TransaccionModel> findByUsuarioMesAnio(@Param("idUsuario") Long idUsuario,
+                                                 @Param("mes") Integer mes,
+                                                 @Param("anio") Integer anio);
 }

@@ -59,4 +59,13 @@ public class TransaccionController {
         List<UltimoGastoDTO> ultimosGastos = transaccionService.getUltimosGastos(idUsuario);
         return ResponseEntity.ok(ultimosGastos);
     }
+    
+    @GetMapping("/usuario/{idUsuario}/mes/{mes}/anio/{anio}")
+    public ResponseEntity<List<TransaccionDTO>> findByUsuarioMesAnio(
+            @PathVariable Long idUsuario,
+            @PathVariable Integer mes,
+            @PathVariable Integer anio) {
+        List<TransaccionDTO> transacciones = transaccionService.findByUsuarioMesAnio(idUsuario, mes, anio);
+        return ResponseEntity.ok(transacciones);
+    }
 }

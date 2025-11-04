@@ -230,4 +230,74 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         
         return dto;
     }
+    
+    /**
+     * Calcula el total de gastos (tipo = 2) de un usuario para un mes y año específicos
+     * @param idUsuario ID del usuario
+     * @param mes Número del mes (1-12)
+     * @param anio Año
+     * @return Total de gastos del mes/año
+     */
+    public Double calcularGastosPorMesAnio(Long idUsuario, Integer mes, Integer anio) {
+        return transaccionRepository.calcularGastosPorMesAnio(idUsuario, mes, anio);
+    }
+    
+    /**
+     * Obtiene transacciones de un usuario filtradas por mes y año
+     * @param idUsuario ID del usuario
+     * @param mes Número del mes (1-12)
+     * @param anio Año
+     * @return Lista de transacciones del mes/año especificado
+     */
+    public List<TransaccionDTO> findByUsuarioMesAnio(Long idUsuario, Integer mes, Integer anio) {
+        List<TransaccionModel> transacciones = transaccionRepository.findByUsuarioMesAnio(idUsuario, mes, anio);
+        
+        // Convertir a DTOs
+        String codigoDivisaUsuario = "EUR";
+        String posicionSimbolo = "DESPUES";
+        Optional<usuarioModel> usuarioOpt = usuarioRepository.findById(idUsuario);
+        if (usuarioOpt.isPresent() && usuarioOpt.get().getIdDivisa() != null) {
+            Optional<DivisaModel> divisaOpt = divisaRepository.findById(usuarioOpt.get().getIdDivisa());
+            if (divisaOpt.isPresent()) {
+                codigoDivisaUsuario = divisaOpt.get().getIso();
+                posicionSimbolo = divisaOpt.get().getPosicionSimbolo() != null ? divisaOpt.get().getPosicionSimbolo() : "DESPUES";
+            }
+        }
+        
+        final String divisaDestino = codigoDivisaUsuario;
+        final String posicion = posicionSimbolo;
+        
+        return transacciones.stream().map(transaccion -> {
+            TransaccionDTO dto = convertirADTO(transaccion, divisaDestino);
+            dto.setPosicionSimbolo(posicion);
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    private TransaccionDTO convertirADTO(TransaccionModel transaccion, String divisaDestino) {
+        TransaccionDTO dto = new TransaccionDTO();
+        dto.setId(transaccion.getId());
+        dto.setTitulo(transaccion.getTitulo());
+        
+        // Por ahora, usamos el importe sin conversión
+        // TODO: implementar conversión de divisas cuando sea necesario
+        dto.setImporte(transaccion.getImporte());
+        
+        dto.setFechaTransaccion(transaccion.getFechaTransaccion());
+        dto.setNota(transaccion.getNota());
+        dto.setIdUsuario(transaccion.getIdUsuario());
+        dto.setIdCategoria(transaccion.getIdCategoria());
+        dto.setIdGrupo(transaccion.getIdGrupo());
+        dto.setIdTipo(transaccion.getIdTipo());
+        dto.setIdEstado(transaccion.getIdEstado());
+        dto.setIdAdjunto(transaccion.getIdAdjunto());
+        
+        // Incluir las relaciones
+        dto.setCategoria(transaccion.getCategoria());
+        dto.setGrupo(transaccion.getGrupo());
+        dto.setTipoTransaccion(transaccion.getTipoTransaccion());
+        dto.setEstadoTransaccion(transaccion.getEstadoTransaccion());
+        
+        return dto;
+    }
 }
