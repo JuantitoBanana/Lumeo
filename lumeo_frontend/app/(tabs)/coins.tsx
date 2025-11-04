@@ -246,14 +246,28 @@ export default function TransactionsScreen() {
 
   // Handlers para los date pickers
   const handleDateInicioChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setTempDate(selectedDate);
+    if (Platform.OS === 'android') {
+      setShowDatePickerInicio(false);
+      if (event.type === 'set' && selectedDate) {
+        setFechaInicio(selectedDate);
+      }
+    } else {
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
     }
   };
 
   const handleDateFinChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setTempDate(selectedDate);
+    if (Platform.OS === 'android') {
+      setShowDatePickerFin(false);
+      if (event.type === 'set' && selectedDate) {
+        setFechaFin(selectedDate);
+      }
+    } else {
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
     }
   };
 
@@ -633,66 +647,97 @@ export default function TransactionsScreen() {
         </Pressable>
       </Modal>
 
-      {/* Modal de Date Picker para Fecha Inicio */}
-      <Modal visible={showDatePickerInicio} transparent={true} animationType="fade">
-        <Pressable style={styles.datePickerModalOverlay} onPress={cancelDatePicker}>
-          <Pressable style={styles.datePickerModalContent} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.datePickerModalHeader}>
-              <Text style={styles.datePickerModalTitle}>Seleccionar Fecha Inicio</Text>
-              <TouchableOpacity onPress={cancelDatePicker}>
-                <Ionicons name="close" size={28} color="#666" />
-              </TouchableOpacity>
-            </View>
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="spinner"
-              onChange={handleDateInicioChange}
-              maximumDate={fechaFin || new Date()}
-              style={styles.datePicker}
-            />
-            <View style={styles.datePickerModalButtons}>
-              <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
-                <Text style={styles.datePickerCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.datePickerConfirmButton} onPress={confirmDateInicio}>
-                <Text style={styles.datePickerConfirmText}>Confirmar</Text>
-              </TouchableOpacity>
-            </View>
+      {/* Date Picker para Fecha Inicio - Android usa picker nativo, iOS usa modal */}
+      {Platform.OS === 'android' ? (
+        showDatePickerInicio && (
+          <DateTimePicker
+            value={fechaInicio || new Date()}
+            mode="date"
+            display="default"
+            onChange={handleDateInicioChange}
+            maximumDate={fechaFin || undefined}
+            locale="es"
+          />
+        )
+      ) : (
+        <Modal visible={showDatePickerInicio} transparent={true} animationType="fade">
+          <Pressable style={styles.datePickerModalOverlay} onPress={cancelDatePicker}>
+            <Pressable style={styles.datePickerModalContent} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.datePickerModalHeader}>
+                <Text style={styles.datePickerModalTitle}>Seleccionar Fecha Inicio</Text>
+                <TouchableOpacity onPress={cancelDatePicker}>
+                  <Ionicons name="close" size={28} color="#666" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.datePickerContainer}>
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleDateInicioChange}
+                  maximumDate={fechaFin || undefined}
+                  locale="es"
+                  textColor="#000000"
+                />
+              </View>
+              <View style={styles.datePickerModalButtons}>
+                <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
+                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.datePickerConfirmButton} onPress={confirmDateInicio}>
+                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+      )}
 
-      {/* Modal de Date Picker para Fecha Fin */}
-      <Modal visible={showDatePickerFin} transparent={true} animationType="fade">
-        <Pressable style={styles.datePickerModalOverlay} onPress={cancelDatePicker}>
-          <Pressable style={styles.datePickerModalContent} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.datePickerModalHeader}>
-              <Text style={styles.datePickerModalTitle}>Seleccionar Fecha Fin</Text>
-              <TouchableOpacity onPress={cancelDatePicker}>
-                <Ionicons name="close" size={28} color="#666" />
-              </TouchableOpacity>
-            </View>
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="spinner"
-              onChange={handleDateFinChange}
-              minimumDate={fechaInicio || undefined}
-              maximumDate={new Date()}
-              style={styles.datePicker}
-            />
-            <View style={styles.datePickerModalButtons}>
-              <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
-                <Text style={styles.datePickerCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.datePickerConfirmButton} onPress={confirmDateFin}>
-                <Text style={styles.datePickerConfirmText}>Confirmar</Text>
-              </TouchableOpacity>
-            </View>
+      {/* Date Picker para Fecha Fin - Android usa picker nativo, iOS usa modal */}
+      {Platform.OS === 'android' ? (
+        showDatePickerFin && (
+          <DateTimePicker
+            value={fechaFin || new Date()}
+            mode="date"
+            display="default"
+            onChange={handleDateFinChange}
+            minimumDate={fechaInicio || undefined}
+            locale="es"
+          />
+        )
+      ) : (
+        <Modal visible={showDatePickerFin} transparent={true} animationType="fade">
+          <Pressable style={styles.datePickerModalOverlay} onPress={cancelDatePicker}>
+            <Pressable style={styles.datePickerModalContent} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.datePickerModalHeader}>
+                <Text style={styles.datePickerModalTitle}>Seleccionar Fecha Fin</Text>
+                <TouchableOpacity onPress={cancelDatePicker}>
+                  <Ionicons name="close" size={28} color="#666" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.datePickerContainer}>
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleDateFinChange}
+                  minimumDate={fechaInicio || undefined}
+                  locale="es"
+                  textColor="#000000"
+                />
+              </View>
+              <View style={styles.datePickerModalButtons}>
+                <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
+                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.datePickerConfirmButton} onPress={confirmDateFin}>
+                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -1077,6 +1122,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#1a1a1a',
+  },
+  datePickerContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   datePicker: {
     width: '100%',

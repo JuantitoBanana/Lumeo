@@ -52,16 +52,28 @@ export default function RegisterTransactionScreen() {
   };
 
   const formatDateDisplay = (date: Date) => {
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
+    const meses = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    
+    const dia = date.getDate().toString().padStart(2, '0');
+    const mes = meses[date.getMonth()];
+    const año = date.getFullYear();
+    
+    return `${dia} de ${mes} de ${año}`;
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setTempDate(selectedDate);
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (event.type === 'set' && selectedDate) {
+        setFechaTransaccion(selectedDate);
+      }
+    } else {
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
     }
   };
 
@@ -299,46 +311,59 @@ export default function RegisterTransactionScreen() {
         </View>
       </Pressable>
 
-      {/* Modal del Date Picker */}
-      <Modal
-        visible={showDatePicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={cancelDatePicker}
-      >
-        <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
-          <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.datePickerHeader}>
-              <Text style={styles.datePickerTitle}>Seleccionar fecha</Text>
-            </View>
-            
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="spinner"
-              onChange={handleDateChange}
-              locale="es-ES"
-              maximumDate={new Date()}
-              style={{ marginLeft: -25 }}
-            />
-            
-            <View style={styles.datePickerButtons}>
-              <TouchableOpacity 
-                style={styles.datePickerCancelButton}
-                onPress={cancelDatePicker}
-              >
-                <Text style={styles.datePickerCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.datePickerConfirmButton}
-                onPress={confirmDate}
-              >
-                <Text style={styles.datePickerConfirmText}>Confirmar</Text>
-              </TouchableOpacity>
-            </View>
+      {/* Date Picker - Android usa el picker nativo, iOS usa modal personalizado */}
+      {Platform.OS === 'android' ? (
+        showDatePicker && (
+          <DateTimePicker
+            value={fechaTransaccion}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            locale="es"
+          />
+        )
+      ) : (
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={cancelDatePicker}
+        >
+          <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
+            <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.datePickerHeader}>
+                <Text style={styles.datePickerTitle}>Seleccionar fecha</Text>
+              </View>
+              
+              <View style={styles.datePickerContainer}>
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleDateChange}
+                  locale="es"
+                  textColor="#000000"
+                />
+              </View>
+              
+              <View style={styles.datePickerButtons}>
+                <TouchableOpacity 
+                  style={styles.datePickerCancelButton}
+                  onPress={cancelDatePicker}
+                >
+                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.datePickerConfirmButton}
+                  onPress={confirmDate}
+                >
+                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -528,6 +553,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#1a1a1a',
+  },
+  datePickerContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   datePickerButtons: {
     flexDirection: 'row',

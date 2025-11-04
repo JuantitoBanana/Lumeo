@@ -73,7 +73,7 @@ export function BottomTabBar({ activeTab = 'home', onTabRefresh }: BottomTabBarP
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    bottom: Platform.OS === 'ios' ? 0 : -32,
     left: 0,
     right: 0,
     backgroundColor: 'transparent',

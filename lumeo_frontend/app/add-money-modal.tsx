@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 
 interface AddMoneyModalProps {
   visible: boolean;
@@ -34,6 +36,7 @@ export default function AddMoneyModal({
 }: AddMoneyModalProps) {
   const [cantidad, setCantidad] = useState('');
   const [loading, setLoading] = useState(false);
+  const { usuario, loading: loadingUsuario } = useUsuarioApi();
 
   useEffect(() => {
     if (visible) {
@@ -90,11 +93,25 @@ export default function AddMoneyModal({
       return;
     }
 
+    if (!usuario?.id) {
+      Alert.alert('Error', 'No se pudo obtener el usuario');
+      return;
+    }
+
     setLoading(true);
 
     try {
       await apiClient.put(`/metas-ahorro/${metaId}/agregar-cantidad`, cantidadNum);
-
+      // Crear transacción de tipo gasto
+      await apiClient.post('/transacciones', {
+        titulo: `Aporte a ${metaTitulo}`,
+        importe: cantidadNum,
+        fechaTransaccion: new Date().toISOString().split('T')[0],
+        nota: null,
+        idUsuario: usuario.id,
+        idTipo: 2, // 2 = Gasto
+        idEstado: 2, // 2 = Completado
+      });
       onSuccess();
       onClose();
     } catch (error: any) {

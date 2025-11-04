@@ -9,6 +9,7 @@ import {
   Modal,
   Pressable,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -19,6 +20,7 @@ import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
 import apiClient from '@/lib/api-client';
 import AddMoneyModal from '@/app/add-money-modal';
+import { Picker } from '@react-native-picker/picker';
 
 export default function SavingsScreen() {
   const router = useRouter();
@@ -39,6 +41,8 @@ export default function SavingsScreen() {
     titulo: string;
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [pickerModalVisible, setPickerModalVisible] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<'metas' | 'presupuestos'>('metas');
 
   // Recargar metas cuando la pantalla recibe foco
   useFocusEffect(
@@ -151,7 +155,12 @@ export default function SavingsScreen() {
     }
 
     return (
-      <ScrollView ref={scrollViewRef} style={styles.metasList} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollViewRef} 
+        style={styles.metasList} 
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+      >
         {metas.map((meta) => {
           const percentage = calculatePercentage(meta.cantidadActual, meta.cantidadObjetivo);
           
@@ -207,6 +216,15 @@ export default function SavingsScreen() {
     );
   };
 
+  const handleNavigate = () => {
+    setPickerModalVisible(false);
+    if (selectedOption === 'metas') {
+      router.push('/(tabs)/savings');
+    } else if (selectedOption === 'presupuestos') {
+      router.push('/(tabs)/budgets');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -217,8 +235,13 @@ export default function SavingsScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Metas de ahorro</Text>
+        <TouchableOpacity
+          style={styles.headerTitleButton}
+          onPress={() => setPickerModalVisible(true)}
+        >
+          <Ionicons name="chevron-down" size={20} color="#000" />
+          <Text style={styles.headerTitle}>Metas de ahorro</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Contenido */}
@@ -295,6 +318,40 @@ export default function SavingsScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Modal para seleccionar navegación */}
+      <Modal
+        visible={pickerModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPickerModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalContainer}
+          onPress={() => setPickerModalVisible(false)}
+        >
+          <View style={[styles.modalContent, Platform.OS === 'ios' && styles.modalContentIOS, Platform.OS === 'android' && styles.modalContentAndroid]}>
+            <Pressable style={{ width: '100%' }} onPress={() => {}}>
+              <Text style={styles.modalTitle}>Selecciona una opción</Text>
+              <Picker
+                selectedValue={selectedOption}
+                onValueChange={(itemValue: string) => setSelectedOption(itemValue as 'metas' | 'presupuestos')}
+                style={[styles.picker, Platform.OS === 'android' && styles.pickerAndroid]}
+                itemStyle={{ color: '#000' }}
+              >
+                <Picker.Item label="Metas de ahorro" value="metas" />
+                <Picker.Item label="Presupuestos" value="presupuestos" />
+              </Picker>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleNavigate}
+              >
+                <Text style={styles.modalButtonText}>Ir</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -331,8 +388,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#000',
   },
-  placeholder: {
-    width: 40,
+  headerTitleButton: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   metasList: {
     flex: 1,
@@ -548,5 +608,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  // Estilos para el modal de selección de navegación
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalContentIOS: {
+    width: '90%',
+    padding: 30,
+  },
+  modalContentAndroid: {
+    width: '70%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalButton: {
+    marginTop: 20,
+    backgroundColor: '#007AFF',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignSelf: 'flex-end',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  picker: {
+    width: '100%',
+    height: 200,
+    backgroundColor: 'transparent',
+    color: '#000',
+  },
+  pickerAndroid: {
+    height: 100,
   },
 });

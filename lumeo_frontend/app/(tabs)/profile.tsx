@@ -112,12 +112,12 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     try {
-      // Primero navegar a la pantalla de inicio
-      router.push('/');
-      // Pequeño delay para que la navegación se complete
-      setTimeout(async () => {
-        await signOut();
-      }, 100);
+      // Primero cerrar sesión
+      await signOut();
+      
+      // Después de cerrar sesión, forzar navegación a la pantalla de inicio
+      // Usar replace para que no pueda volver atrás con el botón de Android
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
