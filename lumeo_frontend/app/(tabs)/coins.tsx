@@ -37,19 +37,31 @@ interface TransactionDetailModalProps {
   onOpenDatePicker: () => void;
   fechaTransaccion: Date;
   onFechaTransaccionChange: (date: Date) => void;
+  usuarioId: number | undefined; // ID del usuario actual para determinar rol
 }
 
-function TransactionDetailModal({ visible, onClose, transaction, currencySymbol, onDelete, onSave, onOpenDatePicker, fechaTransaccion, onFechaTransaccionChange }: TransactionDetailModalProps) {
+function TransactionDetailModal({ visible, onClose, transaction, currencySymbol, onDelete, onSave, onOpenDatePicker, fechaTransaccion, onFechaTransaccionChange, usuarioId }: TransactionDetailModalProps) {
   const [titulo, setTitulo] = useState('');
   const [tipo, setTipo] = useState<'gasto' | 'ingreso'>('gasto');
   const [importe, setImporte] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Determinar si el usuario actual es el creador o el destinatario
+  const isCreador = transaction?.idUsuario === usuarioId;
+  const isDestinatario = transaction?.idDestinatario === usuarioId;
+  const isEditable = isCreador && !(transaction?.idEstado === 3 && transaction?.idDestinatario !== null); // El creador no puede editar si está pagada y tiene destinatario
+
   // Inicializar campos cuando se abre el modal con una transacción
   React.useEffect(() => {
     if (transaction && visible) {
       setTitulo(transaction.titulo || '');
-      setImporte(Math.abs(transaction.importe).toString());
+      
+      // Si es destinatario, usar importe_destinatario, si es creador usar importe normal
+      const importeAMostrar = isDestinatario && transaction.importeDestinatario 
+        ? transaction.importeDestinatario 
+        : transaction.importe;
+      setImporte(Math.abs(importeAMostrar).toString());
+      
       onFechaTransaccionChange(new Date(transaction.fechaTransaccion));
 
       // Determinar tipo basado en idTipo o nombre del tipo
@@ -91,7 +103,12 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
   const handleSave = async () => {
     if (!transaction?.id) return;
 
-    // Validación básica
+    // Si es destinatario, no puede editar campos, solo cambiar estados
+    if (isDestinatario) {
+      return; // El cambio de estado se maneja en handleAceptar y handlePagar
+    }
+
+    // Validación básica (solo para creadores)
     if (!titulo.trim()) {
       Alert.alert('Error', 'Por favor, introduce un título');
       return;
@@ -138,6 +155,50 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
     }
   };
 
+  const handleAceptar = async () => {
+    if (!transaction?.id) return;
+
+    setSaving(true);
+    try {
+      // Actualizar estado a "Aceptada" (id=2)
+      const updatedTransaction = {
+        ...transaction,
+        idEstado: 2,
+      };
+
+      await apiClient.put(`/transacciones/${transaction.id}`, updatedTransaction);
+      onSave(updatedTransaction);
+      onClose();
+    } catch (error: any) {
+      console.error('Error al aceptar transacción:', error);
+      Alert.alert('Error', 'No se pudo aceptar la transacción. Por favor, inténtalo de nuevo.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePagar = async () => {
+    if (!transaction?.id) return;
+
+    setSaving(true);
+    try {
+      // Actualizar estado a "Pagada" (id=3)
+      const updatedTransaction = {
+        ...transaction,
+        idEstado: 3,
+      };
+
+      await apiClient.put(`/transacciones/${transaction.id}`, updatedTransaction);
+      onSave(updatedTransaction);
+      onClose();
+    } catch (error: any) {
+      console.error('Error al marcar como pagada:', error);
+      Alert.alert('Error', 'No se pudo marcar la transacción como pagada. Por favor, inténtalo de nuevo.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!transaction) return null;
 
   return (
@@ -146,7 +207,9 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
         <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
           {/* Header del modal */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Editar Transacción</Text>
+            <Text style={styles.modalTitle}>
+              {isEditable ? 'Editar Transacción' : 'Detalle de Transacción'}
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
               <Ionicons name="close" size={28} color="#666" />
             </TouchableOpacity>
@@ -159,102 +222,124 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Título */}
             <View style={styles.modalSection}>
               <Text style={styles.modalLabel}>
-                Título <Text style={styles.required}>*</Text>
+                Título {isEditable && <Text style={styles.required}>*</Text>}
               </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ej: Compra supermercado"
-                value={titulo}
-                onChangeText={setTitulo}
-                placeholderTextColor="#999"
-              />
+              {isEditable ? (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ej: Compra supermercado"
+                  value={titulo}
+                  onChangeText={setTitulo}
+                  placeholderTextColor="#999"
+                />
+              ) : (
+                <Text style={styles.modalValue}>{titulo}</Text>
+              )}
             </View>
 
             {/* Selector de tipo */}
             <View style={styles.modalSection}>
               <Text style={styles.modalLabel}>
-                Tipo <Text style={styles.required}>*</Text>
+                Tipo {isEditable && <Text style={styles.required}>*</Text>}
               </Text>
-              <View style={styles.typeSelector}>
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    styles.typeButtonLeft,
-                    tipo === 'gasto' && styles.typeButtonActive,
-                  ]}
-                  onPress={() => setTipo('gasto')}
-                >
-                  <Ionicons
-                    name="arrow-down"
-                    size={20}
-                    color={tipo === 'gasto' ? '#fff' : '#FF6B6B'}
-                  />
-                  <Text style={[
-                    styles.typeButtonText,
-                    tipo === 'gasto' && styles.typeButtonTextActive,
-                  ]}>
-                    Gasto
-                  </Text>
-                </TouchableOpacity>
+              {isEditable ? (
+                <View style={styles.typeSelector}>
+                  <TouchableOpacity
+                    style={[
+                      styles.typeButton,
+                      styles.typeButtonLeft,
+                      tipo === 'gasto' && styles.typeButtonActive,
+                    ]}
+                    onPress={() => setTipo('gasto')}
+                  >
+                    <Ionicons
+                      name="arrow-down"
+                      size={20}
+                      color={tipo === 'gasto' ? '#fff' : '#FF6B6B'}
+                    />
+                    <Text style={[
+                      styles.typeButtonText,
+                      tipo === 'gasto' && styles.typeButtonTextActive,
+                    ]}>
+                      Gasto
+                    </Text>
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    styles.typeButtonRight,
-                    tipo === 'ingreso' && styles.typeButtonActiveIngreso,
-                  ]}
-                  onPress={() => setTipo('ingreso')}
-                >
-                  <Ionicons
-                    name="arrow-up"
-                    size={20}
-                    color={tipo === 'ingreso' ? '#fff' : '#4CAF50'}
-                  />
-                  <Text style={[
-                    styles.typeButtonText,
-                    tipo === 'ingreso' && styles.typeButtonTextActive,
-                  ]}>
-                    Ingreso
+                  <TouchableOpacity
+                    style={[
+                      styles.typeButton,
+                      styles.typeButtonRight,
+                      tipo === 'ingreso' && styles.typeButtonActiveIngreso,
+                    ]}
+                    onPress={() => setTipo('ingreso')}
+                  >
+                    <Ionicons
+                      name="arrow-up"
+                      size={20}
+                      color={tipo === 'ingreso' ? '#fff' : '#4CAF50'}
+                    />
+                    <Text style={[
+                      styles.typeButtonText,
+                      tipo === 'ingreso' && styles.typeButtonTextActive,
+                    ]}>
+                      Ingreso
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={[styles.typeBadge, { backgroundColor: tipo === 'ingreso' ? '#E8F5E9' : '#FFEBEE' }]}>
+                  <Text style={[styles.typeText, { color: tipo === 'ingreso' ? '#4CAF50' : '#F44336' }]}>
+                    {tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}
                   </Text>
-                </TouchableOpacity>
-              </View>
+                </View>
+              )}
             </View>
 
             {/* Importe */}
             <View style={styles.modalSection}>
               <Text style={styles.modalLabel}>
-                Importe <Text style={styles.required}>*</Text>
+                Importe {isEditable && <Text style={styles.required}>*</Text>}
               </Text>
-              <View style={styles.importeContainer}>
-                <Text style={styles.currencySymbol}>{currencySymbol}</Text>
-                <TextInput
-                  style={styles.importeInput}
-                  placeholder="0,00"
-                  value={importe}
-                  onChangeText={handleImporteChange}
-                  keyboardType="decimal-pad"
-                  placeholderTextColor="#999"
-                />
-              </View>
+              {isEditable ? (
+                <View style={styles.importeContainer}>
+                  <Text style={styles.currencySymbol}>{currencySymbol}</Text>
+                  <TextInput
+                    style={styles.importeInput}
+                    placeholder="0,00"
+                    value={importe}
+                    onChangeText={handleImporteChange}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor="#999"
+                  />
+                </View>
+              ) : (
+                <Text style={[styles.modalAmount, { color: tipo === 'ingreso' ? '#4CAF50' : '#F44336' }]}>
+                  {currencySymbol}{importe}
+                </Text>
+              )}
             </View>
 
             {/* Fecha de transacción */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>
-                Fecha de transacción <Text style={styles.required}>*</Text>
+                Fecha de transacción {isEditable && <Text style={styles.required}>*</Text>}
               </Text>
-              <TouchableOpacity
-                style={styles.datePickerButton}
-                onPress={onOpenDatePicker}
-              >
-                <Ionicons name="calendar-outline" size={24} color="#007AFF" />
-                <View style={styles.datePickerTextContainer}>
-                  <Text style={styles.datePickerTextSelected}>
-                    {formatDateDisplay(fechaTransaccion)}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-down" size={20} color="#999" />
-              </TouchableOpacity>
+              {isEditable ? (
+                <TouchableOpacity
+                  style={styles.datePickerButton}
+                  onPress={onOpenDatePicker}
+                >
+                  <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+                  <View style={styles.datePickerTextContainer}>
+                    <Text style={styles.datePickerTextSelected}>
+                      {formatDateDisplay(fechaTransaccion)}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-down" size={20} color="#999" />
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.modalValue}>{formatDateDisplay(fechaTransaccion)}</Text>
+              )}
             </View>
 
             {/* Categoría (solo lectura) */}
@@ -280,11 +365,13 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
               </View>
             )}
 
-            {/* Estado si existe */}
-            {transaction.estadoTransaccion && (
+            {/* Estado - Siempre mostrar para destinatarios, opcional para creadores */}
+            {(isDestinatario || transaction.estadoTransaccion) && (
               <View style={styles.modalSection}>
                 <Text style={styles.modalLabel}>Estado</Text>
-                <Text style={styles.modalValue}>{transaction.estadoTransaccion.nombre}</Text>
+                <Text style={styles.modalValue}>
+                  {transaction.estadoTransaccion?.descripcion || transaction.estadoTransaccion?.nombre || 'Desconocido'}
+                </Text>
               </View>
             )}
 
@@ -300,25 +387,72 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
           </ScrollView>
 
           {/* Botones de acción */}
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-              onPress={handleSave}
-              disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.saveButtonText}>Guardar</Text>
-              )}
-            </TouchableOpacity>
+          <View style={[
+            styles.modalFooter,
+            // Ocultar la línea divisoria cuando la transacción esté pagada y el usuario sea destinatario
+            isDestinatario && transaction.idEstado === 3 && { borderTopWidth: 0 }
+          ]}>
+            {isEditable ? (
+              // Botones para el creador de la transacción (puede editar)
+              <>
+                <TouchableOpacity
+                  style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                  onPress={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Guardar</Text>
+                  )}
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.deleteTransactionButton}
-              onPress={handleDelete}
-            >
-              <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteTransactionButton}
+                  onPress={handleDelete}
+                >
+                  <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
+                </TouchableOpacity>
+              </>
+            ) : isCreador ? (
+              // Botones para el creador cuando NO puede editar (transacción pagada con destinatario)
+              <TouchableOpacity
+                style={styles.deleteTransactionButton}
+                onPress={handleDelete}
+              >
+                <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
+              </TouchableOpacity>
+            ) : isDestinatario ? (
+              // Botones para el destinatario
+              <>
+                {transaction.idEstado === 1 && ( // Pendiente -> Mostrar botón Aceptar
+                  <TouchableOpacity
+                    style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                    onPress={handleAceptar}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.saveButtonText}>Aceptar</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+                {transaction.idEstado === 2 && ( // Aceptada -> Mostrar botón Pagar
+                  <TouchableOpacity
+                    style={[styles.saveButton, { backgroundColor: '#4CAF50' }, saving && styles.saveButtonDisabled]}
+                    onPress={handlePagar}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.saveButtonText}>Pagar</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : null}
           </View>
         </Pressable>
       </Pressable>
@@ -810,6 +944,7 @@ export default function TransactionsScreen() {
         onOpenDatePicker={handleOpenTransactionDatePicker}
         fechaTransaccion={editingTransactionDate}
         onFechaTransaccionChange={setEditingTransactionDate}
+        usuarioId={usuario?.id}
       />
 
       {/* Modal de confirmación para eliminar transacción */}
@@ -1135,7 +1270,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: '#F0F0F0',
     borderRadius: 8,

@@ -29,6 +29,8 @@ export interface Transaccion {
   idTipo?: number;
   idEstado?: number;
   idAdjunto?: number;
+  idDestinatario?: number;
+  importeDestinatario?: number;
   posicionSimbolo?: string; // "ANTES" o "DESPUES"
   // Relationships (populated when fetched from API)
   usuario?: Usuario;
@@ -37,6 +39,7 @@ export interface Transaccion {
   tipoTransaccion?: TipoTransaccion;
   estadoTransaccion?: EstadoTransaccion;
   adjunto?: Adjunto;
+  destinatario?: Usuario;
 }
 
 // Categoría

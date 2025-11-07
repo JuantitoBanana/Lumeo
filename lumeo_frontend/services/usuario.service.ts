@@ -70,6 +70,13 @@ export class UsuarioService {
   async findByUsername(username: string): Promise<Usuario[]> {
     return apiClient.get<Usuario[]>(`${this.endpoint}?nombreUsuario=${encodeURIComponent(username)}`);
   }
+
+  /**
+   * Busca un usuario por su nombre de usuario exacto
+   */
+  async getByNombreUsuario(nombreUsuario: string): Promise<Usuario> {
+    return apiClient.get<Usuario>(`${this.endpoint}/nombre-usuario/${encodeURIComponent(nombreUsuario)}`);
+  }
 }
 
 // Exportar instancia singleton

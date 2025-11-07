@@ -31,8 +31,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
       color: '#4ECDC4',
       action: () => {
         onClose();
-        console.log('Transacción individual');
-        // router.push('/individual-transaction');
+        router.push('/register-shared-transaction');
       },
     },
     {

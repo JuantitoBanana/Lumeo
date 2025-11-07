@@ -114,7 +114,13 @@ class ApiClient {
           return Promise.reject({ message: 'CANCELED', canceled: true });
         }
 
-        console.error('❌ Response error:', error);
+        // No loguear errores 404 para búsquedas de usuario (esperado que fallen)
+        const isUserSearch404 = error.response?.status === 404 && 
+                               error.response?.config?.url?.includes('/usuarios/nombre-usuario/');
+        
+        if (!isUserSearch404) {
+          console.error('❌ Response error:', error);
+        }
         
         const apiError: ApiError = {
           message: error.response?.data?.message || error.message || 'Error de conexión',
