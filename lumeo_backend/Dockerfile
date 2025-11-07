@@ -9,7 +9,7 @@ COPY lumeo/src ./src
 RUN mvn clean package -DskipTests
 
 # Segunda etapa: runtime
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 # Copiar el JAR compilado
