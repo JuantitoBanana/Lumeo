@@ -53,10 +53,20 @@ public class TransaccionModel {
     @Column(name = "id_adjunto")
     private Long idAdjunto;
     
+    @Column(name = "id_destinatario")
+    private Long idDestinatario;
+    
+    @Column(name = "importe_destinatario")
+    private Double importeDestinatario;
+    
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", insertable = false, updatable = false)
     private usuarioModel usuario;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_destinatario", insertable = false, updatable = false)
+    private usuarioModel destinatario;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", insertable = false, updatable = false)

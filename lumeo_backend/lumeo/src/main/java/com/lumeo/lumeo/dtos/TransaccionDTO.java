@@ -25,6 +25,8 @@ public class TransaccionDTO {
     private Long idTipo;
     private Long idEstado;
     private Long idAdjunto;
+    private Long idDestinatario;
+    private Double importeDestinatario;
     
     // Relaciones (cuando se necesiten)
     private CategoriaModel categoria;

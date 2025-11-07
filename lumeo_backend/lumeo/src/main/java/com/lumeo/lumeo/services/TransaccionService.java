@@ -57,7 +57,8 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
      * @return Lista de transacciones del usuario
      */
     public List<TransaccionModel> findByIdUsuario(Long idUsuario) {
-        return transaccionRepository.findByIdUsuario(idUsuario);
+        // Ahora incluye transacciones donde el usuario es creador o destinatario
+        return transaccionRepository.findByIdUsuarioOrIdDestinatario(idUsuario, idUsuario);
     }
     
     /**
@@ -80,7 +81,7 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
             }
         }
         
-        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuario(idUsuario);
+        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioOrIdDestinatario(idUsuario, idUsuario);
         
         // Convertir a DTO con importes convertidos
         final String divisaDestino = codigoDivisaUsuario;
@@ -190,6 +191,8 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         dto.setIdTipo(transaccion.getIdTipo());
         dto.setIdEstado(transaccion.getIdEstado());
         dto.setIdAdjunto(transaccion.getIdAdjunto());
+        dto.setIdDestinatario(transaccion.getIdDestinatario());
+        dto.setImporteDestinatario(transaccion.getImporteDestinatario());
         dto.setPosicionSimbolo(posicionSimbolo);
         
         // Convertir importe desde divisa original
@@ -291,6 +294,8 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         dto.setIdTipo(transaccion.getIdTipo());
         dto.setIdEstado(transaccion.getIdEstado());
         dto.setIdAdjunto(transaccion.getIdAdjunto());
+        dto.setIdDestinatario(transaccion.getIdDestinatario());
+        dto.setImporteDestinatario(transaccion.getImporteDestinatario());
         
         // Incluir las relaciones
         dto.setCategoria(transaccion.getCategoria());

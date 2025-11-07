@@ -56,6 +56,17 @@ public class UsuarioController {
         }
     }
     
+    @GetMapping("/nombre-usuario/{nombreUsuario}")
+    public ResponseEntity<usuarioModel> findByNombreUsuario(@PathVariable String nombreUsuario) {
+        Optional<usuarioModel> usuario = usuarioService.findByNombreUsuario(nombreUsuario);
+        if (usuario.isPresent()) {
+            return ResponseEntity.ok(usuario.get());
+        } else {
+            // Devolver 200 con null en lugar de 404 para evitar errores en el frontend
+            return ResponseEntity.ok(null);
+        }
+    }
+    
     @PostMapping
     public ResponseEntity<usuarioModel> create(@RequestBody usuarioModel usuario) {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.create(usuario));

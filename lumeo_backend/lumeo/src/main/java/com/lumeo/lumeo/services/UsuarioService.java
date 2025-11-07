@@ -23,4 +23,8 @@ public class UsuarioService extends GenericService<usuarioModel, Long> {
     public Optional<usuarioModel> findByUid(UUID uid) {
         return usuarioRepository.findByUid(uid);
     }
+    
+    public Optional<usuarioModel> findByNombreUsuario(String nombreUsuario) {
+        return usuarioRepository.findByNombreUsuario(nombreUsuario);
+    }
 }

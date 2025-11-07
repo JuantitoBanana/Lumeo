@@ -19,6 +19,15 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
     List<TransaccionModel> findByIdUsuario(Long idUsuario);
     
     /**
+     * Busca todas las transacciones donde el usuario es creador o destinatario
+     * @param idUsuario ID del usuario
+     * @param idDestinatario ID del destinatario (mismo que idUsuario)
+     * @return Lista de transacciones donde el usuario participa
+     */
+    @Query("SELECT t FROM TransaccionModel t WHERE t.idUsuario = :idUsuario OR t.idDestinatario = :idDestinatario")
+    List<TransaccionModel> findByIdUsuarioOrIdDestinatario(@Param("idUsuario") Long idUsuario, @Param("idDestinatario") Long idDestinatario);
+    
+    /**
      * Busca transacciones de un usuario en un mes y año específicos
      * @param idUsuario ID del usuario
      * @param startDate Fecha de inicio del mes
