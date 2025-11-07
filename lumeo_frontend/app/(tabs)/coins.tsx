@@ -10,6 +10,7 @@ import {
   Pressable,
   Platform,
   Alert,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -32,32 +33,112 @@ interface TransactionDetailModalProps {
   transaction: Transaccion | null;
   currencySymbol: string;
   onDelete: (transaction: Transaccion) => void;
+  onSave: (transaction: Transaccion) => void;
+  onOpenDatePicker: () => void;
+  fechaTransaccion: Date;
+  onFechaTransaccionChange: (date: Date) => void;
 }
 
-function TransactionDetailModal({ visible, onClose, transaction, currencySymbol, onDelete }: TransactionDetailModalProps) {
-  if (!transaction) return null;
+function TransactionDetailModal({ visible, onClose, transaction, currencySymbol, onDelete, onSave, onOpenDatePicker, fechaTransaccion, onFechaTransaccionChange }: TransactionDetailModalProps) {
+  const [titulo, setTitulo] = useState('');
+  const [tipo, setTipo] = useState<'gasto' | 'ingreso'>('gasto');
+  const [importe, setImporte] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
+  // Inicializar campos cuando se abre el modal con una transacción
+  React.useEffect(() => {
+    if (transaction && visible) {
+      setTitulo(transaction.titulo || '');
+      setImporte(Math.abs(transaction.importe).toString());
+      onFechaTransaccionChange(new Date(transaction.fechaTransaccion));
+
+      // Determinar tipo basado en idTipo o nombre del tipo
+      const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
+        transaction.idTipo === 1;
+      setTipo(isIncome ? 'ingreso' : 'gasto');
+    }
+  }, [transaction, visible]);
+
+  const formatDateDisplay = (date: Date) => {
+    const meses = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+
+    const dia = date.getDate().toString().padStart(2, '0');
+    const mes = meses[date.getMonth()];
+    const año = date.getFullYear();
+
+    return `${dia} de ${mes} de ${año}`;
   };
 
-  // Determinar si es ingreso o gasto basado en el tipo de transacción
-  const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') || 
-                   transaction.idTipo === 1; // Asumiendo que 1 es ingreso
-  
-  const formatAmount = (amount: number) => {
-    const position = transaction.posicionSimbolo || 'DESPUES';
-    return formatearCantidad(Math.abs(amount), currencySymbol, position);
+  const handleImporteChange = (text: string) => {
+    // Permitir solo números y comas/puntos decimales
+    const cleaned = text.replace(/[^0-9.,]/g, '');
+
+    // Validar formato: permitir una coma O un punto como separador decimal
+    const parts = cleaned.split(/[.,]/);
+    if (parts.length > 2) {
+      return; // No permitir más de un separador decimal
+    }
+    if (parts[1] && parts[1].length > 2) {
+      return; // Máximo 2 decimales
+    }
+
+    setImporte(cleaned);
+  };
+
+  const handleSave = async () => {
+    if (!transaction?.id) return;
+
+    // Validación básica
+    if (!titulo.trim()) {
+      Alert.alert('Error', 'Por favor, introduce un título');
+      return;
+    }
+    if (!importe || parseFloat(importe.replace(',', '.')) <= 0) {
+      Alert.alert('Error', 'Por favor, introduce un importe válido');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      // Crear objeto de transacción actualizado
+      const updatedTransaction = {
+        ...transaction,
+        titulo: titulo.trim(),
+        importe: parseFloat(importe.replace(',', '.')),
+        fechaTransaccion: fechaTransaccion.toISOString().split('T')[0], // Formato: YYYY-MM-DD
+        idTipo: tipo === 'ingreso' ? 1 : 2, // 1 = Ingreso, 2 = Gasto
+      };
+
+      // Actualizar en la API
+      await apiClient.put(`/transacciones/${transaction.id}`, updatedTransaction);
+
+      // Llamar al callback onSave
+      onSave(updatedTransaction);
+
+      // Cerrar modal
+      onClose();
+    } catch (error: any) {
+      console.error('Error al actualizar transacción:', error);
+      Alert.alert(
+        'Error',
+        'No se pudo actualizar la transacción. Por favor, inténtalo de nuevo.'
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = () => {
-    onDelete(transaction);
+    if (transaction) {
+      onDelete(transaction);
+    }
   };
+
+  if (!transaction) return null;
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose}>
@@ -65,7 +146,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
         <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
           {/* Header del modal */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Detalle de Transacción</Text>
+            <Text style={styles.modalTitle}>Editar Transacción</Text>
             <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
               <Ionicons name="close" size={28} color="#666" />
             </TouchableOpacity>
@@ -74,67 +155,122 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
           <View style={styles.modalDivider} />
 
           {/* Contenido del modal */}
-          <View style={styles.modalBody}>
-            {/* Título y categoría */}
+          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            {/* Título */}
             <View style={styles.modalSection}>
-              <Text style={styles.modalLabel}>Título</Text>
-              <Text style={styles.modalValue}>{transaction.titulo}</Text>
+              <Text style={styles.modalLabel}>
+                Título <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: Compra supermercado"
+                value={titulo}
+                onChangeText={setTitulo}
+                placeholderTextColor="#999"
+              />
             </View>
 
+            {/* Selector de tipo */}
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>
+                Tipo <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.typeSelector}>
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    styles.typeButtonLeft,
+                    tipo === 'gasto' && styles.typeButtonActive,
+                  ]}
+                  onPress={() => setTipo('gasto')}
+                >
+                  <Ionicons
+                    name="arrow-down"
+                    size={20}
+                    color={tipo === 'gasto' ? '#fff' : '#FF6B6B'}
+                  />
+                  <Text style={[
+                    styles.typeButtonText,
+                    tipo === 'gasto' && styles.typeButtonTextActive,
+                  ]}>
+                    Gasto
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    styles.typeButtonRight,
+                    tipo === 'ingreso' && styles.typeButtonActiveIngreso,
+                  ]}
+                  onPress={() => setTipo('ingreso')}
+                >
+                  <Ionicons
+                    name="arrow-up"
+                    size={20}
+                    color={tipo === 'ingreso' ? '#fff' : '#4CAF50'}
+                  />
+                  <Text style={[
+                    styles.typeButtonText,
+                    tipo === 'ingreso' && styles.typeButtonTextActive,
+                  ]}>
+                    Ingreso
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Importe */}
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>
+                Importe <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.importeContainer}>
+                <Text style={styles.currencySymbol}>{currencySymbol}</Text>
+                <TextInput
+                  style={styles.importeInput}
+                  placeholder="0,00"
+                  value={importe}
+                  onChangeText={handleImporteChange}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor="#999"
+                />
+              </View>
+            </View>
+
+            {/* Fecha de transacción */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>
+                Fecha de transacción <Text style={styles.required}>*</Text>
+              </Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={onOpenDatePicker}
+              >
+                <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+                <View style={styles.datePickerTextContainer}>
+                  <Text style={styles.datePickerTextSelected}>
+                    {formatDateDisplay(fechaTransaccion)}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={20} color="#999" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Categoría (solo lectura) */}
             {transaction.categoria && (
               <View style={styles.modalSection}>
                 <Text style={styles.modalLabel}>Categoría</Text>
                 <View style={styles.categoryBadge}>
-                  <Ionicons 
-                    name={(transaction.categoria.icono as any) || 'pricetag-outline'} 
-                    size={20} 
-                    color={transaction.categoria.color || '#007AFF'} 
+                  <Ionicons
+                    name={(transaction.categoria.icono as any) || 'pricetag-outline'}
+                    size={20}
+                    color={transaction.categoria.color || '#007AFF'}
                   />
                   <Text style={styles.categoryText}>{transaction.categoria.nombre}</Text>
                 </View>
               </View>
             )}
-
-            {/* Tipo */}
-            {transaction.tipoTransaccion && (
-              <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Tipo</Text>
-                <View
-                  style={[
-                    styles.typeBadge,
-                    { backgroundColor: isIncome ? '#E8F5E9' : '#FFEBEE' },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.typeText,
-                      { color: isIncome ? '#4CAF50' : '#F44336' },
-                    ]}
-                  >
-                    {transaction.tipoTransaccion.nombre}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Importe */}
-            <View style={styles.modalSection}>
-              <Text style={styles.modalLabel}>Importe</Text>
-              <Text
-                style={[
-                  styles.modalAmount,
-                  { color: isIncome ? '#4CAF50' : '#F44336' },
-                ]}
-              >
-                {isIncome ? '+' : '-'}{formatAmount(transaction.importe)}
-              </Text>
-            </View>
-
-            {/* Fecha */}
-            <View style={styles.modalSection}>
-              <Text style={styles.modalLabel}>Fecha</Text>
-              <Text style={styles.modalValue}>{formatDate(transaction.fechaTransaccion)}</Text>
-            </View>
 
             {/* Nota si existe */}
             {transaction.nota && (
@@ -159,15 +295,31 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                 <Text style={styles.modalValue}>{transaction.grupo.nombre}</Text>
               </View>
             )}
-          </View>
 
-          {/* Botón de eliminar - posicionado absolutamente */}
-          <TouchableOpacity 
-            style={styles.deleteTransactionButton}
-            onPress={handleDelete}
-          >
-            <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
-          </TouchableOpacity>
+            <View style={styles.bottomSpace} />
+          </ScrollView>
+
+          {/* Botones de acción */}
+          <View style={styles.modalFooter}>
+            <TouchableOpacity
+              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.saveButtonText}>Guardar</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.deleteTransactionButton}
+              onPress={handleDelete}
+            >
+              <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
+            </TouchableOpacity>
+          </View>
         </Pressable>
       </Pressable>
     </Modal>
@@ -193,7 +345,7 @@ export default function TransactionsScreen() {
   const { transacciones, loading, error, refetchTransacciones } = useTransacciones(usuario?.id);
   const { currencySymbol } = useCurrencySymbol();
   const scrollViewRef = useRef<ScrollView>(null);
-  
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaccion | null>(null);
@@ -201,7 +353,7 @@ export default function TransactionsScreen() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaccion | null>(null);
   const [deleting, setDeleting] = useState(false);
-  
+
   // Estados para el rango de fechas
   const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
   const [fechaFin, setFechaFin] = useState<Date | null>(null);
@@ -214,6 +366,11 @@ export default function TransactionsScreen() {
     refetchTransacciones();
   };
   const [tempDate, setTempDate] = useState<Date>(new Date());
+
+  // Estados para el date picker del modal de transacción
+  const [showTransactionDatePicker, setShowTransactionDatePicker] = useState(false);
+  const [transactionDateTemp, setTransactionDateTemp] = useState<Date>(new Date());
+  const [editingTransactionDate, setEditingTransactionDate] = useState<Date>(new Date());
 
   // Refrescar transacciones cuando la pantalla recibe el foco
   useFocusEffect(
@@ -286,6 +443,46 @@ export default function TransactionsScreen() {
     setShowDatePickerFin(false);
   };
 
+  const handleOpenTransactionDatePicker = () => {
+    // Cerrar el modal de detalle temporalmente
+    setModalVisible(false);
+    // Esperar a que se cierre antes de abrir el date picker
+    setTimeout(() => {
+      setTransactionDateTemp(editingTransactionDate);
+      setShowTransactionDatePicker(true);
+    }, 100);
+  };
+
+  const handleTransactionDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTransactionDatePicker(false);
+      if (event.type === 'set' && selectedDate) {
+        setEditingTransactionDate(selectedDate);
+      }
+    } else {
+      if (selectedDate) {
+        setTransactionDateTemp(selectedDate);
+      }
+    }
+  };
+
+  const confirmTransactionDate = () => {
+    setEditingTransactionDate(transactionDateTemp);
+    setShowTransactionDatePicker(false);
+    // Reabrir el modal de detalle después de confirmar
+    setTimeout(() => {
+      setModalVisible(true);
+    }, 100);
+  };
+
+  const cancelTransactionDatePicker = () => {
+    setShowTransactionDatePicker(false);
+    // Reabrir el modal de detalle después de cancelar
+    setTimeout(() => {
+      setModalVisible(true);
+    }, 100);
+  };
+
   const clearDateRange = () => {
     setFechaInicio(null);
     setFechaFin(null);
@@ -300,6 +497,7 @@ export default function TransactionsScreen() {
 
   const handleTransactionPress = (transaction: Transaccion) => {
     setSelectedTransaction(transaction);
+    setEditingTransactionDate(new Date(transaction.fechaTransaccion));
     setModalVisible(true);
   };
 
@@ -319,19 +517,28 @@ export default function TransactionsScreen() {
     setTransactionToDelete(null);
   };
 
+  const handleSaveTransaction = (updatedTransaction: Transaccion) => {
+    // Refrescar la lista de transacciones para obtener los datos actualizados
+    refetchTransacciones();
+
+    // Cerrar modal
+    setModalVisible(false);
+    setTimeout(() => setSelectedTransaction(null), 300);
+  };
+
   const handleDeleteTransaction = async () => {
     if (!transactionToDelete?.id) return;
 
     setDeleting(true);
     try {
       await apiClient.delete(`/transacciones/${transactionToDelete.id}`);
-      
+
       // Cerrar modales y refrescar lista
       setDeleteModalVisible(false);
       setTransactionToDelete(null);
       setSelectedTransaction(null);
       refetchTransacciones();
-      
+
       // Emitir evento para actualizar el dashboard
       eventEmitter.emit(APP_EVENTS.TRANSACTION_DELETED);
     } catch (err: any) {
@@ -348,23 +555,23 @@ export default function TransactionsScreen() {
       return false;
     }
     if (selectedType && selectedType !== 'Todos') {
-      const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') || 
-                       transaction.idTipo === 1;
+      const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
+        transaction.idTipo === 1;
       if (selectedType === 'Ingresos' && !isIncome) return false;
       if (selectedType === 'Gastos' && isIncome) return false;
     }
-    
+
     // Filtro por rango de fechas
     if (fechaInicio || fechaFin) {
       const transactionDate = new Date(transaction.fechaTransaccion);
-      
+
       if (fechaInicio && fechaFin) {
         // Ambas fechas seleccionadas: mostrar transacciones en el rango
         const inicio = new Date(fechaInicio);
         const fin = new Date(fechaFin);
         inicio.setHours(0, 0, 0, 0);
         fin.setHours(23, 59, 59, 999);
-        
+
         if (transactionDate < inicio || transactionDate > fin) {
           return false;
         }
@@ -372,7 +579,7 @@ export default function TransactionsScreen() {
         // Solo fecha inicio: desde esa fecha en adelante
         const inicio = new Date(fechaInicio);
         inicio.setHours(0, 0, 0, 0);
-        
+
         if (transactionDate < inicio) {
           return false;
         }
@@ -380,13 +587,13 @@ export default function TransactionsScreen() {
         // Solo fecha fin: hasta esa fecha
         const fin = new Date(fechaFin);
         fin.setHours(23, 59, 59, 999);
-        
+
         if (transactionDate > fin) {
           return false;
         }
       }
     }
-    
+
     return true;
   });
 
@@ -467,7 +674,7 @@ export default function TransactionsScreen() {
           </View>
           <View style={styles.datePickersContainer}>
             {/* Fecha inicio */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.datePickerButton}
               onPress={() => {
                 setTempDate(fechaInicio || new Date());
@@ -484,7 +691,7 @@ export default function TransactionsScreen() {
             </TouchableOpacity>
 
             {/* Fecha fin */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.datePickerButton}
               onPress={() => {
                 setTempDate(fechaFin || new Date());
@@ -515,8 +722,8 @@ export default function TransactionsScreen() {
             <Ionicons name="alert-circle-outline" size={64} color="#F44336" />
             <Text style={styles.emptyText}>Error al cargar</Text>
             <Text style={styles.emptySubtext}>{error}</Text>
-            <TouchableOpacity 
-              style={styles.retryButton} 
+            <TouchableOpacity
+              style={styles.retryButton}
               onPress={refetchTransacciones}
             >
               <Text style={styles.retryButtonText}>Reintentar</Text>
@@ -527,23 +734,23 @@ export default function TransactionsScreen() {
             <Ionicons name="receipt-outline" size={64} color="#CCC" />
             <Text style={styles.emptyText}>No hay transacciones</Text>
             <Text style={styles.emptySubtext}>
-              {transacciones.length === 0 
+              {transacciones.length === 0
                 ? 'Añade tu primera transacción'
                 : 'Ajusta los filtros para ver más resultados'}
             </Text>
           </View>
         ) : (
           filteredTransactions.map((transaction) => {
-            const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') || 
-                             transaction.idTipo === 1;
+            const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
+              transaction.idTipo === 1;
             const categoryIcon = transaction.categoria?.icono || 'pricetag-outline';
             const categoryColor = transaction.categoria?.color || (isIncome ? '#4CAF50' : '#F44336');
-            
+
             const formatAmount = (amount: number) => {
               const position = transaction.posicionSimbolo || 'DESPUES';
               return formatearCantidad(Math.abs(amount), currencySymbol, position);
             };
-            
+
             return (
               <View key={transaction.id} style={styles.transactionCard}>
                 <View style={styles.transactionLeft}>
@@ -599,6 +806,10 @@ export default function TransactionsScreen() {
         transaction={selectedTransaction}
         currencySymbol={currencySymbol}
         onDelete={handleOpenDeleteModal}
+        onSave={handleSaveTransaction}
+        onOpenDatePicker={handleOpenTransactionDatePicker}
+        fechaTransaccion={editingTransactionDate}
+        onFechaTransaccionChange={setEditingTransactionDate}
       />
 
       {/* Modal de confirmación para eliminar transacción */}
@@ -614,7 +825,7 @@ export default function TransactionsScreen() {
               <Ionicons name="warning" size={48} color="#FF3B30" />
               <Text style={styles.deleteModalTitle}>Eliminar Transacción</Text>
             </View>
-            
+
             <Text style={styles.deleteModalMessage}>
               ¿Estás seguro de que deseas eliminar la transacción "{transactionToDelete?.titulo}"?
             </Text>
@@ -630,7 +841,7 @@ export default function TransactionsScreen() {
               >
                 <Text style={styles.cancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.confirmDeleteButton, deleting && styles.confirmDeleteButtonDisabled]}
                 onPress={handleDeleteTransaction}
@@ -661,10 +872,10 @@ export default function TransactionsScreen() {
         )
       ) : (
         <Modal visible={showDatePickerInicio} transparent={true} animationType="fade">
-          <Pressable style={styles.datePickerModalOverlay} onPress={cancelDatePicker}>
-            <Pressable style={styles.datePickerModalContent} onPress={(e) => e.stopPropagation()}>
-              <View style={styles.datePickerModalHeader}>
-                <Text style={styles.datePickerModalTitle}>Seleccionar Fecha Inicio</Text>
+          <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
+            <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.datePickerHeader}>
+                <Text style={styles.datePickerTitle}>Seleccionar Fecha Inicio</Text>
                 <TouchableOpacity onPress={cancelDatePicker}>
                   <Ionicons name="close" size={28} color="#666" />
                 </TouchableOpacity>
@@ -680,7 +891,7 @@ export default function TransactionsScreen() {
                   textColor="#000000"
                 />
               </View>
-              <View style={styles.datePickerModalButtons}>
+              <View style={styles.datePickerButtons}>
                 <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
                   <Text style={styles.datePickerCancelText}>Cancelar</Text>
                 </TouchableOpacity>
@@ -707,10 +918,10 @@ export default function TransactionsScreen() {
         )
       ) : (
         <Modal visible={showDatePickerFin} transparent={true} animationType="fade">
-          <Pressable style={styles.datePickerModalOverlay} onPress={cancelDatePicker}>
-            <Pressable style={styles.datePickerModalContent} onPress={(e) => e.stopPropagation()}>
-              <View style={styles.datePickerModalHeader}>
-                <Text style={styles.datePickerModalTitle}>Seleccionar Fecha Fin</Text>
+          <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
+            <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.datePickerHeader}>
+                <Text style={styles.datePickerTitle}>Seleccionar Fecha Fin</Text>
                 <TouchableOpacity onPress={cancelDatePicker}>
                   <Ionicons name="close" size={28} color="#666" />
                 </TouchableOpacity>
@@ -726,11 +937,60 @@ export default function TransactionsScreen() {
                   textColor="#000000"
                 />
               </View>
-              <View style={styles.datePickerModalButtons}>
+              <View style={styles.datePickerButtons}>
                 <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
                   <Text style={styles.datePickerCancelText}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.datePickerConfirmButton} onPress={confirmDateFin}>
+                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
+
+      {/* Date Picker para Transacción - Android usa picker nativo, iOS usa modal */}
+      {Platform.OS === 'android' ? (
+        showTransactionDatePicker && (
+          <DateTimePicker
+            value={transactionDateTemp}
+            mode="date"
+            display="default"
+            onChange={handleTransactionDateChange}
+            locale="es"
+          />
+        )
+      ) : (
+        <Modal visible={showTransactionDatePicker} transparent={true} animationType="fade" onRequestClose={cancelTransactionDatePicker}>
+          <Pressable style={styles.modalOverlay} onPress={cancelTransactionDatePicker}>
+            <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.datePickerHeader}>
+                <Text style={styles.datePickerTitle}>Seleccionar fecha</Text>
+              </View>
+
+              <View style={styles.datePickerContainer}>
+                <DateTimePicker
+                  value={transactionDateTemp}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleTransactionDateChange}
+                  locale="es"
+                  textColor="#000000"
+                />
+              </View>
+
+              <View style={styles.datePickerButtons}>
+                <TouchableOpacity
+                  style={styles.datePickerCancelButton}
+                  onPress={cancelTransactionDatePicker}
+                >
+                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.datePickerConfirmButton}
+                  onPress={confirmTransactionDate}
+                >
                   <Text style={styles.datePickerConfirmText}>Confirmar</Text>
                 </TouchableOpacity>
               </View>
@@ -1095,30 +1355,23 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   // Estilos del modal de date picker
-  datePickerModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  datePickerModalContent: {
+  datePickerModal: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    width: '85%',
     padding: 20,
+    width: '85%',
+    maxWidth: 400,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
   },
-  datePickerModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  datePickerHeader: {
+    marginBottom: 16,
     alignItems: 'center',
-    marginBottom: 20,
   },
-  datePickerModalTitle: {
+  datePickerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1a1a1a',
@@ -1133,10 +1386,11 @@ const styles = StyleSheet.create({
     height: 200,
     marginLeft: -25, // Mover a la izquierda para centrar mejor
   },
-  datePickerModalButtons: {
+  datePickerButtons: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
     gap: 12,
-    marginTop: 20,
   },
   datePickerCancelButton: {
     flex: 1,
@@ -1164,16 +1418,19 @@ const styles = StyleSheet.create({
   },
   // Estilos para el botón de eliminar en el modal de detalle
   deleteTransactionButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
     backgroundColor: '#FF3B30',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    shadowColor: '#FF3B30',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   deleteTransactionButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
   },
@@ -1247,6 +1504,117 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   confirmDeleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  // Estilos para el modal editable
+  required: {
+    color: '#FF6B6B',
+  },
+  formGroup: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  typeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    gap: 8,
+  },
+  typeButtonLeft: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#E0E0E0',
+  },
+  typeButtonRight: {
+    borderLeftWidth: 0.5,
+    borderLeftColor: '#E0E0E0',
+  },
+  typeButtonActive: {
+    backgroundColor: '#FF6B6B',
+  },
+  typeButtonActiveIngreso: {
+    backgroundColor: '#4CAF50',
+  },
+  typeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  typeButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  importeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingHorizontal: 16,
+  },
+  currencySymbol: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#666',
+    marginRight: 8,
+  },
+  importeInput: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    paddingVertical: 16,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    justifyContent: 'flex-end',
+  },
+  saveButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+    shadowOpacity: 0,
+  },
+  saveButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
