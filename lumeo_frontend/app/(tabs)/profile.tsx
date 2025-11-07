@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Modal, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Modal, Pressable, Platform, ToastAndroid, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
@@ -132,6 +133,27 @@ export default function ProfileScreen() {
     });
   };
 
+  const handleCopyUsername = async () => {
+    const username = usuario?.nombreUsuario || 'usuario';
+    try {
+      await Clipboard.setStringAsync(username);
+      
+      // Feedback según la plataforma
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('Nombre de usuario copiado', ToastAndroid.SHORT);
+      } else {
+        Alert.alert('Copiado', 'Nombre de usuario copiado al portapapeles');
+      }
+    } catch (error) {
+      console.error('Error al copiar al portapapeles:', error);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('Error al copiar', ToastAndroid.SHORT);
+      } else {
+        Alert.alert('Error', 'No se pudo copiar el nombre de usuario');
+      }
+    }
+  };
+
   const menuItems = [
     {
       id: 'change-email',
@@ -183,11 +205,15 @@ export default function ProfileScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <View style={styles.headerUserContainer}>
+        <TouchableOpacity 
+          style={styles.headerUserContainer}
+          onPress={handleCopyUsername}
+          activeOpacity={0.7}
+        >
           <Text style={styles.headerUsername}>
             @{loading ? '...' : usuario?.nombreUsuario || 'usuario'}
           </Text>
-        </View>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil</Text>
       </View>
 
