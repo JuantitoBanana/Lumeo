@@ -51,9 +51,12 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
   const isDestinatario = transaction?.idDestinatario === usuarioId;
   const isEditable = isCreador && !(transaction?.idEstado === 3 && transaction?.idDestinatario !== null); // El creador no puede editar si está pagada y tiene destinatario
 
+  // Estado para controlar si ya se inicializaron los campos
+  const [initialized, setInitialized] = useState(false);
+
   // Inicializar campos cuando se abre el modal con una transacción
   React.useEffect(() => {
-    if (transaction && visible) {
+    if (transaction && visible && !initialized) {
       setTitulo(transaction.titulo || '');
       
       // Si es destinatario, usar importe_destinatario, si es creador usar importe normal
@@ -68,8 +71,17 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
       const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
         transaction.idTipo === 1;
       setTipo(isIncome ? 'ingreso' : 'gasto');
+      
+      setInitialized(true);
     }
-  }, [transaction, visible]);
+  }, [transaction, visible, initialized]);
+
+  // Resetear el estado de inicialización cuando cambia la transacción
+  React.useEffect(() => {
+    if (transaction) {
+      setInitialized(false);
+    }
+  }, [transaction?.id]);
 
   const formatDateDisplay = (date: Date) => {
     const meses = [
