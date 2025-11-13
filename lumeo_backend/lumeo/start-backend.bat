@@ -3,8 +3,18 @@ echo ========================================
 echo    LUMEO BACKEND - Spring Boot
 echo ========================================
 echo.
-echo Iniciando backend en http://localhost:8080
-echo.
 cd /d C:\Users\usuario\Documents\ProyectoLumeo\Lumeo\lumeo_backend\lumeo
-call mvnw.cmd clean spring-boot:run
+
+REM Cargar variables de entorno desde .env
+for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
+    set "%%a=%%b"
+)
+
+REM Configurar Java
+set MAVEN_OPTS=-Djava.net.preferIPv4Stack=true
+
+echo Iniciando backend...
+echo.
+
+call mvnw.cmd spring-boot:run
 pause

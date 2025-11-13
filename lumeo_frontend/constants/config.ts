@@ -35,10 +35,10 @@ if (debuggerHost) {
 } else if (Platform.OS === 'android') {
   // Para dispositivo físico Android, usar la IP local del PC
   // Para emulador Android, usar 10.0.2.2
-  devHost = '192.168.1.136'; // Cambiar por tu IP local si es diferente
+  devHost = '192.168.1.128'; // IP local correcta de la máquina
 } else if (Platform.OS === 'ios') {
   // iOS Simulator necesita la IP real de la máquina host
-  devHost = '192.168.1.136';
+  devHost = '192.168.1.128';
 }
 
 export const API_BASE_URL = __DEV__

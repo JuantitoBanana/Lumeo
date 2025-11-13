@@ -10,15 +10,17 @@ public abstract class GenericService<T, ID> {
     protected abstract JpaRepository<T, ID> getRepository();
     
     /**
-     * Find all entities
+     * Find all entities (read-only)
      */
+    @Transactional(readOnly = true)
     public List<T> findAll() {
         return getRepository().findAll();
     }
     
     /**
-     * Find entity by ID
+     * Find entity by ID (read-only)
      */
+    @Transactional(readOnly = true)
     public Optional<T> findById(ID id) {
         return getRepository().findById(id);
     }
@@ -38,7 +40,6 @@ public abstract class GenericService<T, ID> {
     public Optional<T> editById(ID id, T updatedEntity) {
         return getRepository().findById(id)
                 .map(existingEntity -> {
-                    // Here you can add custom update logic if needed
                     return getRepository().save(updatedEntity);
                 });
     }
@@ -56,15 +57,17 @@ public abstract class GenericService<T, ID> {
     }
     
     /**
-     * Check if entity exists by ID
+     * Check if entity exists by ID (read-only)
      */
+    @Transactional(readOnly = true)
     public boolean existsById(ID id) {
         return getRepository().existsById(id);
     }
     
     /**
-     * Count all entities
+     * Count all entities (read-only)
      */
+    @Transactional(readOnly = true)
     public long count() {
         return getRepository().count();
     }
