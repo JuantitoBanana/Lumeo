@@ -56,6 +56,7 @@ export interface Grupo {
   id?: number;
   nombre: string;
   descripcion?: string;
+  idCreador?: number;
 }
 
 // Tipo de Transacción

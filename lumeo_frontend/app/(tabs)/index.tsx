@@ -158,11 +158,11 @@ export default function HomeScreen() {
           
           {/* Iconos de la derecha */}
           <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={() => router.push('/groups')}
+            >
               <Ionicons name="people" size={24} color="#007AFF" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Ionicons name="time" size={24} color="#007AFF" />
             </TouchableOpacity>
           </View>
         </View>
