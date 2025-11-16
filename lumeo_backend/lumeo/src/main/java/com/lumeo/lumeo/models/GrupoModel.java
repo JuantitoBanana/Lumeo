@@ -23,4 +23,7 @@ public class GrupoModel {
     
     @Column(name = "descripcion")
     private String descripcion;
+    
+    @Column(name = "id_creador")
+    private Long idCreador;
 }

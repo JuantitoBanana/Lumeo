@@ -187,7 +187,6 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         dto.setNota(transaccion.getNota());
         dto.setIdUsuario(transaccion.getIdUsuario());
         dto.setIdCategoria(transaccion.getIdCategoria());
-        dto.setIdGrupo(transaccion.getIdGrupo());
         dto.setIdTipo(transaccion.getIdTipo());
         dto.setIdEstado(transaccion.getIdEstado());
         dto.setIdAdjunto(transaccion.getIdAdjunto());
@@ -217,9 +216,6 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         try {
             if (transaccion.getCategoria() != null) {
                 dto.setCategoria(transaccion.getCategoria());
-            }
-            if (transaccion.getGrupo() != null) {
-                dto.setGrupo(transaccion.getGrupo());
             }
             if (transaccion.getTipoTransaccion() != null) {
                 dto.setTipoTransaccion(transaccion.getTipoTransaccion());
@@ -290,7 +286,6 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         dto.setNota(transaccion.getNota());
         dto.setIdUsuario(transaccion.getIdUsuario());
         dto.setIdCategoria(transaccion.getIdCategoria());
-        dto.setIdGrupo(transaccion.getIdGrupo());
         dto.setIdTipo(transaccion.getIdTipo());
         dto.setIdEstado(transaccion.getIdEstado());
         dto.setIdAdjunto(transaccion.getIdAdjunto());
@@ -299,7 +294,6 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
         
         // Incluir las relaciones
         dto.setCategoria(transaccion.getCategoria());
-        dto.setGrupo(transaccion.getGrupo());
         dto.setTipoTransaccion(transaccion.getTipoTransaccion());
         dto.setEstadoTransaccion(transaccion.getEstadoTransaccion());
         

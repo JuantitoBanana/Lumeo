@@ -77,4 +77,12 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
     List<TransaccionModel> findByUsuarioMesAnio(@Param("idUsuario") Long idUsuario,
                                                  @Param("mes") Integer mes,
                                                  @Param("anio") Integer anio);
+    
+    /**
+     * Busca todas las transacciones individuales asociadas a una transacción grupal
+     * @param idTransaccionGrupal ID de la transacción grupal
+     * @return Lista de transacciones individuales
+     */
+    @Query("SELECT t FROM TransaccionModel t WHERE t.idTransaccionGrupal = :idTransaccionGrupal")
+    List<TransaccionModel> findByIdTransaccionGrupal(@Param("idTransaccionGrupal") Long idTransaccionGrupal);
 }
