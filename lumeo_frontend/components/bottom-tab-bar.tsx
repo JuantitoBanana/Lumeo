@@ -28,6 +28,13 @@ export function BottomTabBar({ activeTab = 'home', onTabRefresh }: BottomTabBarP
     // Si es el botón de añadir, abrir el modal
     if (tabId === 'add') {
       setModalVisible(true);
+    } else if (tabId === 'home') {
+      // Para el tab home, siempre navegar al dashboard (resetear stack)
+      router.replace('/(tabs)');
+      // Si ya estábamos en home, hacer refresh
+      if (activeTab === 'home' && onTabRefresh) {
+        onTabRefresh();
+      }
     } else if (activeTab === tabId && onTabRefresh) {
       // Si ya estamos en este tab, ejecutar refresh
       onTabRefresh();

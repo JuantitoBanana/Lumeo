@@ -192,7 +192,9 @@ class ApiClient {
   }
 
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const requestKey = `POST:${url}`;
+    // Para POST, incluir timestamp para permitir múltiples peticiones al mismo endpoint
+    const timestamp = Date.now();
+    const requestKey = `POST:${url}:${timestamp}`;
     
     return this.requestQueue.add(requestKey, async () => {
       try {

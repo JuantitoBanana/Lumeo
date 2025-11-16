@@ -215,8 +215,13 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+      <View style={styles.modalOverlay}>
+        <TouchableOpacity 
+          style={StyleSheet.absoluteFill} 
+          activeOpacity={1} 
+          onPress={onClose}
+        />
+        <View style={styles.modalContent}>
           {/* Header del modal */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
@@ -230,7 +235,12 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
           <View style={styles.modalDivider} />
 
           {/* Contenido del modal */}
-          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.modalBody} 
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+            bounces={true}
+          >
             {/* Título */}
             <View style={styles.modalSection}>
               <Text style={styles.modalLabel}>
@@ -466,8 +476,8 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
               </>
             ) : null}
           </View>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }

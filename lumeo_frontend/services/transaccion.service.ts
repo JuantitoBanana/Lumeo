@@ -51,6 +51,13 @@ export class TransaccionService {
   }
 
   /**
+   * Obtiene transacciones por grupo
+   */
+  async getByGrupo(idGrupo: number): Promise<Transaccion[]> {
+    return apiClient.get<Transaccion[]>(`${this.endpoint}/grupo/${idGrupo}`);
+  }
+
+  /**
    * Obtiene transacciones por categoría
    */
   async getByCategoria(idCategoria: number): Promise<Transaccion[]> {

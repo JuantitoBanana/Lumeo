@@ -42,8 +42,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
       color: '#FFE66D',
       action: () => {
         onClose();
-        console.log('Transacción grupal');
-        // router.push('/group-transaction');
+        router.push('/select-group-transaction');
       },
     },
     {
@@ -54,8 +53,7 @@ export default function AddTransactionModal({ visible, onClose }: AddTransaction
       color: '#95E1D3',
       action: () => {
         onClose();
-        console.log('Crear Grupo');
-        // router.push('/create-group');
+        router.push('/create-group');
       },
     },
   ];
