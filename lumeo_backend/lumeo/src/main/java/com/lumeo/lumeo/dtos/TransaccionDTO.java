@@ -28,6 +28,11 @@ public class TransaccionDTO {
     private Long idDestinatario;
     private Double importeDestinatario;
     
+    // Información del usuario (para transacciones grupales y destinatarios)
+    private String nombreUsuario;
+    private String nombre;
+    private String apellido;
+    
     // Relaciones (cuando se necesiten)
     private CategoriaModel categoria;
     private GrupoModel grupo;
