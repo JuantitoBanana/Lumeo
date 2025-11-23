@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import apiClient from '@/lib/api-client';
 import { Picker } from '@react-native-picker/picker';
+import { useTranslation } from '../hooks/useTranslation';
 
 const months = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -27,6 +28,7 @@ const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 126 }, (_, i) => (currentYear - 25 + i).toString());
 
 export default function CreateBudgetScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState(months[new Date().getMonth()]);
@@ -94,7 +96,7 @@ export default function CreateBudgetScreen() {
 
   const validateForm = () => {
     if (!monto || parseFloat(monto.replace(',', '.')) <= 0) {
-      Alert.alert('Error', 'El monto debe ser mayor a 0');
+      Alert.alert(t('common.error'), t('createBudget.errors.amountMustBePositive'));
       return false;
     }
     return true;
@@ -106,7 +108,7 @@ export default function CreateBudgetScreen() {
     }
 
     if (!user?.id) {
-      Alert.alert('Error', 'No se pudo identificar al usuario');
+      Alert.alert(t('common.error'), t('createBudget.errors.noUser'));
       return;
     }
 
@@ -124,8 +126,8 @@ export default function CreateBudgetScreen() {
       router.back();
     } catch (error: any) {
       console.error('Error al crear presupuesto:', error);
-      const errorMessage = error?.message || 'No se pudo crear el presupuesto';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error?.message || t('createBudget.errors.failedToCreate');
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -145,7 +147,7 @@ export default function CreateBudgetScreen() {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Crear presupuesto</Text>
+        <Text style={styles.headerTitle}>{t('createBudget.title')}</Text>
       </View>
 
       <ScrollView 
@@ -155,7 +157,7 @@ export default function CreateBudgetScreen() {
       >
         {/* Selectores de Mes y Año */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Mes y Año</Text>
+          <Text style={styles.label}>{t('createBudget.monthAndYear')}</Text>
           <View style={styles.selectorsRow}>
             <TouchableOpacity
               style={styles.selector}
@@ -176,12 +178,12 @@ export default function CreateBudgetScreen() {
 
         {/* Campo Monto */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Monto</Text>
+          <Text style={styles.label}>{t('createBudget.amountLabel')}</Text>
           <View style={styles.inputWithIcon}>
             <Ionicons name="cash-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.inputWithIconText}
-              placeholder="0,00"
+              placeholder={t('createBudget.amountPlaceholder')}
               placeholderTextColor="#999"
               value={monto}
               onChangeText={handleNumberInput}
@@ -189,7 +191,7 @@ export default function CreateBudgetScreen() {
             />
             <Text style={styles.currencySymbol}>€</Text>
           </View>
-          <Text style={styles.helperText}>Monto del presupuesto para el mes seleccionado</Text>
+          <Text style={styles.helperText}>{t('createBudget.helperText')}</Text>
         </View>
 
         {/* Botón Crear Presupuesto */}
@@ -199,11 +201,11 @@ export default function CreateBudgetScreen() {
           disabled={loading}
         >
           {loading ? (
-            <Text style={styles.createButtonText}>Creando...</Text>
+            <Text style={styles.createButtonText}>{t('createBudget.creating')}</Text>
           ) : (
             <>
               <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
-              <Text style={styles.createButtonText}>Crear Presupuesto</Text>
+              <Text style={styles.createButtonText}>{t('createBudget.createButton')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -224,7 +226,7 @@ export default function CreateBudgetScreen() {
         >
           <Pressable style={styles.pickerModal} onPress={(e) => e.stopPropagation()}>
             <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Seleccionar Mes</Text>
+              <Text style={styles.pickerTitle}>{t('createBudget.selectMonth')}</Text>
             </View>
             
             <View style={styles.pickerContainer}>
@@ -245,13 +247,13 @@ export default function CreateBudgetScreen() {
                 style={styles.pickerCancelButton}
                 onPress={cancelMonthSelection}
               >
-                <Text style={styles.pickerCancelText}>Cancelar</Text>
+                <Text style={styles.pickerCancelText}>{t('createBudget.cancelButton')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.pickerConfirmButton}
                 onPress={confirmMonthSelection}
               >
-                <Text style={styles.pickerConfirmText}>Confirmar</Text>
+                <Text style={styles.pickerConfirmText}>{t('createBudget.confirmButton')}</Text>
               </TouchableOpacity>
             </View>
           </Pressable>
@@ -271,7 +273,7 @@ export default function CreateBudgetScreen() {
         >
           <Pressable style={styles.pickerModal} onPress={(e) => e.stopPropagation()}>
             <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Seleccionar Año</Text>
+              <Text style={styles.pickerTitle}>{t('createBudget.selectYear')}</Text>
             </View>
             
             <View style={styles.pickerContainer}>
@@ -292,7 +294,7 @@ export default function CreateBudgetScreen() {
                 style={styles.pickerCancelButton}
                 onPress={cancelYearSelection}
               >
-                <Text style={styles.pickerCancelText}>Cancelar</Text>
+                <Text style={styles.pickerCancelText}>{t('createBudget.cancelButton')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.pickerConfirmButton}

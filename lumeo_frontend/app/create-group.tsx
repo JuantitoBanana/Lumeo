@@ -15,8 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { grupoService, VerificarUsuarioResponse } from '@/services/grupo.service';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function CreateGroupScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { usuario } = useUsuarioApi();
   const [nombre, setNombre] = useState('');
@@ -28,13 +30,13 @@ export default function CreateGroupScreen() {
 
   const handleVerificarUsuario = async () => {
     if (!nombreUsuarioInput.trim()) {
-      Alert.alert('Error', 'Debes introducir un nombre de usuario');
+      Alert.alert(t('common.error'), t('createGroup.errors.enterUsername'));
       return;
     }
 
     // Verificar que no sea el propio usuario
     if (usuario?.nombreUsuario && nombreUsuarioInput.trim() === usuario.nombreUsuario) {
-      Alert.alert('Error', 'No puedes agregarte a ti mismo. Ya eres parte del grupo automáticamente.');
+      Alert.alert(t('common.error'), t('createGroup.errors.cannotAddYourself'));
       return;
     }
 
@@ -44,7 +46,7 @@ export default function CreateGroupScreen() {
     );
 
     if (yaAgregado) {
-      Alert.alert('Error', 'Este usuario ya ha sido agregado al grupo');
+      Alert.alert(t('common.error'), t('createGroup.errors.userAlreadyAdded'));
       return;
     }
 
@@ -55,13 +57,13 @@ export default function CreateGroupScreen() {
       if (resultado.existe) {
         setUsuariosAgregados([...usuariosAgregados, resultado]);
         setNombreUsuarioInput('');
-        Alert.alert('Éxito', `Usuario ${resultado.nombreUsuario} agregado correctamente`);
+        Alert.alert(t('common.success'), t('createGroup.userAddedSuccess', { username: resultado.nombreUsuario }));
       } else {
-        Alert.alert('Error', `El usuario "${nombreUsuarioInput}" no existe`);
+        Alert.alert(t('common.error'), t('createGroup.errors.userNotExists', { username: nombreUsuarioInput }));
       }
     } catch (error: any) {
       console.error('Error al verificar usuario:', error);
-      Alert.alert('Error', 'No se pudo verificar el usuario. Intenta nuevamente.');
+      Alert.alert(t('common.error'), t('createGroup.errors.couldNotVerify'));
     } finally {
       setVerificando(false);
     }
@@ -73,7 +75,7 @@ export default function CreateGroupScreen() {
 
   const validateForm = () => {
     if (!nombre.trim()) {
-      Alert.alert('Error', 'El nombre del grupo es obligatorio');
+      Alert.alert(t('common.error'), t('createGroup.errors.nameRequired'));
       return false;
     }
     return true;
@@ -85,7 +87,7 @@ export default function CreateGroupScreen() {
     }
 
     if (!usuario?.id) {
-      Alert.alert('Error', 'No se pudo identificar al usuario');
+      Alert.alert(t('common.error'), t('createGroup.errors.noUser'));
       return;
     }
 
@@ -100,13 +102,13 @@ export default function CreateGroupScreen() {
 
       await grupoService.crearGrupoConUsuarios(grupoData, usuario.id);
 
-      Alert.alert('Éxito', 'Grupo creado correctamente', [
-        { text: 'OK', onPress: () => router.back() }
+      Alert.alert(t('common.success'), t('createGroup.successMessage'), [
+        { text: t('common.ok'), onPress: () => router.back() }
       ]);
     } catch (error: any) {
       console.error('Error al crear grupo:', error);
-      const errorMessage = error?.message || 'No se pudo crear el grupo';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error?.message || t('createGroup.errors.failedToCreate');
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -126,7 +128,7 @@ export default function CreateGroupScreen() {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Crear grupo</Text>
+        <Text style={styles.headerTitle}>{t('createGroup.title')}</Text>
       </View>
 
       <ScrollView 
@@ -136,12 +138,12 @@ export default function CreateGroupScreen() {
       >
         {/* Campo Nombre */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Nombre del grupo</Text>
+          <Text style={styles.label}>{t('createGroup.nameLabel')}</Text>
           <View style={styles.inputWithIcon}>
             <Ionicons name="people-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.inputWithIconText}
-              placeholder="Ej: Familia, Amigos, Viaje..."
+              placeholder={t('createGroup.namePlaceholder')}
               placeholderTextColor="#999"
               value={nombre}
               onChangeText={setNombre}
@@ -151,12 +153,12 @@ export default function CreateGroupScreen() {
 
         {/* Campo Descripción */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Descripción (opcional)</Text>
+          <Text style={styles.label}>{t('createGroup.descriptionLabel')}</Text>
           <View style={styles.inputWithIcon}>
             <Ionicons name="document-text-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.inputWithIconText}
-              placeholder="Descripción del grupo"
+              placeholder={t('createGroup.descriptionPlaceholder')}
               placeholderTextColor="#999"
               value={descripcion}
               onChangeText={setDescripcion}
@@ -167,13 +169,13 @@ export default function CreateGroupScreen() {
 
         {/* Campo Agregar Usuarios */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Agregar personas</Text>
+          <Text style={styles.label}>{t('createGroup.addPeopleLabel')}</Text>
           <View style={styles.addUserContainer}>
             <View style={[styles.inputWithIcon, styles.inputWithIconInRow]}>
               <Ionicons name="person-add-outline" size={20} color="#666" style={styles.inputIcon} />
               <TextInput
                 style={styles.inputWithIconText}
-                placeholder="Nombre de usuario"
+                placeholder={t('createGroup.usernamePlaceholder')}
                 placeholderTextColor="#999"
                 value={nombreUsuarioInput}
                 onChangeText={setNombreUsuarioInput}
@@ -191,20 +193,20 @@ export default function CreateGroupScreen() {
               ) : (
                 <>
                   <Ionicons name="add" size={20} color="#FFFFFF" />
-                  <Text style={styles.addButtonText}>Añadir</Text>
+                  <Text style={styles.addButtonText}>{t('createGroup.addButton')}</Text>
                 </>
               )}
             </TouchableOpacity>
           </View>
           <Text style={styles.helperText}>
-            Serás agregado automáticamente al grupo
+            {t('createGroup.helperText')}
           </Text>
         </View>
 
         {/* Lista de Usuarios Agregados */}
         {usuariosAgregados.length > 0 && (
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Personas en el grupo ({usuariosAgregados.length})</Text>
+            <Text style={styles.label}>{t('createGroup.peopleInGroup', { count: usuariosAgregados.length.toString() })}</Text>
             <View style={styles.usersList}>
               {usuariosAgregados.map((usuario) => (
                 <View key={usuario.nombreUsuario} style={styles.userCard}>
@@ -238,11 +240,11 @@ export default function CreateGroupScreen() {
           disabled={loading}
         >
           {loading ? (
-            <Text style={styles.createButtonText}>Creando...</Text>
+            <Text style={styles.createButtonText}>{t('createGroup.creating')}</Text>
           ) : (
             <>
               <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
-              <Text style={styles.createButtonText}>Crear Grupo</Text>
+              <Text style={styles.createButtonText}>{t('createGroup.createButton')}</Text>
             </>
           )}
         </TouchableOpacity>

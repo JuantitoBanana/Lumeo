@@ -18,6 +18,7 @@ import { transaccionGrupalService, TransaccionGrupal } from '@/services/transacc
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Modal de detalle de transacción grupal
 interface TransactionGroupDetailModalProps {
@@ -37,6 +38,7 @@ function TransactionGroupDetailModal({
   currencySymbol,
   onDelete,
 }: TransactionGroupDetailModalProps) {
+  const { t } = useTranslation();
   const [transaccion, setTransaccion] = useState<TransaccionGrupal | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);

@@ -19,6 +19,7 @@ import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { grupoService } from '@/services/grupo.service';
 import { transaccionGrupalService } from '@/services/transaccion-grupal.service';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from '../hooks/useTranslation';
 
 type TransactionType = 'gasto' | 'ingreso';
 type DivisionType = 'igual' | 'exacto';
@@ -33,6 +34,7 @@ interface MiembroGrupo {
 }
 
 export default function RegisterGroupTransactionScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const idGrupo = params.idGrupo ? parseInt(params.idGrupo as string) : null;
@@ -73,13 +75,13 @@ export default function RegisterGroupTransactionScreen() {
       
       setNombreGrupo(grupoConMiembros.grupo.nombre);
       
-      // Filtrar el usuario actual y marcar todos los demás como seleccionados por defecto
+      // Filtrar el usuario actual y NO marcar ninguno como seleccionado por defecto
       const miembrosFiltrados = grupoConMiembros.miembros
         .filter(m => m.idUsuario !== usuario.id)
         .map(m => ({
           idUsuario: m.idUsuario,
           nombreUsuario: m.nombreUsuario,
-          seleccionado: true,
+          seleccionado: false,
           importe: '',
           nombre: m.nombre || '',
           apellido: m.apellido || '',

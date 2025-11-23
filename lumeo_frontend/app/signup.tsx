@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import {
   ActivityIndicator,
   Alert,
@@ -16,6 +17,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SignUpScreen() {
+  const { t } = useTranslation();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
@@ -39,33 +41,33 @@ export default function SignUpScreen() {
       !password.trim() ||
       !confirmPassword.trim()
     ) {
-      Alert.alert('Error', 'Por favor, rellena todos los campos');
+      Alert.alert(t('common.error'), t('signup.errors.fillAllFields'));
       return;
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Por favor, introduce un correo electrónico válido');
+      Alert.alert(t('common.error'), t('signup.errors.invalidEmail'));
       return;
     }
 
     // Password validation
     if (password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      Alert.alert(t('common.error'), t('signup.errors.passwordTooShort'));
       return;
     }
 
     // Password match validation
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      Alert.alert(t('common.error'), t('signup.errors.passwordsDontMatch'));
       return;
     }
 
     // Username validation (only alphanumeric and underscores)
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
     if (!usernameRegex.test(username)) {
-      Alert.alert('Error', 'El nombre de usuario solo puede contener letras, números y guiones bajos');
+      Alert.alert(t('common.error'), t('signup.errors.invalidUsername'));
       return;
     }
 
@@ -80,14 +82,14 @@ export default function SignUpScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Error al registrarse', error.message);
+      Alert.alert(t('signup.errors.signupError'), error.message);
     } else {
       Alert.alert(
-        'Éxito',
-        '¡Cuenta creada correctamente! Por favor, revisa tu correo electrónico para verificar tu cuenta.',
+        t('signup.success.title'),
+        t('signup.success.message'),
         [
           {
-            text: 'Aceptar',
+            text: t('signup.success.button'),
             onPress: () => router.replace('/login'),
           },
         ]
@@ -114,7 +116,7 @@ export default function SignUpScreen() {
 
       {/* Header fuera del panel */}
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>Nuevo Usuario</Text>
+        <Text style={styles.title}>{t('signup.title')}</Text>
       </View>
 
       {/* Panel con el formulario */}
@@ -132,10 +134,10 @@ export default function SignUpScreen() {
             {/* First Name and Last Name in the same row */}
             <View style={styles.rowContainer}>
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={styles.label}>Nombre</Text>
+                <Text style={styles.label}>{t('signup.firstNameLabel')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Tu nombre"
+                  placeholder={t('signup.firstNamePlaceholder')}
                   placeholderTextColor="#999"
                   value={firstName}
                   onChangeText={setFirstName}
@@ -145,10 +147,10 @@ export default function SignUpScreen() {
               </View>
 
               <View style={[styles.inputContainer, styles.halfWidth]}>
-                <Text style={styles.label}>Apellidos</Text>
+                <Text style={styles.label}>{t('signup.lastNameLabel')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Tus apellidos"
+                  placeholder={t('signup.lastNamePlaceholder')}
                   placeholderTextColor="#999"
                   value={lastName}
                   onChangeText={setLastName}
@@ -160,10 +162,10 @@ export default function SignUpScreen() {
 
             {/* Username Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Nombre de usuario</Text>
+              <Text style={styles.label}>{t('signup.usernameLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Elige un nombre de usuario"
+                placeholder={t('signup.usernamePlaceholder')}
                 placeholderTextColor="#999"
                 value={username}
                 onChangeText={setUsername}
@@ -174,10 +176,10 @@ export default function SignUpScreen() {
 
             {/* Email Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Correo electrónico</Text>
+              <Text style={styles.label}>{t('signup.emailLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Introduce tu correo electrónico"
+                placeholder={t('signup.emailPlaceholder')}
                 placeholderTextColor="#999"
                 value={email}
                 onChangeText={setEmail}
@@ -190,10 +192,10 @@ export default function SignUpScreen() {
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Contraseña</Text>
+              <Text style={styles.label}>{t('signup.passwordLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Crea una contraseña (mín. 6 caracteres)"
+                placeholder={t('signup.passwordPlaceholder')}
                 placeholderTextColor="#999"
                 value={password}
                 onChangeText={setPassword}
@@ -210,10 +212,10 @@ export default function SignUpScreen() {
 
             {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirmar contraseña</Text>
+              <Text style={styles.label}>{t('signup.confirmPasswordLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Vuelve a introducir tu contraseña"
+                placeholder={t('signup.confirmPasswordPlaceholder')}
                 placeholderTextColor="#999"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -238,15 +240,15 @@ export default function SignUpScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Registrarse</Text>
+                <Text style={styles.buttonText}>{t('signup.signupButton')}</Text>
               )}
             </TouchableOpacity>
 
             {/* Login Link */}
             <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>¿Ya tienes una cuenta? </Text>
+              <Text style={styles.loginText}>{t('signup.haveAccount')}</Text>
               <TouchableOpacity onPress={goToLogin} disabled={loading}>
-                <Text style={styles.loginLink}>Inicia sesión</Text>
+                <Text style={styles.loginLink}>{t('signup.loginLink')}</Text>
               </TouchableOpacity>
             </View>
           </View>

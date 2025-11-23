@@ -12,8 +12,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useGrupos } from '@/hooks/useGrupos';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function SelectGroupTransactionScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
   const { grupos, loading: loadingGrupos, refetch } = useGrupos();
@@ -42,12 +44,12 @@ export default function SelectGroupTransactionScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Seleccionar Grupo</Text>
+          <Text style={styles.headerTitle}>{t('selectGroupTransaction.title')}</Text>
           <View style={styles.placeholder} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Cargando grupos...</Text>
+          <Text style={styles.loadingText}>{t('selectGroupTransaction.loading')}</Text>
         </View>
       </View>
     );
@@ -63,7 +65,7 @@ export default function SelectGroupTransactionScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Seleccionar Grupo</Text>
+        <Text style={styles.headerTitle}>{t('selectGroupTransaction.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -76,7 +78,7 @@ export default function SelectGroupTransactionScreen() {
         <View style={styles.infoCard}>
           <Ionicons name="information-circle" size={24} color="#007AFF" />
           <Text style={styles.infoText}>
-            Selecciona un grupo para crear una transacción grupal
+            {t('selectGroupTransaction.infoText')}
           </Text>
         </View>
 
@@ -84,16 +86,16 @@ export default function SelectGroupTransactionScreen() {
         {grupos.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="people-outline" size={80} color="#CCC" />
-            <Text style={styles.emptyTitle}>No tienes grupos</Text>
+            <Text style={styles.emptyTitle}>{t('selectGroupTransaction.noGroupsTitle')}</Text>
             <Text style={styles.emptySubtitle}>
-              Crea un grupo para empezar a registrar transacciones grupales
+              {t('selectGroupTransaction.noGroupsSubtitle')}
             </Text>
             <TouchableOpacity 
               style={styles.createGroupButton}
               onPress={handleCreateGroup}
             >
               <Ionicons name="add-circle" size={24} color="#fff" />
-              <Text style={styles.createGroupButtonText}>Crear Grupo</Text>
+              <Text style={styles.createGroupButtonText}>{t('selectGroupTransaction.createGroupButton')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -142,7 +144,7 @@ export default function SelectGroupTransactionScreen() {
                       </View>
                       
                       <Text style={styles.memberCount}>
-                        {miembrosSinUsuarioActual.length} miembro{miembrosSinUsuarioActual.length !== 1 ? 's' : ''}
+                        {miembrosSinUsuarioActual.length} {miembrosSinUsuarioActual.length !== 1 ? t('selectGroupTransaction.members') : t('selectGroupTransaction.member')}
                       </Text>
                     </View>
                   </View>
@@ -160,7 +162,7 @@ export default function SelectGroupTransactionScreen() {
             onPress={handleCreateGroup}
           >
             <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
-            <Text style={styles.secondaryButtonText}>Crear Nuevo Grupo</Text>
+            <Text style={styles.secondaryButtonText}>{t('selectGroupTransaction.createNewGroupButton')}</Text>
           </TouchableOpacity>
         )}
       </ScrollView>

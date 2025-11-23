@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import {
     ActivityIndicator,
     Alert,
@@ -17,6 +18,7 @@ import { RESET_PASSWORD_URL } from '../constants/config';
 import { supabase } from '../lib/supabase';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,14 +29,14 @@ export default function ForgotPasswordScreen() {
   const handlePasswordReset = async () => {
     // Input validation
     if (!email.trim()) {
-      Alert.alert('Error', 'Por favor, introduce tu correo electrónico');
+      Alert.alert(t('common.error'), t('forgotPassword.errors.fillEmail'));
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Por favor, introduce un correo electrónico válido');
+      Alert.alert(t('common.error'), t('forgotPassword.errors.invalidEmail'));
       return;
     }
 
@@ -47,15 +49,15 @@ export default function ForgotPasswordScreen() {
 
       if (checkError) {
         setLoading(false);
-        Alert.alert('Error', 'Ha ocurrido un error al verificar el correo.');
+        Alert.alert(t('common.error'), t('forgotPassword.errors.verificationError'));
         return;
       }
 
       if (!emailExists) {
         setLoading(false);
         Alert.alert(
-          'Correo no encontrado',
-          'No existe ninguna cuenta asociada a este correo electrónico.'
+          t('forgotPassword.errors.emailNotFound'),
+          t('forgotPassword.errors.noAccount')
         );
         return;
       }
@@ -69,14 +71,14 @@ export default function ForgotPasswordScreen() {
       setLoading(false);
 
       if (error) {
-        Alert.alert('Error', error.message);
+        Alert.alert(t('common.error'), error.message);
       } else {
         // Navigate to success screen
         router.push('/password-reset-success');
       }
     } catch (err) {
       setLoading(false);
-      Alert.alert('Error', 'Ha ocurrido un error. Por favor, inténtalo de nuevo.');
+      Alert.alert(t('common.error'), t('forgotPassword.errors.generalError'));
     }
   };
 
@@ -93,7 +95,7 @@ export default function ForgotPasswordScreen() {
       {/* Header fuera del panel */}
       <View style={styles.headerContainer}>
         <Text style={styles.title}>
-          Cambiar tu{'\n'}contraseña
+          {t('forgotPassword.title')}
         </Text>
       </View>
 
@@ -110,15 +112,15 @@ export default function ForgotPasswordScreen() {
           <View style={styles.formContainer}>
             {/* Instruction Text */}
             <Text style={styles.instructionText}>
-              Introduce el correo electrónico para recuperar tu contraseña.
+              {t('forgotPassword.instruction')}
             </Text>
 
             {/* Email Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Correo electrónico</Text>
+              <Text style={styles.label}>{t('forgotPassword.emailLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Introduce tu correo electrónico"
+                placeholder={t('forgotPassword.emailPlaceholder')}
                 placeholderTextColor="#999"
                 value={email}
                 onChangeText={setEmail}
@@ -138,7 +140,7 @@ export default function ForgotPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Enviar</Text>
+                <Text style={styles.buttonText}>{t('forgotPassword.sendButton')}</Text>
               )}
             </TouchableOpacity>
           </View>

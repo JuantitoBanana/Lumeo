@@ -19,10 +19,12 @@ import { useRouter } from 'expo-router';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import apiClient from '@/lib/api-client';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from '../hooks/useTranslation';
 
 type TransactionType = 'gasto' | 'ingreso';
 
 export default function RegisterTransactionScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
   const [titulo, setTitulo] = useState('');
@@ -58,10 +60,11 @@ export default function RegisterTransactionScreen() {
     ];
     
     const dia = date.getDate().toString().padStart(2, '0');
-    const mes = meses[date.getMonth()];
+    const mesKey = meses[date.getMonth()];
+    const mesTraducido = t(`registerTransaction.months.${mesKey}`);
     const año = date.getFullYear();
     
-    return `${dia} de ${mes} de ${año}`;
+    return `${dia} de ${mesTraducido} de ${año}`;
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -89,15 +92,15 @@ export default function RegisterTransactionScreen() {
   const handleSubmit = async () => {
     // Validación básica
     if (!titulo.trim()) {
-      Alert.alert('Error', 'Por favor, introduce un título');
+      Alert.alert(t('common.error'), t('registerTransaction.errors.enterTitle'));
       return;
     }
     if (!importe || parseFloat(importe) <= 0) {
-      Alert.alert('Error', 'Por favor, introduce un importe válido');
+      Alert.alert(t('common.error'), t('registerTransaction.errors.enterValidAmount'));
       return;
     }
     if (!usuario?.id) {
-      Alert.alert('Error', 'No se pudo obtener el usuario');
+      Alert.alert(t('common.error'), t('registerTransaction.errors.noUser'));
       return;
     }
 
@@ -123,8 +126,8 @@ export default function RegisterTransactionScreen() {
     } catch (error: any) {
       console.error('Error al guardar transacción:', error);
       Alert.alert(
-        'Error',
-        'No se pudo guardar la transacción. Por favor, inténtalo de nuevo.'
+        t('common.error'),
+        t('registerTransaction.errors.failedToSave')
       );
     } finally {
       setSaving(false);
@@ -146,7 +149,7 @@ export default function RegisterTransactionScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Nueva Transacción</Text>
+          <Text style={styles.headerTitle}>{t('registerTransaction.title')}</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -159,11 +162,11 @@ export default function RegisterTransactionScreen() {
           {/* Título */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Título <Text style={styles.required}>*</Text>
+              {t('registerTransaction.titleLabel')} <Text style={styles.required}>{t('registerTransaction.required')}</Text>
             </Text>
             <TextInput
               style={styles.input}
-              placeholder="Ej: Compra supermercado"
+              placeholder={t('registerTransaction.titlePlaceholder')}
               value={titulo}
               onChangeText={setTitulo}
               placeholderTextColor="#999"
@@ -173,7 +176,7 @@ export default function RegisterTransactionScreen() {
           {/* Selector de tipo */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Tipo <Text style={styles.required}>*</Text>
+              {t('registerTransaction.typeLabel')} <Text style={styles.required}>{t('registerTransaction.required')}</Text>
             </Text>
             <View style={styles.typeSelector}>
               <TouchableOpacity
@@ -193,7 +196,7 @@ export default function RegisterTransactionScreen() {
                   styles.typeButtonText,
                   tipo === 'gasto' && styles.typeButtonTextActive,
                 ]}>
-                  Gasto
+                  {t('registerTransaction.expense')}
                 </Text>
               </TouchableOpacity>
               
@@ -214,7 +217,7 @@ export default function RegisterTransactionScreen() {
                   styles.typeButtonText,
                   tipo === 'ingreso' && styles.typeButtonTextActive,
                 ]}>
-                  Ingreso
+                  {t('registerTransaction.income')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -223,13 +226,13 @@ export default function RegisterTransactionScreen() {
           {/* Importe */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Importe <Text style={styles.required}>*</Text>
+              {t('registerTransaction.amountLabel')} <Text style={styles.required}>{t('registerTransaction.required')}</Text>
             </Text>
             <View style={styles.importeContainer}>
               <Text style={styles.currencySymbol}>€</Text>
               <TextInput
                 style={styles.importeInput}
-                placeholder="0,00"
+                placeholder={t('registerTransaction.amountPlaceholder')}
                 value={importe}
                 onChangeText={handleImporteChange}
                 keyboardType="decimal-pad"
@@ -241,7 +244,7 @@ export default function RegisterTransactionScreen() {
           {/* Fecha de transacción */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Fecha de transacción <Text style={styles.required}>*</Text>
+              {t('registerTransaction.dateLabel')} <Text style={styles.required}>{t('registerTransaction.required')}</Text>
             </Text>
             <TouchableOpacity 
               style={styles.datePickerButton}
@@ -262,10 +265,10 @@ export default function RegisterTransactionScreen() {
 
           {/* Nota (opcional) */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Nota (opcional)</Text>
+            <Text style={styles.label}>{t('registerTransaction.noteLabel')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Añade una nota o descripción..."
+              placeholder={t('registerTransaction.notePlaceholder')}
               value={nota}
               onChangeText={setNota}
               multiline
@@ -277,7 +280,7 @@ export default function RegisterTransactionScreen() {
 
           {/* Adjuntar archivo (opcional) */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Adjuntar archivo (opcional)</Text>
+            <Text style={styles.label}>{t('registerTransaction.fileLabel')}</Text>
             <TouchableOpacity 
               style={styles.fileButton}
               onPress={() => {
@@ -287,7 +290,7 @@ export default function RegisterTransactionScreen() {
             >
               <Ionicons name="attach" size={24} color="#007AFF" />
               <Text style={styles.fileButtonText}>
-                {hasFile ? 'Archivo adjuntado' : 'Seleccionar archivo'}
+                {hasFile ? t('registerTransaction.fileAttached') : t('registerTransaction.selectFile')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -305,7 +308,7 @@ export default function RegisterTransactionScreen() {
             {saving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.saveButtonText}>Guardar Transacción</Text>
+              <Text style={styles.saveButtonText}>{t('registerTransaction.saveButton')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -332,7 +335,7 @@ export default function RegisterTransactionScreen() {
           <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
             <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
               <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>Seleccionar fecha</Text>
+                <Text style={styles.datePickerTitle}>{t('registerTransaction.selectDate')}</Text>
               </View>
               
               <View style={styles.datePickerContainer}>
@@ -351,13 +354,13 @@ export default function RegisterTransactionScreen() {
                   style={styles.datePickerCancelButton}
                   onPress={cancelDatePicker}
                 >
-                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                  <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.datePickerConfirmButton}
                   onPress={confirmDate}
                 >
-                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                  <Text style={styles.datePickerConfirmText}>{t('common.confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>

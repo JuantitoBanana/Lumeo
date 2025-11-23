@@ -21,8 +21,10 @@ import { formatearCantidad } from '@/lib/currency-utils';
 import apiClient from '@/lib/api-client';
 import AddMoneyModal from '@/app/add-money-modal';
 import { Picker } from '@react-native-picker/picker';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export default function SavingsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { metas, loading, error, refetch } = useMetasAhorro();
   const { currencySymbol } = useCurrencySymbol();
@@ -124,7 +126,7 @@ export default function SavingsScreen() {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Cargando metas...</Text>
+          <Text style={styles.loadingText}>{t('savings.loading')}</Text>
         </View>
       );
     }
@@ -133,10 +135,10 @@ export default function SavingsScreen() {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-          <Text style={styles.emptyText}>Error al cargar</Text>
+          <Text style={styles.emptyText}>{t('savings.errorLoading')}</Text>
           <Text style={styles.emptySubtext}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>{t('savings.retry')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -146,9 +148,9 @@ export default function SavingsScreen() {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="wallet-outline" size={64} color="#999" />
-          <Text style={styles.emptyText}>Sin metas de ahorro</Text>
+          <Text style={styles.emptyText}>{t('savings.noGoals')}</Text>
           <Text style={styles.emptySubtext}>
-            Crea tu primera meta para comenzar a ahorrar
+            {t('savings.noGoalsText')}
           </Text>
         </View>
       );

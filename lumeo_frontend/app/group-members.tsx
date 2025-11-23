@@ -12,8 +12,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { grupoService, GrupoConMiembros, MiembroGrupo } from '@/services/grupo.service';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function GroupMembersScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const idGrupo = params.idGrupo ? Number(params.idGrupo) : null;

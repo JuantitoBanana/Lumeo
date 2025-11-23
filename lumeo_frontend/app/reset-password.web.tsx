@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function ResetPasswordWeb() {
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,15 +28,15 @@ export default function ResetPasswordWeb() {
           });
 
           if (error) {
-            setError('El enlace de recuperación no es válido o ha expirado.');
+            setError(t('resetPasswordWeb.errors.invalidToken'));
           } else {
             setValidToken(true);
           }
         } catch (err) {
-          setError('Ha ocurrido un error al verificar el enlace.');
+          setError(t('resetPasswordWeb.errors.resetError'));
         }
       } else {
-        setError('Enlace de recuperación no válido.');
+        setError(t('resetPasswordWeb.errors.invalidToken'));
       }
     };
 
@@ -47,17 +49,17 @@ export default function ResetPasswordWeb() {
 
     // Validaciones
     if (!newPassword.trim() || !confirmPassword.trim()) {
-      setError('Por favor, rellena todos los campos');
+      setError(t('resetPasswordWeb.errors.fillAllFields'));
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+      setError(t('resetPasswordWeb.errors.passwordTooShort'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError(t('resetPasswordWeb.errors.passwordsDontMatch'));
       return;
     }
 
@@ -78,7 +80,7 @@ export default function ResetPasswordWeb() {
         }, 3000);
       }
     } catch (err) {
-      setError('Ha ocurrido un error. Por favor, inténtalo de nuevo.');
+      setError(t('resetPasswordWeb.errors.resetError'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ export default function ResetPasswordWeb() {
       <div style={styles.container}>
         <div style={styles.card}>
           <div style={styles.spinner}></div>
-          <p style={styles.loadingText}>Verificando enlace...</p>
+          <p style={styles.loadingText}>{t('common.loading')}</p>
         </div>
       </div>
     );

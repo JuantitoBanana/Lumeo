@@ -22,6 +22,7 @@ import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import apiClient from '@/lib/api-client';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface Transaccion {
   id: number;
@@ -42,6 +43,7 @@ interface Transaccion {
 }
 
 export default function BudgetsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const { presupuestos, loading, error, refetch } = usePresupuestos();

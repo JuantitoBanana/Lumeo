@@ -13,8 +13,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useGrupos } from '@/hooks/useGrupos';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function GroupsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { usuario } = useUsuarioApi();
   const { grupos, loading, error, refetch } = useGrupos();
@@ -82,7 +84,7 @@ export default function GroupsScreen() {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Cargando grupos...</Text>
+          <Text style={styles.loadingText}>{t('groups.loading')}</Text>
         </View>
       );
     }
@@ -91,10 +93,10 @@ export default function GroupsScreen() {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-          <Text style={styles.emptyText}>Error al cargar</Text>
+          <Text style={styles.emptyText}>{t('groups.errorLoading')}</Text>
           <Text style={styles.emptySubtext}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>{t('groups.retry')}</Text>
           </TouchableOpacity>
         </View>
       );

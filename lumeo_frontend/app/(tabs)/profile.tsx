@@ -8,12 +8,15 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useRouter } from 'expo-router';
 import { DivisaService, Divisa } from '@/services/divisa.service';
 import { usuarioService } from '@/services/usuario.service';
+import { useTranslation } from '@/hooks/useTranslation';
+import { Language, LanguageOption } from '@/contexts/I18nContext';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { usuario, loading, refetchUsuario } = useUsuarioApi();
   const scrollViewRef = useRef<ScrollView>(null);
+  const { t, language, changeLanguage, availableLanguages } = useTranslation();
 
   // Estados para el selector de divisas
   const [showDivisaModal, setShowDivisaModal] = useState(false);
@@ -22,6 +25,11 @@ export default function ProfileScreen() {
   const [selectedDivisa, setSelectedDivisa] = useState<Divisa | null>(null);
   const [divisaActual, setDivisaActual] = useState<Divisa | null>(null);
   const [savingDivisa, setSavingDivisa] = useState(false);
+
+  // Estados para el selector de idioma
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
+  const [savingLanguage, setSavingLanguage] = useState(false);
 
   // Cargar divisas al montar el componente
   useEffect(() => {
@@ -105,6 +113,41 @@ export default function ProfileScreen() {
     setSelectedDivisa(divisaActual);
   };
 
+  // Funciones para el selector de idioma
+  const handleOpenLanguageModal = () => {
+    setSelectedLanguage(language);
+    setShowLanguageModal(true);
+  };
+
+  const handleSelectLanguage = (lang: Language) => {
+    setSelectedLanguage(lang);
+  };
+
+  const handleConfirmLanguage = async () => {
+    try {
+      setSavingLanguage(true);
+      await changeLanguage(selectedLanguage);
+      setShowLanguageModal(false);
+      
+      // Feedback según la plataforma
+      const languageName = availableLanguages.find(l => l.code === selectedLanguage)?.nativeName;
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(t('language.languageChanged', { language: languageName || '' }), ToastAndroid.SHORT);
+      } else {
+        Alert.alert(t('common.success'), t('language.languageChanged', { language: languageName || '' }));
+      }
+    } catch (error) {
+      console.error('Error al cambiar idioma:', error);
+    } finally {
+      setSavingLanguage(false);
+    }
+  };
+
+  const handleCancelLanguage = () => {
+    setShowLanguageModal(false);
+    setSelectedLanguage(language);
+  };
+
   // Función para refrescar
   const handleRefresh = () => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
@@ -140,16 +183,16 @@ export default function ProfileScreen() {
       
       // Feedback según la plataforma
       if (Platform.OS === 'android') {
-        ToastAndroid.show('Nombre de usuario copiado', ToastAndroid.SHORT);
+        ToastAndroid.show(t('profile.usernameCopied'), ToastAndroid.SHORT);
       } else {
-        Alert.alert('Copiado', 'Nombre de usuario copiado al portapapeles');
+        Alert.alert(t('common.success'), t('profile.usernameCopied'));
       }
     } catch (error) {
       console.error('Error al copiar al portapapeles:', error);
       if (Platform.OS === 'android') {
-        ToastAndroid.show('Error al copiar', ToastAndroid.SHORT);
+        ToastAndroid.show(t('profile.copyError'), ToastAndroid.SHORT);
       } else {
-        Alert.alert('Error', 'No se pudo copiar el nombre de usuario');
+        Alert.alert(t('common.error'), t('profile.copyError'));
       }
     }
   };
@@ -158,29 +201,29 @@ export default function ProfileScreen() {
     {
       id: 'change-email',
       icon: 'mail-outline',
-      title: 'Cambiar e-mail',
-      subtitle: 'Actualiza tu correo electrónico',
-      action: () => console.log('Change Email'),
+      title: t('profile.menu.changeEmail'),
+      subtitle: t('profile.menu.changeEmailSubtitle'),
+      action: () => router.push('/change-email'),
     },
     {
       id: 'change-password',
       icon: 'lock-closed-outline',
-      title: 'Cambiar contraseña',
-      subtitle: 'Modifica tu contraseña de acceso',
+      title: t('profile.menu.changePassword'),
+      subtitle: t('profile.menu.changePasswordSubtitle'),
       action: () => console.log('Change Password'),
     },
     {
       id: 'change-language',
       icon: 'language-outline',
-      title: 'Cambiar idioma',
-      subtitle: 'Selecciona tu idioma preferido',
-      action: () => console.log('Change Language'),
+      title: t('profile.menu.changeLanguage'),
+      subtitle: t('profile.menu.changeLanguageSubtitle'),
+      action: handleOpenLanguageModal,
     },
     {
       id: 'notifications',
       icon: 'notifications-outline',
-      title: 'Preferencias de notificaciones',
-      subtitle: 'Configura tus alertas y avisos',
+      title: t('profile.menu.notifications'),
+      subtitle: t('profile.menu.notificationsSubtitle'),
       action: () => console.log('Notifications'),
     },
   ];
@@ -190,7 +233,7 @@ export default function ProfileScreen() {
     return (
       <View style={styles.loadingScreen}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingScreenText}>Cargando tu perfil...</Text>
+        <Text style={styles.loadingScreenText}>{t('profile.loadingProfile')}</Text>
       </View>
     );
   }
@@ -214,7 +257,7 @@ export default function ProfileScreen() {
             @{loading ? '...' : usuario?.nombreUsuario || 'usuario'}
           </Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Perfil</Text>
+        <Text style={styles.headerTitle}>{t('profile.title')}</Text>
       </View>
 
       <ScrollView 
@@ -237,7 +280,7 @@ export default function ProfileScreen() {
             <View style={styles.profileInfo}>
               <Text style={styles.userName}>
                 {loading 
-                  ? 'Cargando...' 
+                  ? t('common.loading')
                   : usuario?.nombre || 'Usuario'
                 }
               </Text>
@@ -247,7 +290,7 @@ export default function ProfileScreen() {
                 </Text>
               )}
               <Text style={styles.userEmail}>
-                {user?.email || 'email@ejemplo.com'}
+                {usuario?.email || 'email@ejemplo.com'}
               </Text>
               
               {/* Divisa debajo del email */}
@@ -258,7 +301,7 @@ export default function ProfileScreen() {
               >
                 <View style={styles.divisaLeft}>
                   <Ionicons name="cash-outline" size={20} color="#007AFF" />
-                  <Text style={styles.divisaText}>Divisa</Text>
+                  <Text style={styles.divisaText}>{t('profile.currency')}</Text>
                 </View>
                 <View style={styles.divisaRight}>
                   <Text style={styles.divisaValue}>
@@ -311,7 +354,7 @@ export default function ProfileScreen() {
           activeOpacity={0.7}
         >
           <Ionicons name="log-out-outline" size={24} color="#F44336" />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          <Text style={styles.logoutText}>{t('auth.logout')}</Text>
         </TouchableOpacity>
 
         {/* Space for bottom tab bar */}
@@ -325,7 +368,7 @@ export default function ProfileScreen() {
         <Pressable style={styles.divisaModalOverlay} onPress={handleCancelDivisa}>
           <Pressable style={styles.divisaModalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.divisaModalHeader}>
-              <Text style={styles.divisaModalTitle}>Seleccionar Divisa</Text>
+              <Text style={styles.divisaModalTitle}>{t('profile.selectCurrency')}</Text>
               <TouchableOpacity onPress={handleCancelDivisa}>
                 <Ionicons name="close" size={28} color="#666" />
               </TouchableOpacity>
@@ -335,7 +378,7 @@ export default function ProfileScreen() {
               {loadingDivisas ? (
                 <View style={styles.divisaLoadingContainer}>
                   <ActivityIndicator size="large" color="#007AFF" />
-                  <Text style={styles.divisaLoadingText}>Cargando divisas...</Text>
+                  <Text style={styles.divisaLoadingText}>{t('profile.loadingCurrencies')}</Text>
                 </View>
               ) : (
                 divisas.map((divisa) => (
@@ -366,7 +409,7 @@ export default function ProfileScreen() {
                 style={styles.divisaCancelButton} 
                 onPress={handleCancelDivisa}
               >
-                <Text style={styles.divisaCancelText}>Cancelar</Text>
+                <Text style={styles.divisaCancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.divisaConfirmButton, savingDivisa && styles.divisaConfirmButtonDisabled]} 
@@ -376,7 +419,64 @@ export default function ProfileScreen() {
                 {savingDivisa ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.divisaConfirmText}>Confirmar</Text>
+                  <Text style={styles.divisaConfirmText}>{t('common.confirm')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Modal de selector de idioma */}
+      <Modal visible={showLanguageModal} transparent={true} animationType="fade">
+        <Pressable style={styles.divisaModalOverlay} onPress={handleCancelLanguage}>
+          <Pressable style={styles.divisaModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.divisaModalHeader}>
+              <Text style={styles.divisaModalTitle}>{t('language.title')}</Text>
+              <TouchableOpacity onPress={handleCancelLanguage}>
+                <Ionicons name="close" size={28} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.divisaList} showsVerticalScrollIndicator={false}>
+              {availableLanguages.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.divisaItem,
+                    selectedLanguage === lang.code && styles.divisaItemSelected
+                  ]}
+                  onPress={() => handleSelectLanguage(lang.code)}
+                >
+                  <View style={styles.divisaItemContent}>
+                    <Text style={styles.divisaItemISO}>
+                      {lang.flag} {lang.nativeName}
+                    </Text>
+                    <Text style={styles.divisaItemDescripcion}>{lang.name}</Text>
+                  </View>
+                  {selectedLanguage === lang.code && (
+                    <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.divisaModalButtons}>
+              <TouchableOpacity 
+                style={styles.divisaCancelButton} 
+                onPress={handleCancelLanguage}
+              >
+                <Text style={styles.divisaCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.divisaConfirmButton, savingLanguage && styles.divisaConfirmButtonDisabled]} 
+                onPress={handleConfirmLanguage}
+                disabled={savingLanguage}
+              >
+                {savingLanguage ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.divisaConfirmText}>{t('common.confirm')}</Text>
                 )}
               </TouchableOpacity>
             </View>

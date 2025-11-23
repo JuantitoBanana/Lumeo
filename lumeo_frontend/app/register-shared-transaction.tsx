@@ -20,12 +20,14 @@ import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import apiClient from '@/lib/api-client';
 import { usuarioService } from '@/services/usuario.service';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from '../hooks/useTranslation';
 
 type TransactionType = 'gasto' | 'ingreso';
 type DivisionType = 'igual' | 'porcentaje' | 'exacto';
 
 export default function RegisterSharedTransactionScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
   const [titulo, setTitulo] = useState('');
   const [tipo, setTipo] = useState<TransactionType>('gasto');
@@ -85,13 +87,13 @@ export default function RegisterSharedTransactionScreen() {
   };
 
   const formatDateDisplay = (date: Date) => {
-    const meses = [
+    const monthKeys = [
       'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
     ];
     
     const dia = date.getDate().toString().padStart(2, '0');
-    const mes = meses[date.getMonth()];
+    const mes = t(`registerSharedTransaction.months.${monthKeys[date.getMonth()]}`);
     const año = date.getFullYear();
     
     return `${dia} de ${mes} de ${año}`;
@@ -150,19 +152,19 @@ export default function RegisterSharedTransactionScreen() {
   const handleSubmit = async () => {
     // Validación básica
     if (!titulo.trim()) {
-      Alert.alert('Error', 'Por favor, introduce un título');
+      Alert.alert(t('common.error'), t('registerSharedTransaction.errors.enterTitle'));
       return;
     }
     if (!importe || parseFloat(importe) <= 0) {
-      Alert.alert('Error', 'Por favor, introduce un importe válido');
+      Alert.alert(t('common.error'), t('registerSharedTransaction.errors.enterValidAmount'));
       return;
     }
     if (!destinatario.trim()) {
-      Alert.alert('Error', 'Por favor, introduce el nombre de usuario del destinatario');
+      Alert.alert(t('common.error'), t('registerSharedTransaction.errors.enterRecipient'));
       return;
     }
     if (!usuario?.id) {
-      Alert.alert('Error', 'No se pudo obtener el usuario');
+      Alert.alert(t('common.error'), t('registerSharedTransaction.errors.noUser'));
       return;
     }
 
@@ -170,7 +172,7 @@ export default function RegisterSharedTransactionScreen() {
     if (divisionTipo === 'porcentaje') {
       const porcentaje = parseFloat(porcentajeDestinatario || '0');
       if (porcentaje <= 0 || porcentaje > 100) {
-        Alert.alert('Error', 'El porcentaje debe estar entre 1 y 100');
+        Alert.alert(t('common.error'), t('registerSharedTransaction.errors.percentageRange'));
         return;
       }
     }
@@ -179,11 +181,11 @@ export default function RegisterSharedTransactionScreen() {
       const importeExacto = parseFloat(importeExactoDestinatario || '0');
       const importeTotal = parseFloat(importe);
       if (importeExacto <= 0) {
-        Alert.alert('Error', 'El importe exacto debe ser mayor a 0');
+        Alert.alert(t('common.error'), t('registerSharedTransaction.errors.exactAmountPositive'));
         return;
       }
       if (importeExacto >= importeTotal) {
-        Alert.alert('Error', 'El importe del destinatario debe ser menor al importe total');
+        Alert.alert(t('common.error'), t('registerSharedTransaction.errors.exactAmountExceeds'));
         return;
       }
     }
@@ -199,19 +201,19 @@ export default function RegisterSharedTransactionScreen() {
         console.log('Error en búsqueda de usuario:', error.status);
         // Si es un error 404, significa que el usuario no existe
         if (error.status === 404) {
-          Alert.alert('Usuario no encontrado', 'El nombre de usuario introducido no está registrado en la aplicación.');
+          Alert.alert(t('registerSharedTransaction.errors.userNotFound'), t('registerSharedTransaction.errors.userNotRegistered'));
           setSaving(false);
           return;
         }
         // Si es otro tipo de error en la búsqueda, mostrar mensaje genérico
-        Alert.alert('Error', 'Error al buscar el usuario destinatario. Por favor, inténtalo de nuevo.');
+        Alert.alert(t('common.error'), t('registerSharedTransaction.errors.userSearchError'));
         setSaving(false);
         return;
       }
       
       // El backend ahora devuelve 200 con null si no encuentra el usuario
       if (!usuarioDestinatario) {
-        Alert.alert('Usuario no encontrado', 'El nombre de usuario introducido no está registrado en la aplicación.');
+        Alert.alert(t('registerSharedTransaction.errors.userNotFound'), t('registerSharedTransaction.errors.userNotRegistered'));
         setSaving(false);
         return;
       }
@@ -244,18 +246,18 @@ export default function RegisterSharedTransactionScreen() {
         console.error('Error al guardar transacción:', error);
       }
       
-      let errorMessage = 'No se pudo guardar la transacción. Por favor, inténtalo de nuevo.';
+      let errorMessage = t('registerSharedTransaction.errors.failedToSave');
       
       // Manejar errores específicos
       if (error.status === 404) {
-        errorMessage = 'Error al crear la transacción. Verifica que todos los datos sean correctos.';
+        errorMessage = t('registerSharedTransaction.errors.transactionError');
       } else if (error.status === 400) {
-        errorMessage = 'Datos inválidos. Por favor, revisa la información introducida.';
+        errorMessage = t('registerSharedTransaction.errors.invalidData');
       } else if (error.status === 500) {
-        errorMessage = 'Error del servidor. Por favor, inténtalo más tarde.';
+        errorMessage = t('registerSharedTransaction.errors.serverError');
       }
       
-      Alert.alert('Error', errorMessage);
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setSaving(false);
     }
@@ -276,7 +278,7 @@ export default function RegisterSharedTransactionScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Transacción Compartida</Text>
+          <Text style={styles.headerTitle}>{t('registerSharedTransaction.title')}</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -289,11 +291,11 @@ export default function RegisterSharedTransactionScreen() {
           {/* Título */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Título <Text style={styles.required}>*</Text>
+              {t('registerSharedTransaction.titleLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
             </Text>
             <TextInput
               style={styles.input}
-              placeholder="Ej: Compra supermercado"
+              placeholder={t('registerSharedTransaction.titlePlaceholder')}
               value={titulo}
               onChangeText={setTitulo}
               placeholderTextColor="#999"
@@ -303,7 +305,7 @@ export default function RegisterSharedTransactionScreen() {
           {/* Selector de tipo */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Tipo <Text style={styles.required}>*</Text>
+              {t('registerSharedTransaction.typeLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
             </Text>
             <View style={styles.typeSelector}>
               <TouchableOpacity
@@ -323,7 +325,7 @@ export default function RegisterSharedTransactionScreen() {
                   styles.typeButtonText,
                   tipo === 'gasto' && styles.typeButtonTextActive,
                 ]}>
-                  Gasto
+                  {t('registerSharedTransaction.expense')}
                 </Text>
               </TouchableOpacity>
               
@@ -344,7 +346,7 @@ export default function RegisterSharedTransactionScreen() {
                   styles.typeButtonText,
                   tipo === 'ingreso' && styles.typeButtonTextActive,
                 ]}>
-                  Ingreso
+                  {t('registerSharedTransaction.income')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -353,13 +355,13 @@ export default function RegisterSharedTransactionScreen() {
           {/* Importe Total */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Importe Total <Text style={styles.required}>*</Text>
+              {t('registerSharedTransaction.totalAmountLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
             </Text>
             <View style={styles.importeContainer}>
               <Text style={styles.currencySymbol}>€</Text>
               <TextInput
                 style={styles.importeInput}
-                placeholder="0,00"
+                placeholder={t('registerSharedTransaction.totalAmountPlaceholder')}
                 value={importe}
                 onChangeText={handleImporteChange}
                 keyboardType="decimal-pad"
@@ -371,25 +373,25 @@ export default function RegisterSharedTransactionScreen() {
           {/* Destinatario */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Destinatario <Text style={styles.required}>*</Text>
+              {t('registerSharedTransaction.recipientLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
             </Text>
             <TextInput
               style={styles.input}
-              placeholder="Nombre de usuario del destinatario"
+              placeholder={t('registerSharedTransaction.recipientPlaceholder')}
               value={destinatario}
               onChangeText={setDestinatario}
               placeholderTextColor="#999"
               autoCapitalize="none"
             />
             <Text style={styles.helperText}>
-              Introduce el nombre de usuario exacto
+              {t('registerSharedTransaction.recipientHelper')}
             </Text>
           </View>
 
           {/* División de Importe */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              División de Importe <Text style={styles.required}>*</Text>
+              {t('registerSharedTransaction.divisionLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
             </Text>
             <View style={styles.divisionSelector}>
               <TouchableOpacity
@@ -404,7 +406,7 @@ export default function RegisterSharedTransactionScreen() {
                   styles.divisionButtonText,
                   divisionTipo === 'igual' && styles.divisionButtonTextActive,
                 ]}>
-                  Igual
+                  {t('registerSharedTransaction.divisionTypes.equal')}
                 </Text>
               </TouchableOpacity>
               
@@ -420,7 +422,7 @@ export default function RegisterSharedTransactionScreen() {
                   styles.divisionButtonText,
                   divisionTipo === 'porcentaje' && styles.divisionButtonTextActive,
                 ]}>
-                  Porcentaje
+                  {t('registerSharedTransaction.divisionTypes.percentage')}
                 </Text>
               </TouchableOpacity>
               
@@ -436,7 +438,7 @@ export default function RegisterSharedTransactionScreen() {
                   styles.divisionButtonText,
                   divisionTipo === 'exacto' && styles.divisionButtonTextActive,
                 ]}>
-                  Exacto
+                  {t('registerSharedTransaction.divisionTypes.exact')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -446,12 +448,12 @@ export default function RegisterSharedTransactionScreen() {
           {divisionTipo === 'porcentaje' && (
             <View style={styles.formGroup}>
               <Text style={styles.label}>
-                Porcentaje del Destinatario <Text style={styles.required}>*</Text>
+                {t('registerSharedTransaction.recipientPercentageLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
               </Text>
               <View style={styles.importeContainer}>
                 <TextInput
                   style={styles.importeInput}
-                  placeholder="0"
+                  placeholder={t('registerSharedTransaction.recipientPercentagePlaceholder')}
                   value={porcentajeDestinatario}
                   onChangeText={handlePorcentajeChange}
                   keyboardType="number-pad"
@@ -461,8 +463,10 @@ export default function RegisterSharedTransactionScreen() {
               </View>
               {porcentajeDestinatario && importe && (
                 <Text style={styles.helperText}>
-                  Destinatario: €{((parseFloat(importe) * parseFloat(porcentajeDestinatario)) / 100).toFixed(2)} | 
-                  Tú: €{(parseFloat(importe) - (parseFloat(importe) * parseFloat(porcentajeDestinatario)) / 100).toFixed(2)}
+                  {t('registerSharedTransaction.divisionInfo.breakdown', {
+                    recipientAmount: ((parseFloat(importe) * parseFloat(porcentajeDestinatario)) / 100).toFixed(2),
+                    yourAmount: (parseFloat(importe) - (parseFloat(importe) * parseFloat(porcentajeDestinatario)) / 100).toFixed(2)
+                  })}
                 </Text>
               )}
             </View>
@@ -472,13 +476,13 @@ export default function RegisterSharedTransactionScreen() {
           {divisionTipo === 'exacto' && (
             <View style={styles.formGroup}>
               <Text style={styles.label}>
-                Importe del Destinatario <Text style={styles.required}>*</Text>
+                {t('registerSharedTransaction.recipientAmountLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
               </Text>
               <View style={styles.importeContainer}>
                 <Text style={styles.currencySymbol}>€</Text>
                 <TextInput
                   style={styles.importeInput}
-                  placeholder="0,00"
+                  placeholder={t('registerSharedTransaction.recipientAmountPlaceholder')}
                   value={importeExactoDestinatario}
                   onChangeText={handleImporteExactoChange}
                   keyboardType="decimal-pad"
@@ -487,8 +491,10 @@ export default function RegisterSharedTransactionScreen() {
               </View>
               {importeExactoDestinatario && importe && (
                 <Text style={styles.helperText}>
-                  Destinatario: €{parseFloat(importeExactoDestinatario).toFixed(2)} | 
-                  Tú: €{(parseFloat(importe) - parseFloat(importeExactoDestinatario)).toFixed(2)}
+                  {t('registerSharedTransaction.divisionInfo.breakdown', {
+                    recipientAmount: parseFloat(importeExactoDestinatario).toFixed(2),
+                    yourAmount: (parseFloat(importe) - parseFloat(importeExactoDestinatario)).toFixed(2)
+                  })}
                 </Text>
               )}
             </View>
@@ -498,7 +504,9 @@ export default function RegisterSharedTransactionScreen() {
           {divisionTipo === 'igual' && importe && (
             <View style={styles.divisionInfo}>
               <Text style={styles.divisionInfoText}>
-                Cada uno pagará: €{(parseFloat(importe) / 2).toFixed(2)}
+                {t('registerSharedTransaction.divisionInfo.eachWillPay', {
+                  amount: (parseFloat(importe) / 2).toFixed(2)
+                })}
               </Text>
             </View>
           )}
@@ -506,7 +514,7 @@ export default function RegisterSharedTransactionScreen() {
           {/* Fecha de transacción */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Fecha de transacción <Text style={styles.required}>*</Text>
+              {t('registerSharedTransaction.dateLabel')} <Text style={styles.required}>{t('registerSharedTransaction.required')}</Text>
             </Text>
             <TouchableOpacity 
               style={styles.datePickerButton}
@@ -527,10 +535,10 @@ export default function RegisterSharedTransactionScreen() {
 
           {/* Nota (opcional) */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Nota (opcional)</Text>
+            <Text style={styles.label}>{t('registerSharedTransaction.noteLabel')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Añade una nota o descripción..."
+              placeholder={t('registerSharedTransaction.notePlaceholder')}
               value={nota}
               onChangeText={setNota}
               multiline
@@ -542,7 +550,7 @@ export default function RegisterSharedTransactionScreen() {
 
           {/* Adjuntar archivo (opcional) */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Adjuntar archivo (opcional)</Text>
+            <Text style={styles.label}>{t('registerSharedTransaction.fileLabel')}</Text>
             <TouchableOpacity 
               style={styles.fileButton}
               onPress={() => {
@@ -552,7 +560,7 @@ export default function RegisterSharedTransactionScreen() {
             >
               <Ionicons name="attach" size={24} color="#007AFF" />
               <Text style={styles.fileButtonText}>
-                {hasFile ? 'Archivo adjuntado' : 'Seleccionar archivo'}
+                {hasFile ? t('registerSharedTransaction.fileAttached') : t('registerSharedTransaction.selectFile')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -570,7 +578,7 @@ export default function RegisterSharedTransactionScreen() {
             {saving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.saveButtonText}>Guardar Transacción</Text>
+              <Text style={styles.saveButtonText}>{t('registerSharedTransaction.saveButton')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -597,7 +605,7 @@ export default function RegisterSharedTransactionScreen() {
           <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
             <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
               <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>Seleccionar fecha</Text>
+                <Text style={styles.datePickerTitle}>{t('registerSharedTransaction.selectDate')}</Text>
               </View>
               
               <View style={styles.datePickerContainer}>
@@ -616,13 +624,13 @@ export default function RegisterSharedTransactionScreen() {
                   style={styles.datePickerCancelButton}
                   onPress={cancelDatePicker}
                 >
-                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                  <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.datePickerConfirmButton}
                   onPress={confirmDate}
                 >
-                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                  <Text style={styles.datePickerConfirmText}>{t('common.confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>

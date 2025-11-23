@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import apiClient from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface AddMoneyModalProps {
   visible: boolean;
@@ -34,6 +35,7 @@ export default function AddMoneyModal({
   cantidadObjetivo,
   onSuccess,
 }: AddMoneyModalProps) {
+  const { t } = useTranslation();
   const [cantidad, setCantidad] = useState('');
   const [loading, setLoading] = useState(false);
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
@@ -73,28 +75,28 @@ export default function AddMoneyModal({
 
   const handleAgregarDinero = async () => {
     if (!cantidad || cantidad.trim() === '') {
-      Alert.alert('Error', 'Por favor ingresa una cantidad');
+      Alert.alert(t('common.error'), t('addMoneyModal.errors.enterAmount'));
       return;
     }
 
     const cantidadNum = parseFloat(cantidad.replace(',', '.'));
 
     if (cantidadNum <= 0) {
-      Alert.alert('Error', 'La cantidad debe ser mayor a 0');
+      Alert.alert(t('common.error'), t('addMoneyModal.errors.amountMustBePositive'));
       return;
     }
 
     const nuevaCantidad = cantidadActual + cantidadNum;
     if (nuevaCantidad > cantidadObjetivo) {
       Alert.alert(
-        'Error',
-        `No puedes agregar esa cantidad. El máximo que puedes añadir es ${formatCurrency(cantidadObjetivo - cantidadActual)}`
+        t('common.error'),
+        t('addMoneyModal.errors.maxAmountExceeded', { maxAmount: formatCurrency(cantidadObjetivo - cantidadActual) })
       );
       return;
     }
 
     if (!usuario?.id) {
-      Alert.alert('Error', 'No se pudo obtener el usuario');
+      Alert.alert(t('common.error'), t('addMoneyModal.errors.noUser'));
       return;
     }
 
@@ -104,7 +106,7 @@ export default function AddMoneyModal({
       await apiClient.put(`/metas-ahorro/${metaId}/agregar-cantidad`, cantidadNum);
       // Crear transacción de tipo gasto
       await apiClient.post('/transacciones', {
-        titulo: `Aporte a ${metaTitulo}`,
+        titulo: t('addMoneyModal.contributionLabel', { metaTitle: metaTitulo }),
         importe: cantidadNum,
         fechaTransaccion: new Date().toISOString().split('T')[0],
         nota: null,
@@ -116,8 +118,8 @@ export default function AddMoneyModal({
       onClose();
     } catch (error: any) {
       console.error('Error al agregar dinero:', error);
-      const errorMessage = error?.message || 'No se pudo agregar el dinero a la meta';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error?.message || t('addMoneyModal.errors.failedToAdd');
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -136,7 +138,7 @@ export default function AddMoneyModal({
         <Pressable style={styles.modalContent} onPress={(e) => { e.stopPropagation(); Keyboard.dismiss(); }}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Agregar Dinero</Text>
+            <Text style={styles.title}>{t('addMoneyModal.title')}</Text>
           </View>
 
           {/* Meta Info */}
@@ -146,18 +148,18 @@ export default function AddMoneyModal({
               {formatCurrency(cantidadActual)} / {formatCurrency(cantidadObjetivo)}
             </Text>
             <Text style={styles.metaRestante}>
-              Faltan {formatCurrency(cantidadObjetivo - cantidadActual)} para completar
+              {t('addMoneyModal.remaining', { amount: formatCurrency(cantidadObjetivo - cantidadActual) })}
             </Text>
           </View>
 
           {/* Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Cantidad a agregar</Text>
+            <Text style={styles.label}>{t('addMoneyModal.amountLabel')}</Text>
             <View style={styles.inputWithIcon}>
               <Ionicons name="cash-outline" size={24} color="#007AFF" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="0.00"
+                placeholder={t('addMoneyModal.amountPlaceholder')}
                 placeholderTextColor="#999"
                 value={cantidad}
                 onChangeText={handleNumberInput}
@@ -177,7 +179,7 @@ export default function AddMoneyModal({
               onPress={onClose}
               disabled={loading}
             >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <Text style={styles.cancelButtonText}>{t('addMoneyModal.cancelButton')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.confirmButton, loading && styles.buttonDisabled]}
@@ -185,7 +187,7 @@ export default function AddMoneyModal({
               disabled={loading}
             >
               <Text style={styles.confirmButtonText}>
-                {loading ? 'Agregando...' : 'Agregar'}
+                {loading ? t('addMoneyModal.adding') : t('addMoneyModal.confirmButton')}
               </Text>
             </TouchableOpacity>
           </View>

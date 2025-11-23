@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import {
     Platform,
     StyleSheet,
@@ -10,11 +11,13 @@ import {
 } from 'react-native';
 
 export default function PasswordResetSuccessScreen() {
+  const { t } = useTranslation();
+  
   return (
     <View style={styles.container}>
       {/* Header fuera del panel */}
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>¡Ya lo tienes!</Text>
+        <Text style={styles.title}>{t('passwordResetSuccess.title')}</Text>
       </View>
 
       {/* Panel con el contenido */}
@@ -28,7 +31,7 @@ export default function PasswordResetSuccessScreen() {
 
         {/* Success Message */}
         <Text style={styles.message}>
-          Ya puedes acceder a tu correo y restablecer tu contraseña.
+          {t('passwordResetSuccess.message')}
         </Text>
 
         {/* Login Button */}
@@ -36,7 +39,7 @@ export default function PasswordResetSuccessScreen() {
           style={styles.button}
           onPress={() => router.push('/login')}
         >
-          <Text style={styles.buttonText}>Iniciar Sesión</Text>
+          <Text style={styles.buttonText}>{t('passwordResetSuccess.loginButton')}</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -1,0 +1,616 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "back": "Back",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "required": "Required",
+    "optional": "Optional",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot your password?",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "login": {
+    "title": "Log In",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot your password?",
+    "loginButton": "Log in",
+    "noAccount": "Don't have an account? ",
+    "signupLink": "Sign up",
+    "errors": {
+      "fillAllFields": "Please fill in all fields",
+      "invalidEmail": "Please enter a valid email",
+      "loginError": "Login error"
+    }
+  },
+  "signup": {
+    "title": "New User",
+    "firstNameLabel": "First Name",
+    "firstNamePlaceholder": "Your first name",
+    "lastNameLabel": "Last Name",
+    "lastNamePlaceholder": "Your last name",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Choose a username",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password (min. 6 characters)",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "signupButton": "Sign up",
+    "haveAccount": "Already have an account? ",
+    "loginLink": "Log in",
+    "success": {
+      "title": "Success",
+      "message": "Account created successfully! Please check your email to verify your account.",
+      "button": "OK"
+    },
+    "errors": {
+      "fillAllFields": "Please fill in all fields",
+      "invalidEmail": "Please enter a valid email",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordsDontMatch": "Passwords don't match",
+      "invalidUsername": "Username can only contain letters, numbers and underscores",
+      "signupError": "Sign up error"
+    }
+  },
+  "forgotPassword": {
+    "title": "Reset your\npassword",
+    "instruction": "Enter your email address to recover your password.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "sendButton": "Send",
+    "errors": {
+      "fillEmail": "Please enter your email",
+      "invalidEmail": "Please enter a valid email",
+      "verificationError": "An error occurred while verifying the email.",
+      "emailNotFound": "Email not found",
+      "noAccount": "There is no account associated with this email.",
+      "generalError": "An error occurred. Please try again."
+    }
+  },
+  "passwordResetSuccess": {
+    "title": "All set!",
+    "message": "You can now access your email and reset your password.",
+    "loginButton": "Log In"
+  },
+  "resetPassword": {
+    "title": "Reset\npassword",
+    "instruction": "Enter your new password.",
+    "newPasswordLabel": "New password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPasswordLabel": "Repeat password",
+    "confirmPasswordPlaceholder": "Repeat your new password",
+    "updateButton": "Change password",
+    "success": {
+      "title": "Success",
+      "message": "Your password has been updated successfully.",
+      "button": "OK"
+    },
+    "errors": {
+      "fillAllFields": "Please fill in all fields",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordsDontMatch": "Passwords don't match",
+      "generalError": "An error occurred. Please try again."
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "username": "Username",
+    "email": "Email",
+    "memberSince": "Member since {{date}}",
+    "loadingProfile": "Loading your profile...",
+    "currency": "Currency",
+    "selectCurrency": "Select Currency",
+    "loadingCurrencies": "Loading currencies...",
+    "usernameCopied": "Username copied",
+    "copyError": "Copy error",
+    "menu": {
+      "changeEmail": "Change email",
+      "changeEmailSubtitle": "Update your email address",
+      "changePassword": "Change password",
+      "changePasswordSubtitle": "Modify your access password",
+      "changeLanguage": "Change language",
+      "changeLanguageSubtitle": "Select your preferred language",
+      "notifications": "Notification preferences",
+      "notificationsSubtitle": "Configure your alerts and notifications"
+    }
+  },
+  "changeEmail": {
+    "title": "Change email",
+    "currentEmail": "Current email",
+    "newEmail": "New email",
+    "placeholder": "email@example.com",
+    "hint": "The email must be valid and not registered in the system",
+    "warning": "By changing your email, it will be updated throughout the system. You will be able to use the new email to log in.",
+    "saveChanges": "Save changes",
+    "errors": {
+      "emptyEmail": "Please enter an email",
+      "invalidFormat": "Please enter a valid email",
+      "noUser": "Could not get current user",
+      "sameEmail": "The new email is the same as the current one",
+      "noSession": "Invalid session. Please log in again.",
+      "updateFailed": "Could not change email. Please try again.",
+      "unexpected": "An unexpected error occurred. Please try again."
+    }
+  },
+  "emailChangeSuccess": {
+    "title": "Email changed successfully!",
+    "message": "Your email address has been successfully updated in the system.",
+    "securityNote": "Your account remains completely secure.",
+    "backToProfile": "Back to profile"
+  },
+  "language": {
+    "title": "Select Language",
+    "spanish": "Spanish",
+    "english": "English",
+    "languageChanged": "Language changed to {{language}}"
+  },
+  "categories": {
+    "food": "Food",
+    "transport": "Transport",
+    "entertainment": "Entertainment",
+    "health": "Health",
+    "education": "Education",
+    "shopping": "Shopping",
+    "bills": "Bills",
+    "other": "Other",
+    "salary": "Salary",
+    "investment": "Investment",
+    "gift": "Gift"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "income": "Income",
+    "expense": "Expense",
+    "date": "Date",
+    "amount": "Amount",
+    "category": "Category",
+    "description": "Description",
+    "addTransaction": "Add Transaction",
+    "editTransaction": "Edit Transaction",
+    "deleteTransaction": "Delete Transaction",
+    "noTransactions": "No transactions",
+    "recent": "Recent"
+  },
+  "budget": {
+    "title": "Budgets",
+    "createBudget": "Create Budget",
+    "noBudgets": "No budgets",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "exceeded": "Exceeded"
+  },
+  "home": {
+    "welcome": "Welcome",
+    "hello": "Hello, {{name}}!",
+    "helloDefault": "Hello, User!",
+    "loading": "Loading...",
+    "loadingInfo": "Loading your information...",
+    "serverError": "Server Error",
+    "dashboard": "Dashboard",
+    "totalBalance": "Total Balance",
+    "monthlyResume": "Current month summary",
+    "income": "Income",
+    "expenses": "Expenses",
+    "savings": "Savings",
+    "loadingSummary": "Loading summary...",
+    "errorLoadingSummary": "Error loading financial summary",
+    "welcomeTitle": "Welcome",
+    "welcomeSubtitle": "Ready to use the simplest and most effective finance tool.",
+    "loginButton": "Log In",
+    "signupButton": "Sign Up"
+  },
+  "coins": {
+    "title": "Coins",
+    "myCoins": "My Coins",
+    "groups": "Groups",
+    "noGroups": "You don't have groups",
+    "createGroup": "Create Group",
+    "sharedExpenses": "Shared Expenses"
+  },
+  "explore": {
+    "title": "Explore",
+    "statistics": "Statistics",
+    "reports": "Reports",
+    "analysis": "Analysis"
+  },
+  "addTransaction": {
+    "title": "Add Transaction",
+    "selectType": "Select type",
+    "personal": "Personal",
+    "shared": "Shared",
+    "group": "Group",
+    "whatDoYouWant": "What do you want to do?"
+  },
+  "addTransactionModal": {
+    "title": "What do you want to do?",
+    "options": {
+      "expense": {
+        "title": "Register expense / income",
+        "subtitle": "Add a personal expense or income"
+      },
+      "individual": {
+        "title": "Individual transaction",
+        "subtitle": "Income or expense with another person"
+      },
+      "group": {
+        "title": "Group transaction",
+        "subtitle": "Shared expense with others"
+      },
+      "createGroup": {
+        "title": "Create Group",
+        "subtitle": "New expense group"
+      }
+    }
+  },
+  "addMoneyModal": {
+    "title": "Add Money",
+    "amountLabel": "Amount to add",
+    "amountPlaceholder": "0.00",
+    "remaining": "{{amount}} remaining to complete",
+    "contributionLabel": "Contribution to {{metaTitle}}",
+    "cancelButton": "Cancel",
+    "confirmButton": "Add",
+    "adding": "Adding...",
+    "errors": {
+      "enterAmount": "Please enter an amount",
+      "amountMustBePositive": "Amount must be greater than 0",
+      "maxAmountExceeded": "You can't add that amount. The maximum you can add is {{maxAmount}}",
+      "noUser": "Could not get user",
+      "failedToAdd": "Could not add money to goal"
+    }
+  },
+  "registerTransaction": {
+    "title": "New Transaction",
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g.: Grocery shopping",
+    "typeLabel": "Type",
+    "expense": "Expense",
+    "income": "Income",
+    "amountLabel": "Amount",
+    "amountPlaceholder": "0.00",
+    "dateLabel": "Transaction date",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "Add a note or description...",
+    "fileLabel": "Attach file (optional)",
+    "selectFile": "Select file",
+    "fileAttached": "File attached",
+    "saveButton": "Save Transaction",
+    "required": "*",
+    "selectDate": "Select date",
+    "months": {
+      "enero": "January",
+      "febrero": "February",
+      "marzo": "March",
+      "abril": "April",
+      "mayo": "May",
+      "junio": "June",
+      "julio": "July",
+      "agosto": "August",
+      "septiembre": "September",
+      "octubre": "October",
+      "noviembre": "November",
+      "diciembre": "December"
+    },
+    "errors": {
+      "enterTitle": "Please enter a title",
+      "enterValidAmount": "Please enter a valid amount",
+      "noUser": "Could not get user",
+      "failedToSave": "Could not save transaction. Please try again."
+    }
+  },
+  "createSavingsGoal": {
+    "title": "Create savings goal",
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g.: European Vacation",
+    "totalAmountLabel": "Total Amount",
+    "totalAmountPlaceholder": "0.00",
+    "totalAmountHelper": "Amount you want to reach",
+    "savedAmountLabel": "Amount Saved",
+    "savedAmountPlaceholder": "0.00",
+    "savedAmountHelper": "Amount you've already saved (optional)",
+    "createButton": "Create Savings Goal",
+    "creating": "Creating...",
+    "errors": {
+      "enterTitle": "Please enter a title for the goal",
+      "amountMustBePositive": "Total amount must be greater than 0",
+      "savedAmountNegative": "Saved amount cannot be negative",
+      "savedAmountExceeds": "Saved amount cannot be greater than total amount",
+      "noUser": "Could not identify user",
+      "failedToCreate": "Could not create savings goal"
+    }
+  },
+  "createGroup": {
+    "title": "Create group",
+    "nameLabel": "Group name",
+    "namePlaceholder": "E.g.: Family, Friends, Trip...",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Group description",
+    "addPeopleLabel": "Add people",
+    "usernamePlaceholder": "Username",
+    "addButton": "Add",
+    "helperText": "You will be automatically added to the group",
+    "peopleInGroup": "People in the group ({{count}})",
+    "createButton": "Create Group",
+    "creating": "Creating...",
+    "successMessage": "Group created successfully",
+    "userAddedSuccess": "User {{username}} added successfully",
+    "errors": {
+      "enterUsername": "You must enter a username",
+      "cannotAddYourself": "You cannot add yourself. You're already part of the group automatically.",
+      "userAlreadyAdded": "This user has already been added to the group",
+      "userNotExists": "User \"{{username}}\" does not exist",
+      "couldNotVerify": "Could not verify user. Please try again.",
+      "nameRequired": "Group name is required",
+      "noUser": "Could not identify user",
+      "failedToCreate": "Could not create group"
+    }
+  },
+  "modal": {
+    "title": "This is a modal",
+    "goToHome": "Go to home screen"
+  },
+  "registerSharedTransaction": {
+    "title": "Shared Transaction",
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g.: Grocery shopping",
+    "typeLabel": "Type",
+    "expense": "Expense",
+    "income": "Income",
+    "totalAmountLabel": "Total Amount",
+    "totalAmountPlaceholder": "0.00",
+    "recipientLabel": "Recipient",
+    "recipientPlaceholder": "Recipient's username",
+    "recipientHelper": "Enter the exact username",
+    "divisionLabel": "Amount Division",
+    "divisionTypes": {
+      "equal": "Equal",
+      "percentage": "Percentage",
+      "exact": "Exact"
+    },
+    "recipientPercentageLabel": "Recipient's Percentage",
+    "recipientPercentagePlaceholder": "0",
+    "recipientAmountLabel": "Recipient's Amount",
+    "recipientAmountPlaceholder": "0.00",
+    "divisionInfo": {
+      "eachWillPay": "Each will pay: €{{amount}}",
+      "breakdown": "Recipient: €{{recipientAmount}} | You: €{{yourAmount}}"
+    },
+    "dateLabel": "Transaction date",
+    "selectDate": "Select date",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "Add a note or description...",
+    "fileLabel": "Attach file (optional)",
+    "selectFile": "Select file",
+    "fileAttached": "File attached",
+    "saveButton": "Save Transaction",
+    "required": "*",
+    "months": {
+      "enero": "January",
+      "febrero": "February",
+      "marzo": "March",
+      "abril": "April",
+      "mayo": "May",
+      "junio": "June",
+      "julio": "July",
+      "agosto": "August",
+      "septiembre": "September",
+      "octubre": "October",
+      "noviembre": "November",
+      "diciembre": "December"
+    },
+    "errors": {
+      "enterTitle": "Please enter a title",
+      "enterValidAmount": "Please enter a valid amount",
+      "enterRecipient": "Please enter the recipient's username",
+      "noUser": "Could not get user",
+      "percentageRange": "Percentage must be between 1 and 100",
+      "exactAmountPositive": "Exact amount must be greater than 0",
+      "exactAmountExceeds": "Recipient's amount must be less than total amount",
+      "userNotFound": "User not found",
+      "userNotRegistered": "The entered username is not registered in the application.",
+      "userSearchError": "Error searching for recipient user. Please try again.",
+      "transactionError": "Error creating transaction. Verify that all data is correct.",
+      "invalidData": "Invalid data. Please check the information entered.",
+      "serverError": "Server error. Please try again later.",
+      "failedToSave": "Could not save transaction. Please try again."
+    }
+  },
+  "selectGroupTransaction": {
+    "title": "Select Group",
+    "loading": "Loading groups...",
+    "infoText": "Select a group to create a group transaction",
+    "noGroupsTitle": "You don't have groups",
+    "noGroupsSubtitle": "Create a group to start recording group transactions",
+    "createGroupButton": "Create Group",
+    "createNewGroupButton": "Create New Group",
+    "member": "member",
+    "members": "members"
+  },
+  "budgets": {
+    "title": "Budgets",
+    "loading": "Loading budgets...",
+    "errorLoading": "Error loading",
+    "retry": "Retry",
+    "noBudgets": "No budgets",
+    "noBudgetsText": "Create monthly budgets to control your expenses",
+    "selectOption": "Select an option",
+    "go": "Go",
+    "budgetDetail": "Budget",
+    "loadingExpenses": "Loading expenses...",
+    "noExpenses": "No expenses",
+    "noExpensesText": "No expenses recorded in this period",
+    "totalExpenses": "Total expenses",
+    "close": "Close",
+    "months": {
+      "enero": "January",
+      "febrero": "February",
+      "marzo": "March",
+      "abril": "April",
+      "mayo": "May",
+      "junio": "June",
+      "julio": "July",
+      "agosto": "August",
+      "septiembre": "September",
+      "octubre": "October",
+      "noviembre": "November",
+      "diciembre": "December"
+    }
+  },
+  "savings": {
+    "title": "Savings Goals",
+    "loading": "Loading goals...",
+    "errorLoading": "Error loading",
+    "retry": "Retry",
+    "noGoals": "No savings goals",
+    "noGoalsText": "Create your first goal to start saving",
+    "selectOption": "Select an option",
+    "go": "Go",
+    "addMoney": "Add Money",
+    "delete": "Delete",
+    "deleteGoal": "Delete Goal",
+    "deleteConfirm": "Are you sure you want to delete this savings goal?",
+    "deleting": "Deleting...",
+    "deleteError": "Could not delete savings goal",
+    "completed": "Completed!"
+  },
+  "groups": {
+    "title": "Groups",
+    "loading": "Loading groups...",
+    "errorLoading": "Error loading",
+    "retry": "Retry",
+    "noGroups": "No groups",
+    "noGroupsText": "Create groups to share expenses with other people",
+    "member": "member",
+    "members": "members"
+  },
+  "groupDetail": {
+    "loading": "Loading group...",
+    "errorLoading": "Error loading group",
+    "members": "Members",
+    "transactions": "Transactions",
+    "balances": "Balances",
+    "noTransactions": "No transactions",
+    "noTransactionsText": "No transactions recorded in this group",
+    "youOwe": "You owe",
+    "owesYou": "Owes you",
+    "settled": "No debts",
+    "deleteTransaction": "Delete Transaction",
+    "deleteConfirm": "Are you sure you want to delete this group transaction?",
+    "deleting": "Deleting...",
+    "deleteError": "Could not delete transaction",
+    "expense": "Expense",
+    "income": "Income",
+    "paidBy": "Paid by",
+    "you": "You",
+    "splitBetween": "Split between",
+    "yourShare": "Your share",
+    "months": {
+      "enero": "January",
+      "febrero": "February",
+      "marzo": "March",
+      "abril": "April",
+      "mayo": "May",
+      "junio": "June",
+      "julio": "July",
+      "agosto": "August",
+      "septiembre": "September",
+      "octubre": "October",
+      "noviembre": "November",
+      "diciembre": "December"
+    }
+  },
+  "groupMembers": {
+    "title": "Group Members",
+    "admin": "Admin",
+    "you": "You"
+  },
+  "registerGroupTransaction": {
+    "title": "Group Transaction",
+    "titleLabel": "Title",
+    "titlePlaceholder": "E.g.: Restaurant dinner",
+    "typeLabel": "Type",
+    "expense": "Expense",
+    "income": "Income",
+    "amountLabel": "Total Amount",
+    "amountPlaceholder": "0.00",
+    "dateLabel": "Transaction date",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "Add a note or description...",
+    "paidByLabel": "Paid by",
+    "paidByPlaceholder": "Select who paid",
+    "splitLabel": "Split between",
+    "splitEqually": "Split equally",
+    "customAmounts": "Custom amounts",
+    "selectDate": "Select date",
+    "saveButton": "Save Transaction",
+    "required": "*",
+    "eachPays": "Each pays: {{amount}}",
+    "remaining": "Remaining: {{amount}}",
+    "months": {
+      "enero": "January",
+      "febrero": "February",
+      "marzo": "March",
+      "abril": "April",
+      "mayo": "May",
+      "junio": "June",
+      "julio": "July",
+      "agosto": "August",
+      "septiembre": "September",
+      "octubre": "October",
+      "noviembre": "November",
+      "diciembre": "December"
+    },
+    "errors": {
+      "enterTitle": "Please enter a title",
+      "enterValidAmount": "Please enter a valid amount",
+      "selectPayer": "Please select who paid",
+      "selectMembers": "Please select at least one member to split",
+      "amountMismatch": "The sum of amounts must equal the total amount",
+      "noGroup": "Could not get group",
+      "noUser": "Could not get user",
+      "failedToSave": "Could not save transaction. Please try again."
+    }
+  },
+  "resetPasswordWeb": {
+    "title": "Reset Password",
+    "instruction": "Enter your new password",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "resetButton": "Reset Password",
+    "resetting": "Resetting...",
+    "success": "Password updated",
+    "successMessage": "Your password has been updated successfully",
+    "errors": {
+      "fillAllFields": "Please fill in all fields",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordsDontMatch": "Passwords do not match",
+      "invalidToken": "Reset link is invalid or has expired",
+      "resetError": "Could not reset password. Please try again."
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +18,7 @@ import { apiClient } from '@/lib/api-client';
 import { eventEmitter, APP_EVENTS } from '@/lib/event-emitter';
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { usuario, loading: loadingUsuario, error: errorUsuario, refetchUsuario } = useUsuarioApi();
@@ -130,7 +132,7 @@ export default function HomeScreen() {
     return (
       <View style={styles.loadingScreen}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingScreenText}>Cargando tu información...</Text>
+        <Text style={styles.loadingScreenText}>{t('home.loadingInfo')}</Text>
       </View>
     );
   }
@@ -145,13 +147,13 @@ export default function HomeScreen() {
             {loadingUsuario ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color="#007AFF" />
-                <Text style={styles.greetingText}>Cargando...</Text>
+                <Text style={styles.greetingText}>{t('home.loading')}</Text>
               </View>
             ) : errorUsuario ? (
-              <Text style={styles.greetingText}>¡Hola, Usuario!</Text>
+              <Text style={styles.greetingText}>{t('home.helloDefault')}</Text>
             ) : (
               <Text style={styles.greetingText}>
-                ¡Hola, {usuario?.nombre || 'Usuario'}!
+                {t('home.hello', { name: usuario?.nombre || 'Usuario' })}
               </Text>
             )}
           </View>
@@ -172,7 +174,7 @@ export default function HomeScreen() {
           <View style={styles.serverErrorAlert}>
             <Ionicons name="warning" size={24} color="#FFF" />
             <View style={styles.serverErrorTextContainer}>
-              <Text style={styles.serverErrorTitle}>Error del Servidor</Text>
+              <Text style={styles.serverErrorTitle}>{t('home.serverError')}</Text>
               <Text style={styles.serverErrorMessage}>{errorUsuario}</Text>
             </View>
           </View>
@@ -188,10 +190,10 @@ export default function HomeScreen() {
           {/* Panel del Dashboard */}
           <View style={styles.dashboardPanel}>
             <View style={styles.dashboardHeader}>
-              <Text style={styles.dashboardTitle}>Dashboard</Text>
+              <Text style={styles.dashboardTitle}>{t('home.dashboard')}</Text>
               {resumen ? (
                 <View style={styles.balanceContainer}>
-                  <Text style={styles.balanceLabel}>Balance Total</Text>
+                  <Text style={styles.balanceLabel}>{t('home.totalBalance')}</Text>
                   <Text style={[
                     styles.dashboardBalance,
                     { color: resumen.saldoTotal >= 0 ? '#4CAF50' : '#F44336' }
@@ -201,7 +203,7 @@ export default function HomeScreen() {
                 </View>
               ) : (
                 <View style={styles.balanceContainer}>
-                  <Text style={styles.balanceLabel}>Balance Total</Text>
+                  <Text style={styles.balanceLabel}>{t('home.totalBalance')}</Text>
                   <Text style={styles.dashboardBalance}>
                     --
                   </Text>
@@ -212,10 +214,10 @@ export default function HomeScreen() {
             {loadingResumen ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color="#007AFF" />
-                <Text style={styles.loadingText}>Cargando resumen...</Text>
+                <Text style={styles.loadingText}>{t('home.loadingSummary')}</Text>
               </View>
             ) : errorResumen ? (
-              <Text style={styles.errorText}>Error al cargar el resumen financiero</Text>
+              <Text style={styles.errorText}>{t('home.errorLoadingSummary')}</Text>
             ) : null}
             
             {/* Sección de Gráficos */}
@@ -235,22 +237,22 @@ export default function HomeScreen() {
             {/* Resumen del mes actual */}
             {resumen ? (
               <View style={styles.monthlySection}>
-                <Text style={styles.monthlySectionTitle}>Resumen del mes actual</Text>
+                <Text style={styles.monthlySectionTitle}>{t('home.monthlyResume')}</Text>
                 <View style={styles.monthlyGrid}>
                   <View style={styles.monthlyItem}>
-                    <Text style={styles.monthlyLabel}>Ingresos</Text>
+                    <Text style={styles.monthlyLabel}>{t('home.income')}</Text>
                     <Text style={[styles.monthlyValue, { color: '#4CAF50' }]}>
                       {formatearCantidad(resumen.ingresosMensuales, resumen.simboloDivisa, resumen.posicionSimbolo)}
                     </Text>
                   </View>
                   <View style={styles.monthlyItem}>
-                    <Text style={styles.monthlyLabel}>Gastos</Text>
+                    <Text style={styles.monthlyLabel}>{t('home.expenses')}</Text>
                     <Text style={[styles.monthlyValue, { color: '#F44336' }]}>
                       {formatearCantidad(resumen.gastosMensuales, resumen.simboloDivisa, resumen.posicionSimbolo)}
                     </Text>
                   </View>
                   <View style={styles.monthlyItem}>
-                    <Text style={styles.monthlyLabel}>Ahorro</Text>
+                    <Text style={styles.monthlyLabel}>{t('home.savings')}</Text>
                     <Text style={[
                       styles.monthlyValue,
                       { color: resumen.ahorroMensual >= 0 ? '#4CAF50' : '#F44336' }
@@ -288,9 +290,9 @@ export default function HomeScreen() {
       <View style={styles.contentPanel}>
         {/* Textos de bienvenida */}
         <View style={styles.textContainer}>
-          <Text style={styles.welcomeTitle}>Bienvenido</Text>
+          <Text style={styles.welcomeTitle}>{t('home.welcomeTitle')}</Text>
           <Text style={styles.welcomeSubtitle}>
-            Listo para usar la herramienta de finanzas más sencilla y eficaz.
+            {t('home.welcomeSubtitle')}
           </Text>
         </View>
 
@@ -300,14 +302,14 @@ export default function HomeScreen() {
             style={[styles.button, styles.loginButton]}
             onPress={() => router.push('/login')}
           >
-            <Text style={[styles.buttonText, { color: '#007AFF' }]}>Iniciar Sesión</Text>
+            <Text style={[styles.buttonText, { color: '#007AFF' }]}>{t('home.loginButton')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={[styles.button, styles.signupButton]}
             onPress={() => router.push('/signup')}
           >
-            <Text style={[styles.buttonText, { color: '#fff' }]}>Registrarse</Text>
+            <Text style={[styles.buttonText, { color: '#fff' }]}>{t('home.signupButton')}</Text>
           </TouchableOpacity>
         </View>
       </View>

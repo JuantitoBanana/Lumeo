@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import {
   ActivityIndicator,
   Alert,
@@ -16,6 +17,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,14 +30,14 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     // Input validation
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Por favor, rellena todos los campos');
+      Alert.alert(t('common.error'), t('login.errors.fillAllFields'));
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Por favor, introduce un correo electrónico válido');
+      Alert.alert(t('common.error'), t('login.errors.invalidEmail'));
       return;
     }
 
@@ -46,7 +48,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Error al iniciar sesión', error.message);
+      Alert.alert(t('login.errors.loginError'), error.message);
     } else {
       // Navigation will be handled automatically by the auth state change
       router.replace('/(tabs)');
@@ -79,7 +81,7 @@ export default function LoginScreen() {
 
       {/* Header fuera del panel */}
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>Iniciar Sesión</Text>
+        <Text style={styles.title}>{t('login.title')}</Text>
       </View>
 
       {/* Panel con el formulario */}
@@ -95,10 +97,10 @@ export default function LoginScreen() {
           <View style={styles.formContainer}>
             {/* Email Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Correo electrónico</Text>
+              <Text style={styles.label}>{t('login.emailLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Introduce tu correo electrónico"
+                placeholder={t('login.emailPlaceholder')}
                 placeholderTextColor="#999"
                 value={email}
                 onChangeText={setEmail}
@@ -111,10 +113,10 @@ export default function LoginScreen() {
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Contraseña</Text>
+              <Text style={styles.label}>{t('login.passwordLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Introduce tu contraseña"
+                placeholder={t('login.passwordPlaceholder')}
                 placeholderTextColor="#999"
                 value={password}
                 onChangeText={setPassword}
@@ -131,7 +133,7 @@ export default function LoginScreen() {
                 onPress={() => router.push('/forgot-password')}
                 disabled={loading}
               >
-                <Text style={styles.forgotPasswordText}>¿Has olvidado tu contraseña?</Text>
+                <Text style={styles.forgotPasswordText}>{t('login.forgotPassword')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -144,15 +146,15 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Iniciar sesión</Text>
+                <Text style={styles.buttonText}>{t('login.loginButton')}</Text>
               )}
             </TouchableOpacity>
 
             {/* Sign Up Link */}
             <View style={styles.signupContainer}>
-              <Text style={styles.signupText}>¿No tienes una cuenta? </Text>
+              <Text style={styles.signupText}>{t('login.noAccount')}</Text>
               <TouchableOpacity onPress={goToSignUp} disabled={loading}>
-                <Text style={styles.signupLink}>Regístrate</Text>
+                <Text style={styles.signupLink}>{t('login.signupLink')}</Text>
               </TouchableOpacity>
             </View>
           </View>

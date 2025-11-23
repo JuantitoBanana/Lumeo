@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import {
   ActivityIndicator,
   Alert,
@@ -16,6 +17,7 @@ import {
 import { supabase } from '../lib/supabase';
 
 export default function ResetPasswordScreen() {
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,19 +29,19 @@ export default function ResetPasswordScreen() {
   const handleUpdatePassword = async () => {
     // Input validation
     if (!newPassword.trim() || !confirmPassword.trim()) {
-      Alert.alert('Error', 'Por favor, rellena todos los campos');
+      Alert.alert(t('common.error'), t('resetPassword.errors.fillAllFields'));
       return;
     }
 
     // Password length validation
     if (newPassword.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      Alert.alert(t('common.error'), t('resetPassword.errors.passwordTooShort'));
       return;
     }
 
     // Password match validation
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      Alert.alert(t('common.error'), t('resetPassword.errors.passwordsDontMatch'));
       return;
     }
 
@@ -53,14 +55,14 @@ export default function ResetPasswordScreen() {
       setLoading(false);
 
       if (error) {
-        Alert.alert('Error', error.message);
+        Alert.alert(t('common.error'), error.message);
       } else {
         Alert.alert(
-          'Éxito',
-          'Tu contraseña ha sido actualizada correctamente.',
+          t('resetPassword.success.title'),
+          t('resetPassword.success.message'),
           [
             {
-              text: 'Aceptar',
+              text: t('resetPassword.success.button'),
               onPress: () => router.push('/login'),
             },
           ]
@@ -68,7 +70,7 @@ export default function ResetPasswordScreen() {
       }
     } catch (err) {
       setLoading(false);
-      Alert.alert('Error', 'Ha ocurrido un error. Por favor, inténtalo de nuevo.');
+      Alert.alert(t('common.error'), t('resetPassword.errors.generalError'));
     }
   };
 
@@ -85,7 +87,7 @@ export default function ResetPasswordScreen() {
       {/* Header fuera del panel */}
       <View style={styles.headerContainer}>
         <Text style={styles.title}>
-          Restablecer{'\n'}contraseña
+          {t('resetPassword.title')}
         </Text>
       </View>
 
@@ -102,15 +104,15 @@ export default function ResetPasswordScreen() {
           <View style={styles.formContainer}>
             {/* Instruction Text */}
             <Text style={styles.instructionText}>
-              Introduce tu nueva contraseña.
+              {t('resetPassword.instruction')}
             </Text>
 
             {/* New Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Nueva contraseña</Text>
+              <Text style={styles.label}>{t('resetPassword.newPasswordLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Introduce tu nueva contraseña"
+                placeholder={t('resetPassword.newPasswordPlaceholder')}
                 placeholderTextColor="#999"
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -125,10 +127,10 @@ export default function ResetPasswordScreen() {
 
             {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Repetir contraseña</Text>
+              <Text style={styles.label}>{t('resetPassword.confirmPasswordLabel')}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Repite tu nueva contraseña"
+                placeholder={t('resetPassword.confirmPasswordPlaceholder')}
                 placeholderTextColor="#999"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -150,7 +152,7 @@ export default function ResetPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Cambiar contraseña</Text>
+                <Text style={styles.buttonText}>{t('resetPassword.updateButton')}</Text>
               )}
             </TouchableOpacity>
           </View>

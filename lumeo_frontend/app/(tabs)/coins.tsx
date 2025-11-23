@@ -21,6 +21,7 @@ import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useTransacciones } from '@/hooks/useTransacciones';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
+import { useTranslation } from '../../hooks/useTranslation';
 import apiClient from '@/lib/api-client';
 import { Transaccion } from '@/types/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -495,6 +496,7 @@ interface Transaction {
 }
 
 export default function TransactionsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();

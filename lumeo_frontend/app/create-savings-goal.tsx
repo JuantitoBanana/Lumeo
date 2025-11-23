@@ -14,8 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import apiClient from '@/lib/api-client';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function CreateSavingsGoalScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [titulo, setTitulo] = useState('');
@@ -52,12 +54,12 @@ export default function CreateSavingsGoalScreen() {
 
   const validateForm = () => {
     if (!titulo.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un título para la meta');
+      Alert.alert(t('common.error'), t('createSavingsGoal.errors.enterTitle'));
       return false;
     }
 
     if (!montoObjetivo || parseFloat(montoObjetivo.replace(',', '.')) <= 0) {
-      Alert.alert('Error', 'La cantidad total debe ser mayor a 0');
+      Alert.alert(t('common.error'), t('createSavingsGoal.errors.amountMustBePositive'));
       return false;
     }
 
@@ -65,12 +67,12 @@ export default function CreateSavingsGoalScreen() {
     const actual = montoActual ? parseFloat(montoActual.replace(',', '.')) : 0;
 
     if (actual < 0) {
-      Alert.alert('Error', 'La cantidad ahorrada no puede ser negativa');
+      Alert.alert(t('common.error'), t('createSavingsGoal.errors.savedAmountNegative'));
       return false;
     }
 
     if (actual > objetivo) {
-      Alert.alert('Error', 'La cantidad ahorrada no puede ser mayor a la cantidad total');
+      Alert.alert(t('common.error'), t('createSavingsGoal.errors.savedAmountExceeds'));
       return false;
     }
 
@@ -83,7 +85,7 @@ export default function CreateSavingsGoalScreen() {
     }
 
     if (!user?.id) {
-      Alert.alert('Error', 'No se pudo identificar al usuario');
+      Alert.alert(t('common.error'), t('createSavingsGoal.errors.noUser'));
       return;
     }
 
@@ -104,8 +106,8 @@ export default function CreateSavingsGoalScreen() {
       router.back();
     } catch (error: any) {
       console.error('Error al crear meta:', error);
-      const errorMessage = error?.message || 'No se pudo crear la meta de ahorro';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error?.message || t('createSavingsGoal.errors.failedToCreate');
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -125,7 +127,7 @@ export default function CreateSavingsGoalScreen() {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Crear meta de ahorro</Text>
+        <Text style={styles.headerTitle}>{t('createSavingsGoal.title')}</Text>
       </View>
 
       <ScrollView 
@@ -135,10 +137,10 @@ export default function CreateSavingsGoalScreen() {
       >
         {/* Campo Título */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Título</Text>
+          <Text style={styles.label}>{t('createSavingsGoal.titleLabel')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej: Vacaciones en Europa"
+            placeholder={t('createSavingsGoal.titlePlaceholder')}
             placeholderTextColor="#999"
             value={titulo}
             onChangeText={setTitulo}
@@ -149,12 +151,12 @@ export default function CreateSavingsGoalScreen() {
 
         {/* Campo Cantidad Total */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Cantidad Total</Text>
+          <Text style={styles.label}>{t('createSavingsGoal.totalAmountLabel')}</Text>
           <View style={styles.inputWithIcon}>
             <Ionicons name="wallet-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.inputWithIconText}
-              placeholder="0.00"
+              placeholder={t('createSavingsGoal.totalAmountPlaceholder')}
               placeholderTextColor="#999"
               value={montoObjetivo}
               onChangeText={(value) => handleNumberInput(value, setMontoObjetivo)}
@@ -162,17 +164,17 @@ export default function CreateSavingsGoalScreen() {
             />
             <Text style={styles.currencySymbol}>€</Text>
           </View>
-          <Text style={styles.helperText}>Cantidad que deseas alcanzar</Text>
+          <Text style={styles.helperText}>{t('createSavingsGoal.totalAmountHelper')}</Text>
         </View>
 
         {/* Campo Cantidad Ahorrada */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Cantidad Ahorrada</Text>
+          <Text style={styles.label}>{t('createSavingsGoal.savedAmountLabel')}</Text>
           <View style={styles.inputWithIcon}>
             <Ionicons name="cash-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.inputWithIconText}
-              placeholder="0.00"
+              placeholder={t('createSavingsGoal.savedAmountPlaceholder')}
               placeholderTextColor="#999"
               value={montoActual}
               onChangeText={(value) => handleNumberInput(value, setMontoActual)}
@@ -180,7 +182,7 @@ export default function CreateSavingsGoalScreen() {
             />
             <Text style={styles.currencySymbol}>€</Text>
           </View>
-          <Text style={styles.helperText}>Cantidad que ya has ahorrado (opcional)</Text>
+          <Text style={styles.helperText}>{t('createSavingsGoal.savedAmountHelper')}</Text>
         </View>
 
         {/* Botón Crear Meta */}
@@ -190,11 +192,11 @@ export default function CreateSavingsGoalScreen() {
           disabled={loading}
         >
           {loading ? (
-            <Text style={styles.createButtonText}>Creando...</Text>
+            <Text style={styles.createButtonText}>{t('createSavingsGoal.creating')}</Text>
           ) : (
             <>
               <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
-              <Text style={styles.createButtonText}>Crear Meta de Ahorro</Text>
+              <Text style={styles.createButtonText}>{t('createSavingsGoal.createButton')}</Text>
             </>
           )}
         </TouchableOpacity>
