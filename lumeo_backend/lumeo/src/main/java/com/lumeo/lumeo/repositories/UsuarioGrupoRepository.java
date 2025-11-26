@@ -11,4 +11,5 @@ public interface UsuarioGrupoRepository extends JpaRepository<UsuarioGrupoModel,
     List<UsuarioGrupoModel> findByIdGrupo(Long idGrupo);
     List<UsuarioGrupoModel> findByIdUsuario(Long idUsuario);
     void deleteByIdGrupoAndIdUsuario(Long idGrupo, Long idUsuario);
+    void deleteByIdGrupo(Long idGrupo);
 }

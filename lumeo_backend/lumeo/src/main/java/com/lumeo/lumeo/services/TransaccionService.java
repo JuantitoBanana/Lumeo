@@ -11,6 +11,7 @@ import com.lumeo.lumeo.repositories.DivisaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,11 +64,14 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
     
     /**
      * Obtiene todas las transacciones de un usuario con importes convertidos y posición del símbolo
+     * OPTIMIZADO: Usa JOIN FETCH para cargar relaciones y evitar LazyInitializationException
      * @param idUsuario ID del usuario
      * @return Lista de transacciones como DTO con importes convertidos
      */
+    @Transactional(readOnly = true)
     public List<TransaccionDTO> findByIdUsuarioConvertidas(Long idUsuario) {
         System.out.println("🔍 Obteniendo transacciones convertidas para usuario: " + idUsuario);
+        long startTime = System.currentTimeMillis();
         
         // Obtener la divisa del usuario y su posición de símbolo
         String codigoDivisaUsuario = "EUR";
@@ -81,7 +85,9 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
             }
         }
         
-        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioOrIdDestinatario(idUsuario, idUsuario);
+        // Usar query con JOIN FETCH para cargar relaciones de una vez
+        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioOrIdDestinatarioWithRelations(idUsuario, idUsuario);
+        System.out.println("⏱️ Query ejecutada en: " + (System.currentTimeMillis() - startTime) + "ms");
         
         // Convertir a DTO con importes convertidos
         final String divisaDestino = codigoDivisaUsuario;
@@ -90,7 +96,8 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
             .map(transaccion -> convertToFullDTO(transaccion, divisaDestino, posicion))
             .collect(Collectors.toList());
         
-        System.out.println("✅ Transacciones convertidas: " + transaccionesConvertidas.size());
+        long totalTime = System.currentTimeMillis() - startTime;
+        System.out.println("✅ Transacciones convertidas: " + transaccionesConvertidas.size() + " en " + totalTime + "ms");
         return transaccionesConvertidas;
     }
     
@@ -248,6 +255,7 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
      * @param anio Año
      * @return Lista de transacciones del mes/año especificado
      */
+    @Transactional(readOnly = true)
     public List<TransaccionDTO> findByUsuarioMesAnio(Long idUsuario, Integer mes, Integer anio) {
         List<TransaccionModel> transacciones = transaccionRepository.findByUsuarioMesAnio(idUsuario, mes, anio);
         

@@ -17,4 +17,10 @@ public interface TransaccionGrupalRepository extends JpaRepository<TransaccionGr
      */
     @Query("SELECT tg FROM TransaccionGrupalModel tg WHERE tg.idGrupo = :idGrupo ORDER BY tg.fechaTransaccion DESC")
     List<TransaccionGrupalModel> findByIdGrupo(@Param("idGrupo") Long idGrupo);
+    
+    /**
+     * Elimina todas las transacciones grupales de un grupo
+     * @param idGrupo ID del grupo
+     */
+    void deleteByIdGrupo(Long idGrupo);
 }

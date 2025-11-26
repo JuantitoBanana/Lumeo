@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ConversionDivisaService {
@@ -34,8 +36,30 @@ public class ConversionDivisaService {
     // API gratuita de tasas de cambio (sin necesidad de API key para uso básico)
     private static final String API_URL = "https://api.exchangerate-api.com/v4/latest/";
     
+    // Caché de tasas de cambio con timestamp
+    private final Map<String, CachedRates> ratesCache = new ConcurrentHashMap<>();
+    private static final long CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hora
+    
+    /**
+     * Clase interna para almacenar tasas con timestamp
+     */
+    private static class CachedRates {
+        JsonNode rates;
+        long timestamp;
+        
+        CachedRates(JsonNode rates, long timestamp) {
+            this.rates = rates;
+            this.timestamp = timestamp;
+        }
+        
+        boolean isValid() {
+            return (System.currentTimeMillis() - timestamp) < CACHE_DURATION_MS;
+        }
+    }
+    
     /**
      * Convierte un monto de una divisa a otra usando tasas en tiempo real
+     * OPTIMIZADO: Caché de tasas de cambio para evitar peticiones HTTP repetidas
      */
     public Double convertirMonto(Double monto, String isoOrigen, String isoDestino) {
         // Si el monto es nulo, devolver null
@@ -49,18 +73,33 @@ public class ConversionDivisaService {
         }
         
         try {
-            // Obtener las tasas de cambio desde la API usando la divisa de origen como base
-            String url = API_URL + isoOrigen;
-            String response = restTemplate.getForObject(url, String.class);
+            // Verificar caché primero
+            CachedRates cachedRates = ratesCache.get(isoOrigen);
+            JsonNode rates;
             
-            if (response == null) {
-                System.err.println("No se pudo obtener respuesta de la API de divisas");
-                return monto;
+            if (cachedRates != null && cachedRates.isValid()) {
+                // Usar caché
+                System.out.println("💾 Usando caché de tasas para " + isoOrigen);
+                rates = cachedRates.rates;
+            } else {
+                // Obtener tasas frescas de la API
+                System.out.println("🔄 Obteniendo tasas frescas para " + isoOrigen);
+                String url = API_URL + isoOrigen;
+                String response = restTemplate.getForObject(url, String.class);
+                
+                if (response == null) {
+                    System.err.println("No se pudo obtener respuesta de la API de divisas");
+                    return monto;
+                }
+                
+                // Parsear la respuesta JSON
+                JsonNode root = objectMapper.readTree(response);
+                rates = root.get("rates");
+                
+                // Guardar en caché
+                ratesCache.put(isoOrigen, new CachedRates(rates, System.currentTimeMillis()));
+                System.out.println("✅ Tasas guardadas en caché para " + isoOrigen);
             }
-            
-            // Parsear la respuesta JSON
-            JsonNode root = objectMapper.readTree(response);
-            JsonNode rates = root.get("rates");
             
             if (rates == null || !rates.has(isoDestino)) {
                 System.err.println("No se encontró tasa de cambio para " + isoDestino);
@@ -80,6 +119,14 @@ public class ConversionDivisaService {
             e.printStackTrace();
             return monto; // Devolver monto original si falla la conversión
         }
+    }
+    
+    /**
+     * Limpia el caché de tasas de cambio
+     */
+    public void clearCache() {
+        ratesCache.clear();
+        System.out.println("🧹 Caché de tasas de cambio limpiada");
     }
     
     /**

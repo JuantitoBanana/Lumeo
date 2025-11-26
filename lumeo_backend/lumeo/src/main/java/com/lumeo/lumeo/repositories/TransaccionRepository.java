@@ -20,6 +20,20 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
     
     /**
      * Busca todas las transacciones donde el usuario es creador o destinatario
+     * CON JOIN FETCH para evitar LazyInitializationException
+     * @param idUsuario ID del usuario
+     * @param idDestinatario ID del destinatario (mismo que idUsuario)
+     * @return Lista de transacciones donde el usuario participa
+     */
+    @Query("SELECT DISTINCT t FROM TransaccionModel t " +
+           "LEFT JOIN FETCH t.categoria " +
+           "LEFT JOIN FETCH t.tipoTransaccion " +
+           "LEFT JOIN FETCH t.estadoTransaccion " +
+           "WHERE t.idUsuario = :idUsuario OR t.idDestinatario = :idDestinatario")
+    List<TransaccionModel> findByIdUsuarioOrIdDestinatarioWithRelations(@Param("idUsuario") Long idUsuario, @Param("idDestinatario") Long idDestinatario);
+    
+    /**
+     * Busca todas las transacciones donde el usuario es creador o destinatario
      * @param idUsuario ID del usuario
      * @param idDestinatario ID del destinatario (mismo que idUsuario)
      * @return Lista de transacciones donde el usuario participa
@@ -68,12 +82,15 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
      * @param anio Año como String
      * @return Lista de transacciones que coinciden con el mes y año
      */
-    @Query(value = "SELECT * FROM transaccion t " +
-           "WHERE t.id_usuario = :idUsuario " +
-           "AND t.id_tipo = 2 " +
-           "AND EXTRACT(MONTH FROM t.fecha_transaccion) = :mes " +
-           "AND EXTRACT(YEAR FROM t.fecha_transaccion) = :anio " +
-           "ORDER BY t.fecha_transaccion DESC", nativeQuery = true)
+    @Query("SELECT t FROM TransaccionModel t " +
+           "LEFT JOIN FETCH t.categoria " +
+           "LEFT JOIN FETCH t.tipoTransaccion " +
+           "LEFT JOIN FETCH t.estadoTransaccion " +
+           "WHERE t.idUsuario = :idUsuario " +
+           "AND t.idTipo = 2 " +
+           "AND MONTH(t.fechaTransaccion) = :mes " +
+           "AND YEAR(t.fechaTransaccion) = :anio " +
+           "ORDER BY t.fechaTransaccion DESC")
     List<TransaccionModel> findByUsuarioMesAnio(@Param("idUsuario") Long idUsuario,
                                                  @Param("mes") Integer mes,
                                                  @Param("anio") Integer anio);
@@ -83,6 +100,10 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
      * @param idTransaccionGrupal ID de la transacción grupal
      * @return Lista de transacciones individuales
      */
-    @Query("SELECT t FROM TransaccionModel t WHERE t.idTransaccionGrupal = :idTransaccionGrupal")
+    @Query("SELECT t FROM TransaccionModel t " +
+           "LEFT JOIN FETCH t.categoria " +
+           "LEFT JOIN FETCH t.tipoTransaccion " +
+           "LEFT JOIN FETCH t.estadoTransaccion " +
+           "WHERE t.idTransaccionGrupal = :idTransaccionGrupal")
     List<TransaccionModel> findByIdTransaccionGrupal(@Param("idTransaccionGrupal") Long idTransaccionGrupal);
 }

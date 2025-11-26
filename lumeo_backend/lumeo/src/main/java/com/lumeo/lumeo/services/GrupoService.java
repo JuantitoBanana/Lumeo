@@ -8,6 +8,7 @@ import com.lumeo.lumeo.models.GrupoModel;
 import com.lumeo.lumeo.models.UsuarioGrupoModel;
 import com.lumeo.lumeo.models.usuarioModel;
 import com.lumeo.lumeo.repositories.GrupoRepository;
+import com.lumeo.lumeo.repositories.TransaccionGrupalRepository;
 import com.lumeo.lumeo.repositories.UsuarioGrupoRepository;
 import com.lumeo.lumeo.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ public class GrupoService extends GenericService<GrupoModel, Long> {
     
     @Autowired
     private UsuarioGrupoRepository usuarioGrupoRepository;
+    
+    @Autowired
+    private TransaccionGrupalRepository transaccionGrupalRepository;
     
     @Override
     protected JpaRepository<GrupoModel, Long> getRepository() {
@@ -208,5 +212,35 @@ public class GrupoService extends GenericService<GrupoModel, Long> {
     @Transactional
     public void eliminarMiembroDeGrupo(Long idGrupo, Long idUsuario) {
         usuarioGrupoRepository.deleteByIdGrupoAndIdUsuario(idGrupo, idUsuario);
+    }
+    
+    /**
+     * Elimina un grupo con todas sus relaciones en cascada
+     * - Elimina todas las transacciones grupales del grupo
+     * - Elimina todas las relaciones usuario-grupo
+     * - Elimina el grupo
+     */
+    @Transactional
+    @Override
+    public boolean delete(Long id) {
+        try {
+            // Verificar que el grupo existe
+            if (!grupoRepository.existsById(id)) {
+                return false;
+            }
+            
+            // 1. Eliminar todas las transacciones grupales del grupo
+            transaccionGrupalRepository.deleteByIdGrupo(id);
+            
+            // 2. Eliminar todas las relaciones usuario-grupo
+            usuarioGrupoRepository.deleteByIdGrupo(id);
+            
+            // 3. Eliminar el grupo
+            grupoRepository.deleteById(id);
+            
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
