@@ -104,7 +104,7 @@ export default function SavingsScreen() {
       refetch();
     } catch (err: any) {
       console.error('Error al eliminar meta:', err);
-      Alert.alert('Error', 'No se pudo eliminar la meta de ahorro');
+      Alert.alert('Error', t('savings.deleteError'));
     } finally {
       setDeleting(false);
     }
@@ -231,18 +231,12 @@ export default function SavingsScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
         <TouchableOpacity
           style={styles.headerTitleButton}
           onPress={() => setPickerModalVisible(true)}
         >
           <Ionicons name="chevron-down" size={20} color="#000" />
-          <Text style={styles.headerTitle}>Metas de ahorro</Text>
+          <Text style={styles.headerTitle}>{t('savingsScreen.title')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -286,14 +280,14 @@ export default function SavingsScreen() {
           <Pressable style={styles.deleteModalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.deleteModalHeader}>
               <Ionicons name="warning" size={48} color="#FF3B30" />
-              <Text style={styles.deleteModalTitle}>Eliminar Meta</Text>
+              <Text style={styles.deleteModalTitle}>{t('savingsScreen.deleteGoalTitle')}</Text>
             </View>
             
             <Text style={styles.deleteModalMessage}>
-              ¿Estás seguro de que deseas eliminar la meta "{metaToDelete?.titulo}"?
+              {t('savingsScreen.deleteGoalMessage', { title: metaToDelete?.titulo || '' })}
             </Text>
             <Text style={styles.deleteModalWarning}>
-              Esta acción no se puede deshacer.
+              {t('savingsScreen.deleteGoalWarning')}
             </Text>
 
             <View style={styles.deleteModalButtons}>
@@ -302,7 +296,7 @@ export default function SavingsScreen() {
                 onPress={handleCloseDeleteModal}
                 disabled={deleting}
               >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -313,7 +307,7 @@ export default function SavingsScreen() {
                 {deleting ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.confirmDeleteButtonText}>Eliminar</Text>
+                  <Text style={styles.confirmDeleteButtonText}>{t('common.delete')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -325,32 +319,55 @@ export default function SavingsScreen() {
       <Modal
         visible={pickerModalVisible}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setPickerModalVisible(false)}
       >
         <Pressable
           style={styles.modalContainer}
           onPress={() => setPickerModalVisible(false)}
         >
-          <View style={[styles.modalContent, Platform.OS === 'ios' && styles.modalContentIOS, Platform.OS === 'android' && styles.modalContentAndroid]}>
-            <Pressable style={{ width: '100%' }} onPress={() => {}}>
-              <Text style={styles.modalTitle}>Selecciona una opción</Text>
-              <Picker
-                selectedValue={selectedOption}
-                onValueChange={(itemValue: string) => setSelectedOption(itemValue as 'metas' | 'presupuestos')}
-                style={[styles.picker, Platform.OS === 'android' && styles.pickerAndroid]}
-                itemStyle={{ color: '#000' }}
-              >
-                <Picker.Item label="Metas de ahorro" value="metas" />
-                <Picker.Item label="Presupuestos" value="presupuestos" />
-              </Picker>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={handleNavigate}
-              >
-                <Text style={styles.modalButtonText}>Ir</Text>
-              </TouchableOpacity>
-            </Pressable>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('savingsScreen.selectOption')}</Text>
+            
+            <TouchableOpacity 
+              style={[styles.optionCard, styles.optionCardSelected]}
+              onPress={() => setPickerModalVisible(false)}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#E8F5E9' }]}>
+                <Ionicons name="wallet" size={24} color="#34C759" />
+              </View>
+              <View style={styles.optionTextContainer}>
+                <Text style={styles.optionTitle}>{t('savingsScreen.savingsGoals')}</Text>
+                <Text style={styles.optionDescription}>{t('savingsScreen.savingsDescription')}</Text>
+              </View>
+              <View style={styles.activeIndicator}>
+                <Ionicons name="checkmark-circle" size={24} color="#34C759" />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.optionCard}
+              onPress={() => {
+                setPickerModalVisible(false);
+                router.push('/(tabs)/budgets');
+              }}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
+                <Ionicons name="pie-chart" size={24} color="#007AFF" />
+              </View>
+              <View style={styles.optionTextContainer}>
+                <Text style={styles.optionTitle}>{t('savingsScreen.budgets')}</Text>
+                <Text style={styles.optionDescription}>{t('savingsScreen.budgetsDescription')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#CCC" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.pickerCancelButton}
+              onPress={() => setPickerModalVisible(false)}
+            >
+              <Text style={styles.pickerCancelButtonText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
           </View>
         </Pressable>
       </Modal>
@@ -368,8 +385,6 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
@@ -617,45 +632,73 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalContentIOS: {
-    width: '90%',
-    padding: 30,
-  },
-  modalContentAndroid: {
-    width: '70%',
+    borderRadius: 24,
+    width: '85%',
+    maxWidth: 340,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  modalButton: {
-    marginTop: 20,
-    backgroundColor: '#007AFF',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    alignSelf: 'flex-end',
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  modalButtonText: {
-    color: 'white',
+  optionCardSelected: {
+    backgroundColor: '#F1F8E9',
+    borderColor: '#34C759',
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionTitle: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
   },
-  picker: {
-    width: '100%',
-    height: 200,
-    backgroundColor: 'transparent',
-    color: '#000',
+  optionDescription: {
+    fontSize: 13,
+    color: '#666',
   },
-  pickerAndroid: {
-    height: 100,
+  activeIndicator: {
+    marginLeft: 8,
+  },
+  pickerCancelButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  pickerCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
   },
 });

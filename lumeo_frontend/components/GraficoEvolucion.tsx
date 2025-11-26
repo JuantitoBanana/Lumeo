@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { EvolucionMensual } from '@/services/graficos.service';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface GraficoEvolucionProps {
   evolucion: EvolucionMensual[];
@@ -12,6 +13,7 @@ interface GraficoEvolucionProps {
 const screenWidth = Dimensions.get('window').width;
 
 export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, loading }) => {
+  const { t } = useTranslation();
   const { currencySymbol, symbolPosition } = useCurrencySymbol();
   
   // Configuración del gráfico
@@ -62,10 +64,10 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, l
   if (!loading && (evolucion.length === 0 || !ultimos2Meses.length)) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Evolución Mensual</Text>
+        <Text style={styles.title}>{t('components.evolutionChart.title')}</Text>
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>
-            {loading ? 'Cargando...' : 'No hay datos disponibles'}
+            {loading ? t('components.evolutionChart.loading') : t('components.evolutionChart.noData')}
           </Text>
         </View>
       </View>
@@ -74,10 +76,10 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, l
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Evolución Mensual</Text>
+      <Text style={styles.title}>{t('components.evolutionChart.title')}</Text>
       {loading ? (
         <View style={styles.loadingState}>
-          <Text style={styles.loadingText}>Cargando...</Text>
+          <Text style={styles.loadingText}>{t('components.evolutionChart.loading')}</Text>
         </View>
       ) : (
         <BarChart

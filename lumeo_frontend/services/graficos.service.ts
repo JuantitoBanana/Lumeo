@@ -27,7 +27,6 @@ export class GraficosService {
     const data = await apiClient.get<GastoPorCategoria[]>(
       `${this.BASE_PATH}/${usuarioId}/gastos-por-categoria`
     );
-    console.log('📊 Gastos por categoría recibidos:', data);
     return data;
   }
 
@@ -38,7 +37,6 @@ export class GraficosService {
     const data = await apiClient.get<EvolucionMensual[]>(
       `${this.BASE_PATH}/${usuarioId}/evolucion-mensual?meses=${meses}`
     );
-    console.log('📈 Evolución mensual recibida:', data);
     return data;
   }
 }

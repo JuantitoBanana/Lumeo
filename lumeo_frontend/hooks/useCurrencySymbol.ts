@@ -20,7 +20,6 @@ export const useCurrencySymbol = () => {
   const fetchCurrencySymbol = async () => {
     // Evitar llamadas duplicadas
     if (isFetchingRef.current) {
-      console.log('⏭️ Ya hay una petición en curso, saltando...');
       return;
     }
 
@@ -88,7 +87,6 @@ export const useCurrencySymbol = () => {
 
     // Escuchar cambios de divisa
     const unsubscribe = eventEmitter.on(APP_EVENTS.CURRENCY_CHANGED, () => {
-      console.log('💱 Detectado cambio de divisa, recargando...');
       fetchCurrencySymbol();
     });
 

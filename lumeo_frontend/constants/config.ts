@@ -35,25 +35,16 @@ if (debuggerHost) {
 } else if (Platform.OS === 'android') {
   // Para dispositivo físico Android, usar la IP local del PC
   // Para emulador Android, usar 10.0.2.2
-  devHost = '192.168.1.136'; // Cambiar por tu IP local si es diferente
+  devHost = '192.168.1.128'; // IP actual del PC
 } else if (Platform.OS === 'ios') {
   // iOS Simulator necesita la IP real de la máquina host
-  devHost = '192.168.1.136';
+  devHost = '192.168.1.128'; // IP actual del PC
 }
 
 export const API_BASE_URL = __DEV__
   ? `http://${devHost}:8080/api` // URL de desarrollo del backend Java (auto-detect)
   : 'https://original-wallie-lumeo-team-b6b2ddc2.koyeb.app/api'; // URL de producción en Koyeb
 
-// Log para debugging
-console.log('🔍 API Configuration:', {
-  devHost,
-  debuggerHost,
-  platform: Platform.OS,
-  isDev: __DEV__,
-  API_BASE_URL
-});
-
 // Timeout para las peticiones HTTP (en milisegundos)
-// Aumentado a 15 segundos para dar más margen a respuestas lentas
-export const API_TIMEOUT = 15000;
+// Aumentado a 30 segundos para dar más margen a respuestas lentas del backend
+export const API_TIMEOUT = 30000;

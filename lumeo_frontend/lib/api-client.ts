@@ -8,7 +8,7 @@ import { ApiError } from '../types/api';
 class RequestQueue {
   private queue: Array<{ key: string; fn: () => Promise<any> }> = [];
   private pending = 0;
-  private maxConcurrent = 5; // Aumentar a 5 peticiones simultáneas
+  private maxConcurrent = 10; // Aumentado a 10 peticiones simultáneas (antes 5)
   private activeRequests = new Map<string, number>(); // Contar peticiones activas por key
 
   async add<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
@@ -19,7 +19,6 @@ class RequestQueue {
       // Solo para POST, PUT, DELETE rechazar duplicados exactos
       const activeCount = this.activeRequests.get(key) || 0;
       if (activeCount > 0) {
-        console.log('⏭️ Petición duplicada descartada (ya en ejecución):', key);
         throw new Error('CANCELED');
       }
     }
@@ -92,7 +91,6 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
-        console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
       (error) => {
@@ -104,13 +102,11 @@ class ApiClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        console.log(`✅ ${response.status} ${response.config.url}`);
         return response;
       },
       (error) => {
         // Si fue cancelada, no loguear como error
         if (axios.isCancel(error)) {
-          console.log('🔄 Petición cancelada:', error.message);
           return Promise.reject({ message: 'CANCELED', canceled: true });
         }
 
@@ -139,7 +135,6 @@ class ApiClient {
   private cancelDuplicateRequest(key: string) {
     const existing = this.pendingRequests.get(key);
     if (existing) {
-      console.log('🔄 Cancelando petición duplicada:', key);
       existing.abort();
       this.pendingRequests.delete(key);
     }
@@ -280,7 +275,6 @@ class ApiClient {
 
   // Método para cancelar todas las peticiones pendientes
   cancelAllRequests() {
-    console.log('🔄 Cancelando todas las peticiones pendientes');
     this.pendingRequests.forEach((controller) => controller.abort());
     this.pendingRequests.clear();
     this.requestQueue.clear();

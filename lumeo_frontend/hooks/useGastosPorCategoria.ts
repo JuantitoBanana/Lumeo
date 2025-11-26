@@ -18,18 +18,15 @@ export function useGastosPorCategoria(usuarioId: number | null): UseGastosPorCat
 
   const fetchGastos = async (retryCount = 0) => {
     if (!usuarioId || usuarioId <= 0) {
-      console.log('❌ No hay usuarioId válido, no se pueden obtener gastos por categoría');
       return;
     }
 
     if (!isMountedRef.current) {
-      console.log('🔄 Componente desmontado, cancelando petición');
       return;
     }
 
     // Evitar peticiones duplicadas simultáneas
     if (fetchingRef.current) {
-      console.log('⏭️ Ya hay una petición de gastos en curso, saltando...');
       return;
     }
 
@@ -37,27 +34,22 @@ export function useGastosPorCategoria(usuarioId: number | null): UseGastosPorCat
       fetchingRef.current = true;
       setLoading(true);
       setError(null);
-      console.log('🔄 Obteniendo gastos por categoría para usuario:', usuarioId, 'intento:', retryCount + 1);
       
       const gastosData = await GraficosService.getGastosPorCategoria(usuarioId);
       
       // Verificar si el componente sigue montado
       if (!isMountedRef.current) {
-        console.log('🔄 Componente desmontado después de la petición');
         return;
       }
       
-      console.log('✅ Gastos por categoría obtenidos:', gastosData);
       setGastos(gastosData);
     } catch (err: any) {
       if (!isMountedRef.current) {
-        console.log('🔄 Componente desmontado en catch');
         return;
       }
 
       // Si fue cancelada, no mostrar error
       if (err.message === 'CANCELED') {
-        console.log('🔄 Petición de gastos cancelada');
         return;
       }
 
@@ -68,7 +60,6 @@ export function useGastosPorCategoria(usuarioId: number | null): UseGastosPorCat
       const isNetworkError = !err?.response;
       
       if (isNetworkError && retryCount < 1 && isMountedRef.current) {
-        console.log('🔄 Reintentando obtener gastos por categoría en 3 segundos...');
         setTimeout(() => {
           if (isMountedRef.current) {
             fetchGastos(retryCount + 1);
@@ -88,12 +79,10 @@ export function useGastosPorCategoria(usuarioId: number | null): UseGastosPorCat
   };
 
   useEffect(() => {
-    console.log('🚀 useGastosPorCategoria useEffect ejecutado con usuarioId:', usuarioId);
     isMountedRef.current = true;
     
     // Evitar refetch si el usuarioId no cambió
     if (usuarioId === lastUsuarioIdRef.current) {
-      console.log('⏭️ UsuarioId no cambió, saltando refetch');
       return;
     }
     

@@ -40,26 +40,21 @@ export const useUltimosGastos = (usuarioId: number | null | undefined) => {
     const fetchUltimosGastos = async () => {
       // Validar usuarioId
       if (!usuarioId) {
-        console.log('⏭️ UsuarioId no válido para últimos gastos:', usuarioId);
         return;
       }
 
       // Skip si el usuarioId no ha cambiado
       if (lastUsuarioIdRef.current === usuarioId) {
-        console.log('⏭️ UsuarioId no cambió, saltando refetch de últimos gastos');
         return;
       }
 
       // Prevenir peticiones simultáneas duplicadas
       if (fetchingRef.current) {
-        console.log('⏭️ Ya hay una petición de últimos gastos en curso, saltando...');
         return;
       }
 
       fetchingRef.current = true;
       lastUsuarioIdRef.current = usuarioId;
-
-      console.log('🚀 useUltimosGastos: Obteniendo últimos gastos para usuario', usuarioId);
 
       if (!isMountedRef.current) return;
       setLoading(true);
@@ -82,11 +77,9 @@ export const useUltimosGastos = (usuarioId: number | null | undefined) => {
           }));
           
           setGastos(gastosTransformados);
-          console.log('✅ Últimos gastos obtenidos:', gastosTransformados.length);
         }
       } catch (err: any) {
         if (err.message === 'CANCELED') {
-          console.log('🔄 Petición de últimos gastos cancelada');
           return;
         }
 

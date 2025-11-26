@@ -50,7 +50,6 @@ export function useTransacciones(idUsuario: number | null | undefined) {
     } catch (err: any) {
       // No procesar si fue cancelada
       if (err.message === 'CANCELED') {
-        console.log('🔄 Petición de transacciones cancelada');
         return;
       }
 

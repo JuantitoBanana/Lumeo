@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import apiClient from '@/lib/api-client';
 import { useTranslation } from '../../hooks/useTranslation';
+import { formatearCantidad } from '@/lib/currency-utils';
 
 interface Transaccion {
   id: number;
@@ -43,11 +44,11 @@ interface Transaccion {
 }
 
 export default function BudgetsScreen() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const { presupuestos, loading, error, refetch } = usePresupuestos();
-  const { currencySymbol } = useCurrencySymbol();
+  const { currencySymbol, symbolPosition } = useCurrencySymbol();
   const { user } = useAuth();
   const { usuario } = useUsuarioApi();
   
@@ -86,15 +87,9 @@ export default function BudgetsScreen() {
       return;
     }
     
-    console.log('Abriendo modal para presupuesto:', presupuesto);
-    console.log('Usuario ID:', usuario.id);
-    
     // Convert Spanish month to month number
     const monthNumber = getMonthNumber(presupuesto.mes);
     const yearNumber = parseInt(presupuesto.anio);
-    console.log('Original month:', presupuesto.mes);
-    console.log('Month number:', monthNumber);
-    console.log('Year:', yearNumber);
     
     setSelectedPresupuesto(presupuesto);
     setDetailModalVisible(true);
@@ -105,13 +100,6 @@ export default function BudgetsScreen() {
       const response = await apiClient.get<Transaccion[]>(
         `/transacciones/usuario/${usuario.id}/mes/${monthNumber}/anio/${yearNumber}`
       );
-      console.log('Respuesta del API:', response);
-      console.log('Total de transacciones:', response.length);
-      console.log('Transacciones por tipo:', response.reduce((acc, t) => {
-        const tipo = t.idTipo || t.tipoTransaccion?.id || 'sin_tipo';
-        acc[tipo] = (acc[tipo] || 0) + 1;
-        return acc;
-      }, {} as Record<string | number, number>));
       
       setTransacciones(response);
     } catch (err: any) {
@@ -130,7 +118,7 @@ export default function BudgetsScreen() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(language === 'en' ? 'en-US' : 'es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -156,7 +144,7 @@ export default function BudgetsScreen() {
   };
 
   const formatCurrency = (amount: number) => {
-    return `${currencySymbol}${Math.abs(amount).toFixed(2)}`;
+    return formatearCantidad(Math.abs(amount), currencySymbol, symbolPosition);
   };
 
   const renderContent = () => {
@@ -164,7 +152,7 @@ export default function BudgetsScreen() {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Cargando presupuestos...</Text>
+          <Text style={styles.loadingText}>{t('budgetsScreen.loading')}</Text>
         </View>
       );
     }
@@ -173,10 +161,10 @@ export default function BudgetsScreen() {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-          <Text style={styles.emptyText}>Error al cargar</Text>
+          <Text style={styles.emptyText}>{t('budgetsScreen.errorLoading')}</Text>
           <Text style={styles.emptySubtext}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>{t('budgetsScreen.retry')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -186,9 +174,9 @@ export default function BudgetsScreen() {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="wallet-outline" size={64} color="#999" />
-          <Text style={styles.emptyText}>Sin presupuestos</Text>
+          <Text style={styles.emptyText}>{t('budgetsScreen.noBudgets')}</Text>
           <Text style={styles.emptySubtext}>
-            Crea tu primer presupuesto para gestionar tus finanzas
+            {t('budgetsScreen.noBudgetsSubtext')}
           </Text>
         </View>
       );
@@ -203,11 +191,15 @@ export default function BudgetsScreen() {
       >
         {presupuestos.map((presupuesto) => (
           <View key={presupuesto.id} style={styles.presupuestoCard}>
-            {/* Header con título y cantidades */}
+            {/* Header con título */}
             <View style={styles.presupuestoHeader}>
               <Text style={styles.presupuestoTitle}>
                 {presupuesto.mes} {presupuesto.anio}
               </Text>
+            </View>
+
+            {/* Cantidades en esquina inferior izquierda */}
+            <View style={styles.amountsContainer}>
               <Text style={styles.comparisonText}>
                 <Text style={[styles.comparisonAmount, { 
                   color: (presupuesto.totalGastos || 0) < presupuesto.cantidad 
@@ -239,22 +231,19 @@ export default function BudgetsScreen() {
     );
   };
 
+  // Traducir el mes para el modal
+  const translatedMonth = selectedPresupuesto ? t(`registerTransaction.months.${selectedPresupuesto.mes.toLowerCase()}`) : '';
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
         <TouchableOpacity
           style={styles.headerTitleButton}
           onPress={() => setPickerModalVisible(true)}
         >
           <Ionicons name="chevron-down" size={20} color="#000" />
-          <Text style={styles.headerTitle}>Presupuestos</Text>
+          <Text style={styles.headerTitle}>{t('budgetsScreen.title')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -276,32 +265,55 @@ export default function BudgetsScreen() {
       <Modal
         visible={pickerModalVisible}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setPickerModalVisible(false)}
       >
         <Pressable
           style={styles.modalContainer}
           onPress={() => setPickerModalVisible(false)}
         >
-          <View style={[styles.modalContent, Platform.OS === 'ios' && styles.modalContentIOS, Platform.OS === 'android' && styles.modalContentAndroid]}>
-            <Pressable style={{ width: '100%' }} onPress={() => {}}>
-              <Text style={styles.modalTitle}>Selecciona una opción</Text>
-              <Picker
-                selectedValue={selectedOption}
-                onValueChange={(itemValue: string) => setSelectedOption(itemValue as 'presupuestos' | 'metas')}
-                style={[styles.picker, Platform.OS === 'android' && styles.pickerAndroid]}
-                itemStyle={{ color: '#000' }}
-              >
-                <Picker.Item label="Metas de ahorro" value="metas" />
-                <Picker.Item label="Presupuestos" value="presupuestos" />
-              </Picker>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={handleNavigate}
-              >
-                <Text style={styles.modalButtonText}>Ir</Text>
-              </TouchableOpacity>
-            </Pressable>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('budgetsScreen.selectOption')}</Text>
+            
+            <TouchableOpacity 
+              style={styles.optionCard}
+              onPress={() => {
+                setPickerModalVisible(false);
+                router.push('/(tabs)/savings');
+              }}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#E8F5E9' }]}>
+                <Ionicons name="wallet" size={24} color="#34C759" />
+              </View>
+              <View style={styles.optionTextContainer}>
+                <Text style={styles.optionTitle}>{t('savingsScreen.savingsGoals')}</Text>
+                <Text style={styles.optionDescription}>{t('savingsScreen.savingsDescription')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#CCC" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.optionCard, styles.optionCardSelected]}
+              onPress={() => setPickerModalVisible(false)}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
+                <Ionicons name="pie-chart" size={24} color="#007AFF" />
+              </View>
+              <View style={styles.optionTextContainer}>
+                <Text style={styles.optionTitle}>{t('budgetsScreen.budgets')}</Text>
+                <Text style={styles.optionDescription}>{t('savingsScreen.budgetsDescription')}</Text>
+              </View>
+              <View style={styles.activeIndicator}>
+                <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setPickerModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
           </View>
         </Pressable>
       </Modal>
@@ -331,9 +343,9 @@ export default function BudgetsScreen() {
                 <Ionicons name="arrow-back" size={24} color="#666" />
               </TouchableOpacity>
               <View style={styles.detailModalTitleContainer}>
-                <Text style={styles.detailModalTitle}>Presupuesto</Text>
+                <Text style={styles.detailModalTitle}>{t('budgetsScreen.budget')}</Text>
                 <Text style={styles.detailModalSubtitle}>
-                  {selectedPresupuesto?.mes} {selectedPresupuesto?.anio}
+                  {translatedMonth} {selectedPresupuesto?.anio}
                 </Text>
               </View>
             </View>
@@ -343,14 +355,14 @@ export default function BudgetsScreen() {
               {loadingTransacciones ? (
                 <View style={styles.detailModalLoading}>
                   <ActivityIndicator size="large" color="#007AFF" />
-                  <Text style={styles.detailModalLoadingText}>Cargando gastos...</Text>
+                  <Text style={styles.detailModalLoadingText}>{t('budgetsScreen.loadingExpenses')}</Text>
                 </View>
               ) : transacciones.filter(t => t.idTipo === 2).length === 0 ? (
                 <View style={styles.detailModalEmpty}>
                   <Ionicons name="receipt-outline" size={64} color="#999" />
-                  <Text style={styles.detailModalEmptyText}>Sin gastos</Text>
+                  <Text style={styles.detailModalEmptyText}>{t('budgetsScreen.noExpenses')}</Text>
                   <Text style={styles.detailModalEmptySubtext}>
-                    No hay gastos registrados para {selectedPresupuesto?.mes} {selectedPresupuesto?.anio}
+                    {t('budgetsScreen.noExpensesMessage', { month: translatedMonth, year: selectedPresupuesto?.anio || '' })}
                   </Text>
                 </View>
               ) : (
@@ -372,7 +384,7 @@ export default function BudgetsScreen() {
                         <View style={styles.detailModalTransactionInfo}>
                           <Text style={styles.detailModalTransactionTitle}>{transaccion.titulo}</Text>
                           <Text style={styles.detailModalTransactionCategory}>
-                            {transaccion.categoria?.nombre || 'Sin categoría'}
+                            {transaccion.categoria?.nombre || t('common.uncategorized')}
                           </Text>
                         </View>
                       </View>
@@ -429,8 +441,6 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
@@ -516,18 +526,17 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   presupuestoHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  presupuestoHeaderLeft: {
-    flex: 1,
+    marginBottom: 40,
   },
   presupuestoTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1a1a1a',
+  },
+  amountsContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 20,
   },
   presupuestoSubtitle: {
     fontSize: 14,
@@ -558,7 +567,9 @@ const styles = StyleSheet.create({
     color: '#007AFF',
   },
   eyeButton: {
-    alignSelf: 'flex-end',
+    position: 'absolute',
+    top: 16,
+    right: 16,
     paddingVertical: 8,
     paddingHorizontal: 16,
     backgroundColor: '#F0F0F0',
@@ -592,46 +603,74 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalContentIOS: {
-    width: '90%',
-    padding: 30,
-  },
-  modalContentAndroid: {
-    width: '70%',
+    borderRadius: 24,
+    width: '85%',
+    maxWidth: 340,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  picker: {
-    width: '100%',
-    height: 200,
-    backgroundColor: 'transparent',
-    color: '#000',
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  pickerAndroid: {
-    height: 100,
+  optionCardSelected: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#007AFF',
   },
-  modalButton: {
-    marginTop: 20,
-    backgroundColor: '#007AFF',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    alignSelf: 'flex-end',
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
-  modalButtonText: {
-    color: 'white',
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionTitle: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  optionDescription: {
+    fontSize: 13,
+    color: '#666',
+  },
+  activeIndicator: {
+    marginLeft: 8,
+  },
+  cancelButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
   },
   floatingButton: {
     position: 'absolute',
@@ -745,11 +784,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
     borderRadius: 12,
     marginBottom: 4, // Reducido de 6 a 4 para compensar
+    position: 'relative',
+    minHeight: 70, // Asegurar altura mínima para el posicionamiento
   },
   detailModalTransactionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    paddingRight: 80, // Espacio para el contenido posicionado absolutamente
   },
   detailModalIconContainer: {
     width: 44, // Aumentado de 40 a 44
@@ -776,6 +818,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   detailModalTransactionRight: {
+    position: 'absolute',
+    bottom: 8,
+    right: 16,
     alignItems: 'flex-end',
   },
   detailModalTransactionAmount: {

@@ -62,10 +62,10 @@ export default function ForgotPasswordScreen() {
         return;
       }
 
-      // Send password reset email via Supabase
-      // Usa una URL web para que funcione desde cualquier dispositivo (ordenador, móvil, tablet)
+      // Send password reset OTP via email using Supabase
+      // Supabase enviará un token de 6 dígitos al correo para restablecer contraseña
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: RESET_PASSWORD_URL,
+        redirectTo: 'lumeo://reset-password', // Deep link pero usaremos el OTP manualmente
       });
 
       setLoading(false);
@@ -73,8 +73,11 @@ export default function ForgotPasswordScreen() {
       if (error) {
         Alert.alert(t('common.error'), error.message);
       } else {
-        // Navigate to success screen
-        router.push('/password-reset-success');
+        // Navigate to OTP verification screen, passing the email
+        router.push({
+          pathname: '/verify-otp',
+          params: { email: email.trim() },
+        });
       }
     } catch (err) {
       setLoading(false);

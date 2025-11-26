@@ -42,6 +42,7 @@ interface TransactionDetailModalProps {
 }
 
 function TransactionDetailModal({ visible, onClose, transaction, currencySymbol, onDelete, onSave, onOpenDatePicker, fechaTransaccion, onFechaTransaccionChange, usuarioId }: TransactionDetailModalProps) {
+  const { t, language } = useTranslation();
   const [titulo, setTitulo] = useState('');
   const [tipo, setTipo] = useState<'gasto' | 'ingreso'>('gasto');
   const [importe, setImporte] = useState('');
@@ -89,12 +90,16 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
       'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
     ];
-
+    
     const dia = date.getDate().toString().padStart(2, '0');
-    const mes = meses[date.getMonth()];
+    const mesKey = meses[date.getMonth()];
+    const mesTraducido = t(`registerTransaction.months.${mesKey}`);
     const año = date.getFullYear();
-
-    return `${dia} de ${mes} de ${año}`;
+    
+    // Use different format for English vs Spanish
+    return language === 'en' 
+      ? `${mesTraducido} ${date.getDate()}, ${año}` 
+      : `${dia} de ${mesTraducido} de ${año}`;
   };
 
   const handleImporteChange = (text: string) => {
@@ -123,11 +128,11 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
 
     // Validación básica (solo para creadores)
     if (!titulo.trim()) {
-      Alert.alert('Error', 'Por favor, introduce un título');
+      Alert.alert(t('common.error'), t('coinsScreen.errors.titleRequired'));
       return;
     }
     if (!importe || parseFloat(importe.replace(',', '.')) <= 0) {
-      Alert.alert('Error', 'Por favor, introduce un importe válido');
+      Alert.alert(t('common.error'), t('coinsScreen.errors.amountRequired'));
       return;
     }
 
@@ -154,8 +159,8 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
     } catch (error: any) {
       console.error('Error al actualizar transacción:', error);
       Alert.alert(
-        'Error',
-        'No se pudo actualizar la transacción. Por favor, inténtalo de nuevo.'
+        t('common.error'),
+        t('coinsScreen.errors.saveError')
       );
     } finally {
       setSaving(false);
@@ -184,7 +189,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
       onClose();
     } catch (error: any) {
       console.error('Error al aceptar transacción:', error);
-      Alert.alert('Error', 'No se pudo aceptar la transacción. Por favor, inténtalo de nuevo.');
+      Alert.alert(t('common.error'), t('coinsScreen.errors.updateStateError'));
     } finally {
       setSaving(false);
     }
@@ -206,7 +211,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
       onClose();
     } catch (error: any) {
       console.error('Error al marcar como pagada:', error);
-      Alert.alert('Error', 'No se pudo marcar la transacción como pagada. Por favor, inténtalo de nuevo.');
+      Alert.alert(t('common.error'), t('coinsScreen.errors.markPaidError'));
     } finally {
       setSaving(false);
     }
@@ -226,7 +231,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
           {/* Header del modal */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
-              {isEditable ? 'Editar Transacción' : 'Detalle de Transacción'}
+              {isEditable ? t('coinsScreen.editTransaction') : t('coinsScreen.transactionDetail')}
             </Text>
             <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
               <Ionicons name="close" size={28} color="#666" />
@@ -245,12 +250,12 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Título */}
             <View style={styles.modalSection}>
               <Text style={styles.modalLabel}>
-                Título {isEditable && <Text style={styles.required}>*</Text>}
+                {t('coinsScreen.title')} {isEditable && <Text style={styles.required}>{t('coinsScreen.required')}</Text>}
               </Text>
               {isEditable ? (
                 <TextInput
                   style={styles.input}
-                  placeholder="Ej: Compra supermercado"
+                  placeholder={t('coinsScreen.titlePlaceholder')}
                   value={titulo}
                   onChangeText={setTitulo}
                   placeholderTextColor="#999"
@@ -263,7 +268,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Selector de tipo */}
             <View style={styles.modalSection}>
               <Text style={styles.modalLabel}>
-                Tipo {isEditable && <Text style={styles.required}>*</Text>}
+                {t('coinsScreen.type')} {isEditable && <Text style={styles.required}>{t('coinsScreen.required')}</Text>}
               </Text>
               {isEditable ? (
                 <View style={styles.typeSelector}>
@@ -284,7 +289,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                       styles.typeButtonText,
                       tipo === 'gasto' && styles.typeButtonTextActive,
                     ]}>
-                      Gasto
+                      {t('coinsScreen.expense')}
                     </Text>
                   </TouchableOpacity>
 
@@ -305,14 +310,14 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                       styles.typeButtonText,
                       tipo === 'ingreso' && styles.typeButtonTextActive,
                     ]}>
-                      Ingreso
+                      {t('coinsScreen.income')}
                     </Text>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View style={[styles.typeBadge, { backgroundColor: tipo === 'ingreso' ? '#E8F5E9' : '#FFEBEE' }]}>
                   <Text style={[styles.typeText, { color: tipo === 'ingreso' ? '#4CAF50' : '#F44336' }]}>
-                    {tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}
+                    {tipo === 'ingreso' ? t('coinsScreen.income') : t('coinsScreen.expense')}
                   </Text>
                 </View>
               )}
@@ -321,7 +326,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Importe */}
             <View style={styles.modalSection}>
               <Text style={styles.modalLabel}>
-                Importe {isEditable && <Text style={styles.required}>*</Text>}
+                {t('coinsScreen.amount')} {isEditable && <Text style={styles.required}>{t('coinsScreen.required')}</Text>}
               </Text>
               {isEditable ? (
                 <View style={styles.importeContainer}>
@@ -345,7 +350,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Fecha de transacción */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>
-                Fecha de transacción {isEditable && <Text style={styles.required}>*</Text>}
+                {t('coinsScreen.date')} {isEditable && <Text style={styles.required}>*</Text>}
               </Text>
               {isEditable ? (
                 <TouchableOpacity
@@ -368,7 +373,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Categoría (solo lectura) */}
             {transaction.categoria && (
               <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Categoría</Text>
+                <Text style={styles.modalLabel}>{t('coinsScreen.category')}</Text>
                 <View style={styles.categoryBadge}>
                   <Ionicons
                     name={(transaction.categoria.icono as any) || 'pricetag-outline'}
@@ -383,7 +388,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Nota si existe */}
             {transaction.nota && (
               <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Nota</Text>
+                <Text style={styles.modalLabel}>{t('coinsScreen.note')}</Text>
                 <Text style={styles.modalDescription}>{transaction.nota}</Text>
               </View>
             )}
@@ -391,9 +396,9 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Estado - Siempre mostrar para destinatarios, opcional para creadores */}
             {(isDestinatario || transaction.estadoTransaccion) && (
               <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Estado</Text>
+                <Text style={styles.modalLabel}>{t('coinsScreen.state')}</Text>
                 <Text style={styles.modalValue}>
-                  {transaction.estadoTransaccion?.descripcion || transaction.estadoTransaccion?.nombre || 'Desconocido'}
+                  {transaction.estadoTransaccion?.descripcion || transaction.estadoTransaccion?.nombre || t('coinsScreen.unknown')}
                 </Text>
               </View>
             )}
@@ -401,7 +406,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
             {/* Grupo si existe */}
             {transaction.grupo && (
               <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Grupo</Text>
+                <Text style={styles.modalLabel}>{t('registerGroupTransaction.groupInfo')}</Text>
                 <Text style={styles.modalValue}>{transaction.grupo.nombre}</Text>
               </View>
             )}
@@ -426,7 +431,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                   {saving ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.saveButtonText}>Guardar</Text>
+                    <Text style={styles.saveButtonText}>{t('coinsScreen.save')}</Text>
                   )}
                 </TouchableOpacity>
 
@@ -434,7 +439,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                   style={styles.deleteTransactionButton}
                   onPress={handleDelete}
                 >
-                  <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
+                  <Text style={styles.deleteTransactionButtonText}>{t('coinsScreen.delete')}</Text>
                 </TouchableOpacity>
               </>
             ) : isCreador ? (
@@ -443,7 +448,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                 style={styles.deleteTransactionButton}
                 onPress={handleDelete}
               >
-                <Text style={styles.deleteTransactionButtonText}>Eliminar</Text>
+                <Text style={styles.deleteTransactionButtonText}>{t('coinsScreen.delete')}</Text>
               </TouchableOpacity>
             ) : isDestinatario ? (
               // Botones para el destinatario
@@ -457,7 +462,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                     {saving ? (
                       <ActivityIndicator color="#FFFFFF" />
                     ) : (
-                      <Text style={styles.saveButtonText}>Aceptar</Text>
+                      <Text style={styles.saveButtonText}>{t('coinsScreen.accept')}</Text>
                     )}
                   </TouchableOpacity>
                 )}
@@ -470,7 +475,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                     {saving ? (
                       <ActivityIndicator color="#FFFFFF" />
                     ) : (
-                      <Text style={styles.saveButtonText}>Pagar</Text>
+                      <Text style={styles.saveButtonText}>{t('coinsScreen.markAsPaid')}</Text>
                     )}
                   </TouchableOpacity>
                 )}
@@ -551,7 +556,7 @@ export default function TransactionsScreen() {
 
   // Función para formatear fecha del selector
   const formatDateSelector = (date: Date | null) => {
-    if (!date) return 'Seleccionar fecha';
+    if (!date) return t('registerTransaction.selectDate');
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
@@ -651,7 +656,7 @@ export default function TransactionsScreen() {
     .map(t => t.categoria?.nombre)
     .filter(Boolean) as string[]))];
 
-  const types = ['Todos', 'Ingresos', 'Gastos'];
+  const types = [t('coinsScreen.all'), t('coinsScreen.incomeType'), t('coinsScreen.expensesType')];
 
   const handleTransactionPress = (transaction: Transaccion) => {
     setSelectedTransaction(transaction);
@@ -701,7 +706,7 @@ export default function TransactionsScreen() {
       eventEmitter.emit(APP_EVENTS.TRANSACTION_DELETED);
     } catch (err: any) {
       console.error('Error al eliminar transacción:', err);
-      Alert.alert('Error', 'No se pudo eliminar la transacción');
+      Alert.alert(t('common.error'), t('coinsScreen.errors.deleteError'));
     } finally {
       setDeleting(false);
     }
@@ -712,11 +717,11 @@ export default function TransactionsScreen() {
     if (selectedCategory && selectedCategory !== 'Todas' && transaction.categoria?.nombre !== selectedCategory) {
       return false;
     }
-    if (selectedType && selectedType !== 'Todos') {
+    if (selectedType && selectedType !== t('coinsScreen.all')) {
       const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
         transaction.idTipo === 1;
-      if (selectedType === 'Ingresos' && !isIncome) return false;
-      if (selectedType === 'Gastos' && isIncome) return false;
+      if (selectedType === t('coinsScreen.incomeType') && !isIncome) return false;
+      if (selectedType === t('coinsScreen.expensesType') && isIncome) return false;
     }
 
     // Filtro por rango de fechas
@@ -762,18 +767,15 @@ export default function TransactionsScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
         <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Transacciones</Text>
+        <Text style={styles.headerTitle}>{t('transactions.title')}</Text>
       </View>
 
       {/* Filtros */}
       <View style={styles.filtersContainer}>
         {/* Filtro por categoría */}
         <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>Categoría</Text>
+          <Text style={styles.filterLabel}>{t('coinsScreen.category')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
             {categories.map((category) => (
               <TouchableOpacity
@@ -799,7 +801,7 @@ export default function TransactionsScreen() {
 
         {/* Filtro por tipo */}
         <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>Tipo</Text>
+          <Text style={styles.filterLabel}>{t('coinsScreen.type')}</Text>
           <View style={styles.typeFilterContainer}>
             {types.map((type) => (
               <TouchableOpacity
@@ -823,10 +825,10 @@ export default function TransactionsScreen() {
         {/* Filtro por rango de fechas */}
         <View style={styles.filterSection}>
           <View style={styles.dateRangeHeader}>
-            <Text style={styles.filterLabel}>Rango de fechas</Text>
+            <Text style={styles.filterLabel}>{t('coins.dateRange')}</Text>
             {(fechaInicio || fechaFin) && (
               <TouchableOpacity onPress={clearDateRange} style={styles.clearButton}>
-                <Text style={styles.clearButtonText}>Limpiar</Text>
+                <Text style={styles.clearButtonText}>{t('coins.clear')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -841,7 +843,7 @@ export default function TransactionsScreen() {
             >
               <Ionicons name="calendar-outline" size={20} color="#007AFF" />
               <View style={styles.datePickerTextContainer}>
-                <Text style={styles.datePickerLabel}>Desde</Text>
+                <Text style={styles.datePickerLabel}>{t('coins.from')}</Text>
                 <Text style={[styles.datePickerText, fechaInicio && styles.datePickerTextSelected]}>
                   {formatDateSelector(fechaInicio)}
                 </Text>
@@ -858,7 +860,7 @@ export default function TransactionsScreen() {
             >
               <Ionicons name="calendar-outline" size={20} color="#007AFF" />
               <View style={styles.datePickerTextContainer}>
-                <Text style={styles.datePickerLabel}>Hasta</Text>
+                <Text style={styles.datePickerLabel}>{t('coins.to')}</Text>
                 <Text style={[styles.datePickerText, fechaFin && styles.datePickerTextSelected]}>
                   {formatDateSelector(fechaFin)}
                 </Text>
@@ -873,28 +875,26 @@ export default function TransactionsScreen() {
         {isLoadingEssential ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>Cargando transacciones...</Text>
+            <Text style={styles.loadingText}>{t('common.loading')}</Text>
           </View>
         ) : error ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="alert-circle-outline" size={64} color="#F44336" />
-            <Text style={styles.emptyText}>Error al cargar</Text>
+            <Text style={styles.emptyText}>{t('common.error')}</Text>
             <Text style={styles.emptySubtext}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
               onPress={refetchTransacciones}
             >
-              <Text style={styles.retryButtonText}>Reintentar</Text>
+              <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : filteredTransactions.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="receipt-outline" size={64} color="#CCC" />
-            <Text style={styles.emptyText}>No hay transacciones</Text>
+            <Text style={styles.emptyText}>{t('coinsScreen.noTransactions')}</Text>
             <Text style={styles.emptySubtext}>
-              {transacciones.length === 0
-                ? 'Añade tu primera transacción'
-                : 'Ajusta los filtros para ver más resultados'}
+              {t('coinsScreen.noTransactionsSubtext')}
             </Text>
           </View>
         ) : (
@@ -982,14 +982,14 @@ export default function TransactionsScreen() {
           <Pressable style={styles.deleteModalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.deleteModalHeader}>
               <Ionicons name="warning" size={48} color="#FF3B30" />
-              <Text style={styles.deleteModalTitle}>Eliminar Transacción</Text>
+              <Text style={styles.deleteModalTitle}>{t('transactions.deleteTransaction')}</Text>
             </View>
 
             <Text style={styles.deleteModalMessage}>
-              ¿Estás seguro de que deseas eliminar la transacción "{transactionToDelete?.titulo}"?
+              {t('coinsScreen.deleteConfirm', { title: transactionToDelete?.titulo || '' })}
             </Text>
             <Text style={styles.deleteModalWarning}>
-              Esta acción no se puede deshacer.
+              {t('coinsScreen.deleteWarning')}
             </Text>
 
             <View style={styles.deleteModalButtons}>
@@ -998,7 +998,7 @@ export default function TransactionsScreen() {
                 onPress={handleCloseDeleteModal}
                 disabled={deleting}
               >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1009,7 +1009,7 @@ export default function TransactionsScreen() {
                 {deleting ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.confirmDeleteButtonText}>Eliminar</Text>
+                  <Text style={styles.confirmDeleteButtonText}>{t('common.delete')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1034,7 +1034,7 @@ export default function TransactionsScreen() {
           <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
             <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
               <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>Seleccionar Fecha Inicio</Text>
+                <Text style={styles.datePickerTitle}>{t('coins.selectStartDate')}</Text>
                 <TouchableOpacity onPress={cancelDatePicker}>
                   <Ionicons name="close" size={28} color="#666" />
                 </TouchableOpacity>
@@ -1052,10 +1052,10 @@ export default function TransactionsScreen() {
               </View>
               <View style={styles.datePickerButtons}>
                 <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
-                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                  <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.datePickerConfirmButton} onPress={confirmDateInicio}>
-                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                  <Text style={styles.datePickerConfirmText}>{t('common.confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>
@@ -1080,7 +1080,7 @@ export default function TransactionsScreen() {
           <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
             <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
               <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>Seleccionar Fecha Fin</Text>
+                <Text style={styles.datePickerTitle}>{t('coins.selectEndDate')}</Text>
                 <TouchableOpacity onPress={cancelDatePicker}>
                   <Ionicons name="close" size={28} color="#666" />
                 </TouchableOpacity>
@@ -1098,10 +1098,10 @@ export default function TransactionsScreen() {
               </View>
               <View style={styles.datePickerButtons}>
                 <TouchableOpacity style={styles.datePickerCancelButton} onPress={cancelDatePicker}>
-                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                  <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.datePickerConfirmButton} onPress={confirmDateFin}>
-                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                  <Text style={styles.datePickerConfirmText}>{t('common.confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>
@@ -1125,7 +1125,7 @@ export default function TransactionsScreen() {
           <Pressable style={styles.modalOverlay} onPress={cancelTransactionDatePicker}>
             <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
               <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>Seleccionar fecha</Text>
+                <Text style={styles.datePickerTitle}>{t('registerTransaction.selectDate')}</Text>
               </View>
 
               <View style={styles.datePickerContainer}>
@@ -1144,13 +1144,13 @@ export default function TransactionsScreen() {
                   style={styles.datePickerCancelButton}
                   onPress={cancelTransactionDatePicker}
                 >
-                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                  <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.datePickerConfirmButton}
                   onPress={confirmTransactionDate}
                 >
-                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                  <Text style={styles.datePickerConfirmText}>{t('common.confirm')}</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>

@@ -34,7 +34,7 @@ interface MiembroGrupo {
 }
 
 export default function RegisterGroupTransactionScreen() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const idGrupo = params.idGrupo ? parseInt(params.idGrupo as string) : null;
@@ -90,7 +90,7 @@ export default function RegisterGroupTransactionScreen() {
       setMiembros(miembrosFiltrados);
     } catch (error) {
       console.error('Error al cargar miembros del grupo:', error);
-      Alert.alert('Error', 'No se pudieron cargar los miembros del grupo');
+      Alert.alert('Error', t('registerGroupTransaction.errors.loadMembersError'));
       router.back();
     } finally {
       setLoadingMiembros(false);
@@ -169,16 +169,19 @@ export default function RegisterGroupTransactionScreen() {
   };
 
   const formatDateDisplay = (date: Date) => {
-    const meses = [
+    const monthKeys = [
       'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
     ];
     
     const dia = date.getDate().toString().padStart(2, '0');
-    const mes = meses[date.getMonth()];
+    const mes = t(`registerGroupTransaction.months.${monthKeys[date.getMonth()]}`);
     const año = date.getFullYear();
     
-    return `${dia} de ${mes} de ${año}`;
+    // Use different format for English vs Spanish
+    return language === 'en' 
+      ? `${mes} ${date.getDate()}, ${año}` 
+      : `${dia} de ${mes} de ${año}`;
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -241,25 +244,25 @@ export default function RegisterGroupTransactionScreen() {
   const handleSubmit = async () => {
     // Validación básica
     if (!titulo.trim()) {
-      Alert.alert('Error', 'Por favor, introduce un título');
+      Alert.alert('Error', t('registerGroupTransaction.errors.titleRequired'));
       return;
     }
     if (!importe || parseFloat(importe) <= 0) {
-      Alert.alert('Error', 'Por favor, introduce un importe válido');
+      Alert.alert('Error', t('registerGroupTransaction.errors.amountRequired'));
       return;
     }
     if (!idGrupo) {
-      Alert.alert('Error', 'No se pudo identificar el grupo');
+      Alert.alert('Error', t('registerGroupTransaction.errors.groupRequired'));
       return;
     }
     if (!usuario?.id) {
-      Alert.alert('Error', 'No se pudo obtener el usuario');
+      Alert.alert('Error', t('registerGroupTransaction.errors.userRequired'));
       return;
     }
 
     const miembrosSeleccionados = miembros.filter(m => m.seleccionado);
     if (miembrosSeleccionados.length === 0) {
-      Alert.alert('Error', 'Debes seleccionar al menos un miembro del grupo');
+      Alert.alert('Error', t('registerGroupTransaction.errors.membersRequired'));
       return;
     }
 
@@ -271,7 +274,7 @@ export default function RegisterGroupTransactionScreen() {
       for (const miembro of miembrosSeleccionados) {
         const importeMiembro = parseFloat(miembro.importe || '0');
         if (importeMiembro < 0) {
-          Alert.alert('Error', `El importe para ${miembro.nombreUsuario} no puede ser negativo`);
+          Alert.alert('Error', t('registerGroupTransaction.errors.negativeAmount', { username: miembro.nombreUsuario }));
           return;
         }
         sumaImportes += importeMiembro;
@@ -282,7 +285,10 @@ export default function RegisterGroupTransactionScreen() {
       if (importeUsuarioActual < 0) {
         Alert.alert(
           'Error', 
-          `La suma de los importes (€${sumaImportes.toFixed(2)}) excede el importe total (€${importeTotal.toFixed(2)})`
+          t('registerGroupTransaction.errors.sumExceedsTotal', {
+            sum: sumaImportes.toFixed(2),
+            total: importeTotal.toFixed(2)
+          })
         );
         return;
       }
@@ -332,12 +338,12 @@ export default function RegisterGroupTransactionScreen() {
     } catch (error: any) {
       console.error('Error al guardar transacción grupal:', error);
       
-      let errorMessage = 'No se pudieron guardar las transacciones. Por favor, inténtalo de nuevo.';
+      let errorMessage = t('registerGroupTransaction.errors.saveError');
       
       if (error.status === 400) {
-        errorMessage = 'Datos inválidos. Por favor, revisa la información introducida.';
+        errorMessage = t('registerGroupTransaction.errors.invalidData');
       } else if (error.status === 500) {
-        errorMessage = 'Error del servidor. Por favor, inténtalo más tarde.';
+        errorMessage = t('registerGroupTransaction.errors.serverError');
       }
       
       Alert.alert('Error', errorMessage);
@@ -363,7 +369,7 @@ export default function RegisterGroupTransactionScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Cargando miembros del grupo...</Text>
+        <Text style={styles.loadingText}>{t('registerGroupTransaction.loadingMembers')}</Text>
       </View>
     );
   }
@@ -378,7 +384,7 @@ export default function RegisterGroupTransactionScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Transacción Grupal</Text>
+        <Text style={styles.headerTitle}>{t('registerGroupTransaction.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -399,11 +405,11 @@ export default function RegisterGroupTransactionScreen() {
         {/* Título */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>
-            Título <Text style={styles.required}>*</Text>
+            {t('registerGroupTransaction.titleLabel')} <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
             style={styles.input}
-            placeholder="Ej: Compra supermercado"
+            placeholder={t('registerGroupTransaction.titlePlaceholder')}
             value={titulo}
             onChangeText={setTitulo}
             placeholderTextColor="#999"
@@ -413,7 +419,7 @@ export default function RegisterGroupTransactionScreen() {
         {/* Selector de tipo */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>
-            Tipo <Text style={styles.required}>*</Text>
+            {t('registerGroupTransaction.typeLabel')} <Text style={styles.required}>*</Text>
           </Text>
           <View style={styles.typeSelector}>
             <TouchableOpacity
@@ -433,7 +439,7 @@ export default function RegisterGroupTransactionScreen() {
                   styles.typeButtonText,
                   tipo === 'gasto' && styles.typeButtonTextActive,
                 ]}>
-                  Gasto
+                  {t('registerGroupTransaction.expense')}
                 </Text>
               </TouchableOpacity>
               
@@ -454,7 +460,7 @@ export default function RegisterGroupTransactionScreen() {
                   styles.typeButtonText,
                   tipo === 'ingreso' && styles.typeButtonTextActive,
                 ]}>
-                  Ingreso
+                  {t('registerGroupTransaction.income')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -463,7 +469,7 @@ export default function RegisterGroupTransactionScreen() {
           {/* Importe Total */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Importe Total <Text style={styles.required}>*</Text>
+              {t('registerGroupTransaction.totalAmountLabel')} <Text style={styles.required}>*</Text>
             </Text>
             <View style={styles.importeContainer}>
               <Text style={styles.currencySymbol}>€</Text>
@@ -481,7 +487,7 @@ export default function RegisterGroupTransactionScreen() {
           {/* División de Importe */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              División de Importe <Text style={styles.required}>*</Text>
+              {t('registerGroupTransaction.divisionLabel')} <Text style={styles.required}>*</Text>
             </Text>
             <View style={styles.divisionSelector}>
               <TouchableOpacity
@@ -496,7 +502,7 @@ export default function RegisterGroupTransactionScreen() {
                   styles.divisionButtonText,
                   divisionTipo === 'igual' && styles.divisionButtonTextActive,
                 ]}>
-                  Igual
+                  {t('registerGroupTransaction.equal')}
                 </Text>
               </TouchableOpacity>
               
@@ -512,7 +518,7 @@ export default function RegisterGroupTransactionScreen() {
                   styles.divisionButtonText,
                   divisionTipo === 'exacto' && styles.divisionButtonTextActive,
                 ]}>
-                  Exacto
+                  {t('registerGroupTransaction.exact')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -521,7 +527,7 @@ export default function RegisterGroupTransactionScreen() {
           {/* Selección de miembros */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Miembros <Text style={styles.required}>*</Text>
+              {t('registerGroupTransaction.membersLabel')} <Text style={styles.required}>*</Text>
             </Text>
             
             {/* Botón para abrir modal de selección */}
@@ -533,8 +539,8 @@ export default function RegisterGroupTransactionScreen() {
                 <Ionicons name="people-outline" size={24} color="#007AFF" />
                 <Text style={styles.selectMembersText}>
                   {miembrosSeleccionados.length === 0 
-                    ? 'Seleccionar participantes'
-                    : `${miembrosSeleccionados.length} participante${miembrosSeleccionados.length !== 1 ? 's' : ''} seleccionado${miembrosSeleccionados.length !== 1 ? 's' : ''}`
+                    ? t('registerGroupTransaction.selectParticipants')
+                    : `${miembrosSeleccionados.length} ${miembrosSeleccionados.length !== 1 ? t('registerGroupTransaction.selectedParticipantsPlural') : t('registerGroupTransaction.selectedParticipants')}`
                   }
                 </Text>
               </View>
@@ -588,10 +594,10 @@ export default function RegisterGroupTransactionScreen() {
             {divisionTipo === 'igual' && miembrosSeleccionados.length > 0 && importe && (
               <View style={styles.divisionInfo}>
                 <Text style={styles.divisionInfoText}>
-                  Cada miembro pagará: €{(parseFloat(importe) / (miembrosSeleccionados.length + 1)).toFixed(2)}
+                  {t('registerGroupTransaction.eachMemberPays')} €{(parseFloat(importe) / (miembrosSeleccionados.length + 1)).toFixed(2)}
                 </Text>
                 <Text style={styles.currentUserInfoText}>
-                  Tu importe: €{(parseFloat(importe) / (miembrosSeleccionados.length + 1)).toFixed(2)}
+                  {t('registerGroupTransaction.yourAmount')} €{(parseFloat(importe) / (miembrosSeleccionados.length + 1)).toFixed(2)}
                 </Text>
               </View>
             )}
@@ -599,14 +605,14 @@ export default function RegisterGroupTransactionScreen() {
             {divisionTipo === 'exacto' && miembrosSeleccionados.length > 0 && importe && (
               <View style={styles.divisionInfo}>
                 <Text style={styles.divisionInfoText}>
-                  Total miembros: €{totalAsignado.toFixed(2)}
+                  {t('registerGroupTransaction.totalMembers')} €{totalAsignado.toFixed(2)}
                 </Text>
                 <Text style={styles.currentUserInfoText}>
-                  Tu importe: €{(parseFloat(importe) - totalAsignado).toFixed(2)}
+                  {t('registerGroupTransaction.yourAmount')} €{(parseFloat(importe) - totalAsignado).toFixed(2)}
                 </Text>
                 {(parseFloat(importe) - totalAsignado) < 0 && (
                   <Text style={styles.warningText}>
-                    ⚠️ La suma excede el total
+                    {t('registerGroupTransaction.sumExceedsTotal')}
                   </Text>
                 )}
               </View>
@@ -616,7 +622,7 @@ export default function RegisterGroupTransactionScreen() {
           {/* Fecha de transacción */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>
-              Fecha de transacción <Text style={styles.required}>*</Text>
+              {t('registerGroupTransaction.dateLabel')} <Text style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity 
               style={styles.datePickerButton}
@@ -637,10 +643,10 @@ export default function RegisterGroupTransactionScreen() {
 
           {/* Nota (opcional) */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Nota (opcional)</Text>
+            <Text style={styles.label}>{t('registerGroupTransaction.noteLabel')}</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Añade una nota o descripción..."
+              placeholder={t('registerGroupTransaction.notePlaceholder')}
               value={nota}
               onChangeText={setNota}
               multiline
@@ -652,16 +658,16 @@ export default function RegisterGroupTransactionScreen() {
 
           {/* Adjuntar archivo (opcional) */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Adjuntar archivo (opcional)</Text>
+            <Text style={styles.label}>{t('registerGroupTransaction.fileLabel')}</Text>
             <TouchableOpacity 
               style={styles.fileButton}
               onPress={() => {
-                console.log('Adjuntar archivo - Pendiente de implementar');
+                // TODO: Implementar funcionalidad de adjuntar archivo
               }}
             >
               <Ionicons name="attach" size={24} color="#007AFF" />
               <Text style={styles.fileButtonText}>
-                {hasFile ? 'Archivo adjuntado' : 'Seleccionar archivo'}
+                {hasFile ? t('registerGroupTransaction.fileAttached') : t('registerGroupTransaction.selectFile')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -679,7 +685,7 @@ export default function RegisterGroupTransactionScreen() {
             {saving ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.saveButtonText}>Guardar Transacciones</Text>
+              <Text style={styles.saveButtonText}>{t('registerGroupTransaction.saveButton')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -705,7 +711,7 @@ export default function RegisterGroupTransactionScreen() {
           <Pressable style={styles.modalOverlay} onPress={cancelDatePicker}>
             <Pressable style={styles.datePickerModal} onPress={(e) => e.stopPropagation()}>
               <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>Seleccionar fecha</Text>
+                <Text style={styles.datePickerTitle}>{t('registerGroupTransaction.selectDateTitle')}</Text>
               </View>
               
               <View style={styles.datePickerContainer}>
@@ -724,13 +730,13 @@ export default function RegisterGroupTransactionScreen() {
                   style={styles.datePickerCancelButton}
                   onPress={cancelDatePicker}
                 >
-                  <Text style={styles.datePickerCancelText}>Cancelar</Text>
+                  <Text style={styles.datePickerCancelText}>{t('registerGroupTransaction.cancelButton')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.datePickerConfirmButton}
                   onPress={confirmDate}
                 >
-                  <Text style={styles.datePickerConfirmText}>Confirmar</Text>
+                  <Text style={styles.datePickerConfirmText}>{t('registerGroupTransaction.confirmButton')}</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>
@@ -748,7 +754,7 @@ export default function RegisterGroupTransactionScreen() {
         <Pressable style={styles.modalOverlay} onPress={handleCancelMembers}>
           <Pressable style={styles.membersModal} onPress={(e) => e.stopPropagation()}>
             <View style={styles.membersModalHeader}>
-              <Text style={styles.membersModalTitle}>Seleccionar participantes</Text>
+              <Text style={styles.membersModalTitle}>{t('registerGroupTransaction.selectParticipantsTitle')}</Text>
             </View>
 
             <ScrollView style={styles.membersModalScroll}>
@@ -784,13 +790,13 @@ export default function RegisterGroupTransactionScreen() {
                 style={styles.membersCancelButton} 
                 onPress={handleCancelMembers}
               >
-                <Text style={styles.membersCancelText}>Cancelar</Text>
+                <Text style={styles.membersCancelText}>{t('registerGroupTransaction.cancelButton')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.membersConfirmButton} 
                 onPress={handleConfirmMembers}
               >
-                <Text style={styles.membersConfirmText}>Confirmar</Text>
+                <Text style={styles.membersConfirmText}>{t('registerGroupTransaction.confirmButton')}</Text>
               </TouchableOpacity>
             </View>
           </Pressable>

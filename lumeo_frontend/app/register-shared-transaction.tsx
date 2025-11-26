@@ -27,7 +27,7 @@ type DivisionType = 'igual' | 'porcentaje' | 'exacto';
 
 export default function RegisterSharedTransactionScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
   const [titulo, setTitulo] = useState('');
   const [tipo, setTipo] = useState<TransactionType>('gasto');
@@ -96,7 +96,10 @@ export default function RegisterSharedTransactionScreen() {
     const mes = t(`registerSharedTransaction.months.${monthKeys[date.getMonth()]}`);
     const año = date.getFullYear();
     
-    return `${dia} de ${mes} de ${año}`;
+    // Use different format for English vs Spanish
+    return language === 'en' 
+      ? `${mes} ${date.getDate()}, ${año}` 
+      : `${dia} de ${mes} de ${año}`;
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -198,7 +201,6 @@ export default function RegisterSharedTransactionScreen() {
       try {
         usuarioDestinatario = await usuarioService.getByNombreUsuario(destinatario.trim());
       } catch (error: any) {
-        console.log('Error en búsqueda de usuario:', error.status);
         // Si es un error 404, significa que el usuario no existe
         if (error.status === 404) {
           Alert.alert(t('registerSharedTransaction.errors.userNotFound'), t('registerSharedTransaction.errors.userNotRegistered'));
@@ -555,7 +557,6 @@ export default function RegisterSharedTransactionScreen() {
               style={styles.fileButton}
               onPress={() => {
                 // Funcionalidad pendiente
-                console.log('Adjuntar archivo - Pendiente de implementar');
               }}
             >
               <Ionicons name="attach" size={24} color="#007AFF" />

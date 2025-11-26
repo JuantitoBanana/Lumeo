@@ -21,6 +21,8 @@ export default function ResetPasswordScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   /**
    * Handle Password Update
@@ -48,6 +50,16 @@ export default function ResetPasswordScreen() {
     setLoading(true);
 
     try {
+      // Get current user to compare passwords
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoading(false);
+        Alert.alert(t('common.error'), t('resetPassword.errors.noSession'));
+        return;
+      }
+
+      // Update password
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -55,18 +67,15 @@ export default function ResetPasswordScreen() {
       setLoading(false);
 
       if (error) {
-        Alert.alert(t('common.error'), error.message);
+        // Check if the error is about using the same password
+        if (error.message.includes('same') || error.message.includes('igual')) {
+          Alert.alert(t('common.error'), t('resetPassword.errors.samePassword'));
+        } else {
+          Alert.alert(t('common.error'), error.message);
+        }
       } else {
-        Alert.alert(
-          t('resetPassword.success.title'),
-          t('resetPassword.success.message'),
-          [
-            {
-              text: t('resetPassword.success.button'),
-              onPress: () => router.push('/login'),
-            },
-          ]
-        );
+        // Navigate to success screen
+        router.replace('/password-reset-success');
       }
     } catch (err) {
       setLoading(false);
@@ -110,37 +119,61 @@ export default function ResetPasswordScreen() {
             {/* New Password Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>{t('resetPassword.newPasswordLabel')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t('resetPassword.newPasswordPlaceholder')}
-                placeholderTextColor="#999"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry={true}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="off"
-                textContentType="none"
-                editable={!loading}
-              />
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder={t('resetPassword.newPasswordPlaceholder')}
+                  placeholderTextColor="#999"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!showNewPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowNewPassword(!showNewPassword)}
+                >
+                  <Ionicons
+                    name={showNewPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={24}
+                    color="#999"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>{t('resetPassword.confirmPasswordLabel')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t('resetPassword.confirmPasswordPlaceholder')}
-                placeholderTextColor="#999"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={true}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="off"
-                textContentType="none"
-                editable={!loading}
-              />
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder={t('resetPassword.confirmPasswordPlaceholder')}
+                  placeholderTextColor="#999"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={24}
+                    color="#999"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Update Password Button */}
@@ -228,6 +261,23 @@ const styles = StyleSheet.create({
     padding: 15,
     fontSize: 16,
     color: '#333',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+    color: '#333',
+  },
+  eyeButton: {
+    padding: 15,
   },
   button: {
     backgroundColor: '#007AFF',

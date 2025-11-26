@@ -67,13 +67,22 @@ export function useUsuarioApi() {
     } catch (err: any) {
       // No procesar si fue cancelada - pero NO retornar, seguir con el flujo
       if (err.message === 'CANCELED') {
-        console.log('🔄 Petición de usuario cancelada, reintentando...');
         // Reintentar después de un pequeño delay
         setTimeout(() => {
           if (isMountedRef.current) {
             fetchUsuario();
           }
         }, 100);
+        return;
+      }
+      
+      // Si es timeout, reintentar una vez más con delay mayor
+      if (err.message?.includes('timeout')) {
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            fetchUsuario();
+          }
+        }, 2000);
         return;
       }
       

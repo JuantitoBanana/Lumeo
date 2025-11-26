@@ -4,6 +4,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { GastoPorCategoria } from '@/services/graficos.service';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface GraficoCategoriaProps {
   gastos: GastoPorCategoria[];
@@ -13,6 +14,7 @@ interface GraficoCategoriaProps {
 const screenWidth = Dimensions.get('window').width;
 
 export const GraficoCategoria: React.FC<GraficoCategoriaProps> = ({ gastos, loading }) => {
+  const { t } = useTranslation();
   const { currencySymbol, symbolPosition } = useCurrencySymbol();
   
   // Configuración del gráfico
@@ -45,13 +47,13 @@ export const GraficoCategoria: React.FC<GraficoCategoriaProps> = ({ gastos, load
   if (!loading && gastos.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Gastos por Categoría</Text>
+        <Text style={styles.title}>{t('components.categoryChart.title')}</Text>
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>
-            {loading ? 'Cargando...' : 'No hay gastos'}
+            {loading ? t('components.categoryChart.loading') : t('components.categoryChart.noExpenses')}
           </Text>
           {!loading && (
-            <Text style={styles.emptyText}>este mes</Text>
+            <Text style={styles.emptyText}>{t('components.categoryChart.thisMonth')}</Text>
           )}
         </View>
       </View>
@@ -60,10 +62,10 @@ export const GraficoCategoria: React.FC<GraficoCategoriaProps> = ({ gastos, load
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Gastos por Categoría</Text>
+      <Text style={styles.title}>{t('components.categoryChart.title')}</Text>
       {loading ? (
         <View style={styles.loadingState}>
-          <Text style={styles.loadingText}>Cargando...</Text>
+          <Text style={styles.loadingText}>{t('components.categoryChart.loading')}</Text>
         </View>
       ) : (
         <>

@@ -81,17 +81,12 @@ export default function ProfileScreen() {
 
     try {
       setSavingDivisa(true);
-      console.log('💱 Actualizando divisa del usuario a:', selectedDivisa.iso);
       
       // Actualizar la divisa en el backend (esto también convierte todas las transacciones)
       await usuarioService.updateByUid(user.id, { idDivisa: selectedDivisa.id });
       
-      console.log('✅ Divisa actualizada en el backend, esperando conversión...');
-      
-      // Esperar un momento para que el backend complete la conversión de todas las transacciones
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('🔄 Conversión completada, actualizando UI...');
+      // Esperar solo 200ms - el backend convierte en el mismo request
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       setDivisaActual(selectedDivisa);
       setShowDivisaModal(false);
@@ -99,7 +94,6 @@ export default function ProfileScreen() {
       
       // Emitir evento de cambio de divisa para que otros componentes se actualicen
       const { eventEmitter, APP_EVENTS } = require('@/lib/event-emitter');
-      console.log('📢 Emitiendo evento CURRENCY_CHANGED');
       eventEmitter.emit(APP_EVENTS.CURRENCY_CHANGED);
     } catch (error) {
       console.error('❌ Error al actualizar divisa:', error);
@@ -128,14 +122,6 @@ export default function ProfileScreen() {
       setSavingLanguage(true);
       await changeLanguage(selectedLanguage);
       setShowLanguageModal(false);
-      
-      // Feedback según la plataforma
-      const languageName = availableLanguages.find(l => l.code === selectedLanguage)?.nativeName;
-      if (Platform.OS === 'android') {
-        ToastAndroid.show(t('language.languageChanged', { language: languageName || '' }), ToastAndroid.SHORT);
-      } else {
-        Alert.alert(t('common.success'), t('language.languageChanged', { language: languageName || '' }));
-      }
     } catch (error) {
       console.error('Error al cambiar idioma:', error);
     } finally {
@@ -169,7 +155,7 @@ export default function ProfileScreen() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(language === 'en' ? 'en-US' : 'es-ES', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -210,7 +196,7 @@ export default function ProfileScreen() {
       icon: 'lock-closed-outline',
       title: t('profile.menu.changePassword'),
       subtitle: t('profile.menu.changePasswordSubtitle'),
-      action: () => console.log('Change Password'),
+      action: () => router.push('/change-password'),
     },
     {
       id: 'change-language',
@@ -224,7 +210,9 @@ export default function ProfileScreen() {
       icon: 'notifications-outline',
       title: t('profile.menu.notifications'),
       subtitle: t('profile.menu.notificationsSubtitle'),
-      action: () => console.log('Notifications'),
+      action: () => {
+        // TODO: Implementar configuración de notificaciones
+      },
     },
   ];
 
@@ -242,13 +230,8 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <TouchableOpacity 
+        <View style={styles.placeholder} />
+        <TouchableOpacity
           style={styles.headerUserContainer}
           onPress={handleCopyUsername}
           activeOpacity={0.7}
@@ -318,7 +301,7 @@ export default function ProfileScreen() {
             <View style={styles.memberSince}>
               <Ionicons name="calendar-outline" size={16} color="#999" />
               <Text style={styles.memberSinceText}>
-                Miembro desde {formatDate(usuario.fechaCreacion)}
+                {t('profile.memberSince', { date: formatDate(usuario.fechaCreacion) })}
               </Text>
             </View>
           )}
@@ -641,7 +624,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginTop: 4,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   memberSinceText: {
     fontSize: 14,

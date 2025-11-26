@@ -72,8 +72,8 @@ export default function GroupsScreen() {
         
         <Text style={styles.membersCount}>
           {miembros.length === 1 
-            ? '1 miembro' 
-            : `${miembros.length} miembros`}
+            ? `1 ${t('groups.member')}` 
+            : `${miembros.length} ${t('groups.members')}`}
         </Text>
       </View>
     );
@@ -106,9 +106,9 @@ export default function GroupsScreen() {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="people-outline" size={64} color="#999" />
-          <Text style={styles.emptyText}>Sin grupos</Text>
+          <Text style={styles.emptyText}>{t('groups.noGroups')}</Text>
           <Text style={styles.emptySubtext}>
-            Crea tu primer grupo para compartir gastos
+            {t('groups.noGroupsText')}
           </Text>
         </View>
       );
@@ -162,7 +162,7 @@ export default function GroupsScreen() {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.placeholder} />
-        <Text style={styles.headerTitle}>Mis grupos</Text>
+        <Text style={styles.headerTitle}>{t('groups.title')}</Text>
       </View>
 
       {/* Contenido */}

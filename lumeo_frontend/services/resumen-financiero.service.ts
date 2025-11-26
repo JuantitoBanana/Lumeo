@@ -23,7 +23,6 @@ export class ResumenFinancieroService {
     const data = await apiClient.get<ResumenFinanciero>(
       `${this.BASE_PATH}/${usuarioId}/resumen-financiero`
     );
-    console.log('📊 Datos del resumen financiero recibidos:', data);
     return data;
   }
 }

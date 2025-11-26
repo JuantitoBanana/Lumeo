@@ -19,18 +19,15 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
 
   const fetchEvolucion = async (retryCount = 0) => {
     if (!usuarioId || usuarioId <= 0) {
-      console.log('❌ No hay usuarioId válido, no se puede obtener evolución mensual');
       return;
     }
 
     if (!isMountedRef.current) {
-      console.log('🔄 Componente desmontado, cancelando petición');
       return;
     }
 
     // Evitar peticiones duplicadas simultáneas
     if (fetchingRef.current) {
-      console.log('⏭️ Ya hay una petición de evolución en curso, saltando...');
       return;
     }
 
@@ -38,27 +35,22 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
       fetchingRef.current = true;
       setLoading(true);
       setError(null);
-      console.log('🔄 Obteniendo evolución mensual para usuario:', usuarioId, 'meses:', meses, 'intento:', retryCount + 1);
       
       const evolucionData = await GraficosService.getEvolucionMensual(usuarioId, meses);
       
       // Verificar si el componente sigue montado
       if (!isMountedRef.current) {
-        console.log('🔄 Componente desmontado después de la petición');
         return;
       }
       
-      console.log('✅ Evolución mensual obtenida:', evolucionData);
       setEvolucion(evolucionData);
     } catch (err: any) {
       if (!isMountedRef.current) {
-        console.log('🔄 Componente desmontado en catch');
         return;
       }
 
       // Si fue cancelada, no mostrar error
       if (err.message === 'CANCELED') {
-        console.log('🔄 Petición de evolución mensual cancelada');
         return;
       }
 
@@ -69,7 +61,6 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
       const isNetworkError = !err?.response;
       
       if (isNetworkError && retryCount < 1 && isMountedRef.current) {
-        console.log('🔄 Reintentando obtener evolución mensual en 3 segundos...');
         setTimeout(() => {
           if (isMountedRef.current) {
             fetchEvolucion(retryCount + 1);
@@ -89,12 +80,10 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
   };
 
   useEffect(() => {
-    console.log('🚀 useEvolucionMensual useEffect ejecutado con usuarioId:', usuarioId, 'meses:', meses);
     isMountedRef.current = true;
     
     // Evitar refetch si los parámetros no cambiaron
     if (usuarioId === lastUsuarioIdRef.current && meses === lastMesesRef.current) {
-      console.log('⏭️ Parámetros no cambiaron, saltando refetch');
       return;
     }
     

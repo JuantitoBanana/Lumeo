@@ -24,7 +24,7 @@ import { useTranslation } from '../hooks/useTranslation';
 type TransactionType = 'gasto' | 'ingreso';
 
 export default function RegisterTransactionScreen() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const router = useRouter();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
   const [titulo, setTitulo] = useState('');
@@ -64,7 +64,10 @@ export default function RegisterTransactionScreen() {
     const mesTraducido = t(`registerTransaction.months.${mesKey}`);
     const año = date.getFullYear();
     
-    return `${dia} de ${mesTraducido} de ${año}`;
+    // Use different format for English vs Spanish
+    return language === 'en' 
+      ? `${mesTraducido} ${date.getDate()}, ${año}` 
+      : `${dia} de ${mesTraducido} de ${año}`;
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -285,7 +288,6 @@ export default function RegisterTransactionScreen() {
               style={styles.fileButton}
               onPress={() => {
                 // Funcionalidad pendiente
-                console.log('Adjuntar archivo - Pendiente de implementar');
               }}
             >
               <Ionicons name="attach" size={24} color="#007AFF" />

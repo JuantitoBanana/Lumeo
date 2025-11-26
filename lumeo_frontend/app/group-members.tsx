@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -24,6 +26,8 @@ export default function GroupMembersScreen() {
   const [grupoData, setGrupoData] = useState<GrupoConMiembros | null>(null);
   const [loading, setLoading] = useState(true);
   const [deletingMemberId, setDeletingMemberId] = useState<number | null>(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<MiembroGrupo | null>(null);
 
   // Verificar si el usuario actual es el creador del grupo
   const isCreador = grupoData?.grupo.idCreador === usuario?.id;
@@ -43,49 +47,45 @@ export default function GroupMembersScreen() {
       setGrupoData(data);
     } catch (error) {
       console.error('Error al cargar grupo:', error);
-      Alert.alert('Error', 'No se pudo cargar la información del grupo');
+      Alert.alert(t('common.error'), t('groupMembers.loadError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteMember = (miembro: MiembroGrupo) => {
-    Alert.alert(
-      'Eliminar miembro',
-      `¿Estás seguro de que deseas eliminar a ${miembro.nombre} ${miembro.apellido} del grupo?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => confirmDeleteMember(miembro.idUsuario),
-        },
-      ]
-    );
+    setMemberToDelete(miembro);
+    setDeleteModalVisible(true);
   };
 
-  const confirmDeleteMember = async (idUsuario: number) => {
-    if (!idGrupo) return;
+  const handleCloseDeleteModal = () => {
+    setDeleteModalVisible(false);
+    setMemberToDelete(null);
+  };
 
-    setDeletingMemberId(idUsuario);
+  const confirmDeleteMember = async () => {
+    if (!idGrupo || !memberToDelete) return;
+
+    setDeletingMemberId(memberToDelete.idUsuario);
 
     try {
       // TODO: Implementar endpoint para eliminar miembro del grupo
-      await grupoService.eliminarMiembroDeGrupo(idGrupo, idUsuario);
-      Alert.alert('Éxito', 'Miembro eliminado del grupo correctamente');
+      await grupoService.eliminarMiembroDeGrupo(idGrupo, memberToDelete.idUsuario);
+      Alert.alert(t('common.success'), t('groupMembers.deleteSuccess'));
       await fetchGrupoData();
     } catch (error: any) {
       console.error('Error al eliminar miembro:', error);
       if (error?.response?.status === 404) {
         Alert.alert(
-          'Función en desarrollo',
-          'El endpoint para eliminar miembros aún no está implementado en el backend.'
+          t('groupMembers.inDevelopment'),
+          t('groupMembers.inDevelopmentMsg')
         );
       } else {
-        Alert.alert('Error', 'No se pudo eliminar el miembro del grupo');
+        Alert.alert(t('common.error'), t('groupMembers.deleteError'));
       }
     } finally {
       setDeletingMemberId(null);
+      handleCloseDeleteModal();
     }
   };
 
@@ -99,12 +99,12 @@ export default function GroupMembersScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Miembros del Grupo</Text>
+          <Text style={styles.headerTitle}>{t('groupMembers.title')}</Text>
           <View style={styles.placeholder} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Cargando miembros...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </View>
     );
@@ -120,14 +120,14 @@ export default function GroupMembersScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Miembros del Grupo</Text>
+          <Text style={styles.headerTitle}>{t('groupMembers.title')}</Text>
           <View style={styles.placeholder} />
         </View>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-          <Text style={styles.errorText}>No se pudo cargar el grupo</Text>
+          <Text style={styles.errorText}>{t('groupMembers.loadError')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
-            <Text style={styles.retryButtonText}>Volver</Text>
+            <Text style={styles.retryButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -144,7 +144,7 @@ export default function GroupMembersScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Miembros del Grupo</Text>
+        <Text style={styles.headerTitle}>{t('groupMembers.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -156,7 +156,7 @@ export default function GroupMembersScreen() {
         <View style={styles.groupInfoCard}>
           <Text style={styles.groupName}>{grupoData.grupo.nombre}</Text>
           <Text style={styles.memberCount}>
-            {grupoData.miembros.length} {grupoData.miembros.length === 1 ? 'miembro' : 'miembros'}
+            {grupoData.miembros.length} {grupoData.miembros.length === 1 ? t('groups.member') : t('groups.members')}
           </Text>
         </View>
 
@@ -203,6 +203,56 @@ export default function GroupMembersScreen() {
 
         <View style={styles.bottomSpace} />
       </ScrollView>
+
+      {/* Modal de confirmación para eliminar miembro */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseDeleteModal}
+      >
+        <Pressable style={styles.deleteModalOverlay} onPress={handleCloseDeleteModal}>
+          <Pressable style={styles.deleteModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.deleteModalHeader}>
+              <Ionicons name="warning" size={48} color="#FF3B30" />
+              <Text style={styles.deleteModalTitle}>{t('groupMembers.deleteMember')}</Text>
+            </View>
+
+            <Text style={styles.deleteModalMessage}>
+              {memberToDelete && t('groupMembers.deleteConfirm', { 
+                name: memberToDelete.nombre && memberToDelete.nombre.trim() 
+                  ? `${memberToDelete.nombre.trim()} ${memberToDelete.apellido?.trim() || ''}`.trim()
+                  : memberToDelete.nombreUsuario 
+              })}
+            </Text>
+            <Text style={styles.deleteModalWarning}>
+              {t('groupMembers.deleteWarning')}
+            </Text>
+
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCloseDeleteModal}
+                disabled={deletingMemberId !== null}
+              >
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.confirmDeleteButton, deletingMemberId !== null && styles.confirmDeleteButtonDisabled]}
+                onPress={confirmDeleteMember}
+                disabled={deletingMemberId !== null}
+              >
+                {deletingMemberId !== null ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmDeleteButtonText}>{t('common.delete')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -361,5 +411,79 @@ const styles = StyleSheet.create({
   },
   bottomSpace: {
     height: 40,
+  },
+  // Estilos del modal de confirmación de eliminación
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  deleteModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  deleteModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: 12,
+  },
+  deleteModalMessage: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  deleteModalWarning: {
+    fontSize: 14,
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '600',
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#FF3B30',
+    alignItems: 'center',
+  },
+  confirmDeleteButtonDisabled: {
+    opacity: 0.6,
+  },
+  confirmDeleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

@@ -16,9 +16,12 @@ import GraficoEvolucion from '@/components/GraficoEvolucion';
 import UltimosGastos from '@/components/UltimosGastos';
 import { apiClient } from '@/lib/api-client';
 import { eventEmitter, APP_EVENTS } from '@/lib/event-emitter';
+import { useState } from 'react';
+import { Language } from '@/contexts/I18nContext';
+import { Modal, Pressable, Platform, ToastAndroid, Alert } from 'react-native';
 
 export default function HomeScreen() {
-  const { t } = useTranslation();
+  const { t, language, changeLanguage, availableLanguages } = useTranslation();
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { usuario, loading: loadingUsuario, error: errorUsuario, refetchUsuario } = useUsuarioApi();
@@ -26,6 +29,46 @@ export default function HomeScreen() {
   const { gastos, loading: loadingGastos, error: errorGastos, refetch: refetchGastos } = useGastosPorCategoria(usuario?.id || null);
   const { evolucion, loading: loadingEvolucion, error: errorEvolucion, refetch: refetchEvolucion } = useEvolucionMensual(usuario?.id || null, 2);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Estados para el selector de idioma
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
+  const [savingLanguage, setSavingLanguage] = useState(false);
+
+  // Funciones para el selector de idioma
+  const handleOpenLanguageModal = () => {
+    setSelectedLanguage(language);
+    setShowLanguageModal(true);
+  };
+
+  const handleSelectLanguage = (lang: Language) => {
+    setSelectedLanguage(lang);
+  };
+
+  const handleConfirmLanguage = async () => {
+    try {
+      setSavingLanguage(true);
+      await changeLanguage(selectedLanguage);
+      setShowLanguageModal(false);
+      
+      // Feedback según la plataforma
+      const languageName = availableLanguages.find(l => l.code === selectedLanguage)?.nativeName;
+      if (Platform.OS === 'android') {
+        ToastAndroid.show(t('language.languageChanged', { language: languageName || '' }), ToastAndroid.SHORT);
+      } else {
+        Alert.alert(t('common.success'), t('language.languageChanged', { language: languageName || '' }));
+      }
+    } catch (error) {
+      console.error('Error al cambiar idioma:', error);
+    } finally {
+      setSavingLanguage(false);
+    }
+  };
+
+  const handleCancelLanguage = () => {
+    setShowLanguageModal(false);
+    setSelectedLanguage(language);
+  };
 
   // Función para refrescar todo el contenido
   const handleRefresh = () => {
@@ -41,16 +84,17 @@ export default function HomeScreen() {
   // Escuchar cambios de divisa
   useEffect(() => {
     const unsubscribe = eventEmitter.on(APP_EVENTS.CURRENCY_CHANGED, () => {
-      console.log('💱 Dashboard: Detectado cambio de divisa, recargando datos...');
-      // Pequeño delay para asegurar que el backend terminó la conversión
-      setTimeout(() => {
-        console.log('🔄 Refrescando datos del dashboard...');
-        // Recargar todos los datos del dashboard
-        refetchUsuario();
-        refetchResumen();
-        refetchGastos();
-        refetchEvolucion();
-      }, 500); // 500ms de delay
+      // Recargar INMEDIATAMENTE sin delay - el backend ya terminó la conversión
+      // Recargar todos los datos del dashboard en paralelo
+      Promise.all([
+        refetchUsuario(),
+        refetchResumen(),
+        refetchGastos(),
+        refetchEvolucion()
+      ]).then(() => {
+      }).catch(err => {
+        console.error('❌ Error al actualizar dashboard:', err);
+      });
     });
 
     return () => {
@@ -61,16 +105,16 @@ export default function HomeScreen() {
   // Escuchar eliminación de transacciones
   useEffect(() => {
     const unsubscribe = eventEmitter.on(APP_EVENTS.TRANSACTION_DELETED, () => {
-      console.log('🗑️ Dashboard: Detectada eliminación de transacción, recargando datos...');
-      // Pequeño delay para asegurar que el backend procesó la eliminación
-      setTimeout(() => {
-        console.log('🔄 Refrescando datos del dashboard...');
-        // Recargar todos los datos del dashboard
-        refetchUsuario();
-        refetchResumen();
-        refetchGastos();
-        refetchEvolucion();
-      }, 300); // 300ms de delay
+      // Recargar todos los datos del dashboard en paralelo
+      Promise.all([
+        refetchUsuario(),
+        refetchResumen(),
+        refetchGastos(),
+        refetchEvolucion()
+      ]).then(() => {
+      }).catch(err => {
+        console.error('❌ Error al actualizar dashboard:', err);
+      });
     });
 
     return () => {
@@ -81,7 +125,6 @@ export default function HomeScreen() {
   // Cleanup: Cancelar todas las peticiones pendientes cuando se desmonta el componente
   useEffect(() => {
     return () => {
-      console.log('🧹 Dashboard desmontado - cancelando peticiones pendientes');
       apiClient.cancelAllRequests();
     };
   }, []);
@@ -96,30 +139,6 @@ export default function HomeScreen() {
       return `${cantidadFormateada}${simbolo}`;
     }
   };
-
-  // Debug logs
-  console.log('🔍 Estado actual:', {
-    user: !!user,
-    usuario: usuario,
-    usuarioId: usuario?.id,
-    resumen: resumen,
-    loadingResumen,
-    errorResumen,
-    'resumen existe': !!resumen,
-    'resumen.saldoTotal': resumen?.saldoTotal
-  });
-
-  console.log('🎯 Renderizando dashboard - resumen:', resumen);
-
-  // Debug: ver estado de carga
-  console.log('🔍 Estados de carga:', {
-    loadingUsuario,
-    loadingResumen,
-    loadingGastos,
-    loadingEvolucion,
-    tieneUsuario: !!usuario,
-    tieneResumen: !!resumen,
-  });
 
   // Determinar si aún estamos cargando datos esenciales
   const isLoadingEssentialData = 
@@ -277,6 +296,14 @@ export default function HomeScreen() {
   // Pantalla de bienvenida para usuarios no autenticados
   return (
     <View style={styles.container}>
+      {/* Botón de idioma flotante */}
+      <TouchableOpacity 
+        style={styles.floatingLanguageButton}
+        onPress={handleOpenLanguageModal}
+      >
+        <Ionicons name="language" size={28} color="#FFF" />
+      </TouchableOpacity>
+
       {/* Imagen superior - 60% de la pantalla */}
       <View style={styles.imageContainer}>
         <Image
@@ -313,6 +340,63 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Modal de selector de idioma */}
+      <Modal visible={showLanguageModal} transparent={true} animationType="fade">
+        <Pressable style={styles.languageModalOverlay} onPress={handleCancelLanguage}>
+          <Pressable style={styles.languageModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.languageModalHeader}>
+              <Text style={styles.languageModalTitle}>{t('language.title')}</Text>
+              <TouchableOpacity onPress={handleCancelLanguage}>
+                <Ionicons name="close" size={28} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.languageList} showsVerticalScrollIndicator={false}>
+              {availableLanguages.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.languageItem,
+                    selectedLanguage === lang.code && styles.languageItemSelected
+                  ]}
+                  onPress={() => handleSelectLanguage(lang.code)}
+                >
+                  <View style={styles.languageItemContent}>
+                    <Text style={styles.languageItemISO}>
+                      {lang.flag} {lang.nativeName}
+                    </Text>
+                    <Text style={styles.languageItemDescription}>{lang.name}</Text>
+                  </View>
+                  {selectedLanguage === lang.code && (
+                    <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.languageModalButtons}>
+              <TouchableOpacity 
+                style={styles.languageCancelButton} 
+                onPress={handleCancelLanguage}
+              >
+                <Text style={styles.languageCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.languageConfirmButton, savingLanguage && styles.languageConfirmButtonDisabled]} 
+                onPress={handleConfirmLanguage}
+                disabled={savingLanguage}
+              >
+                {savingLanguage ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.languageConfirmText}>{t('common.confirm')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -321,6 +405,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  floatingLanguageButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 122, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1000,
   },
   loadingScreen: {
     flex: 1,
@@ -680,5 +781,107 @@ const styles = StyleSheet.create({
   serverErrorMessage: {
     fontSize: 14,
     color: '#FFF',
+  },
+  // Estilos del modal de idioma
+  languageModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  languageModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    width: '85%',
+    maxWidth: 400,
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  languageModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  languageModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  languageList: {
+    maxHeight: 300,
+    marginBottom: 16,
+  },
+  languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: '#F8F9FA',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  languageItemSelected: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#007AFF',
+    borderWidth: 2,
+  },
+  languageItemContent: {
+    flex: 1,
+  },
+  languageItemISO: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  languageItemDescription: {
+    fontSize: 13,
+    color: '#666',
+  },
+  languageModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  languageCancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+  },
+  languageCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  languageConfirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+  },
+  languageConfirmButtonDisabled: {
+    backgroundColor: '#B0B0B0',
+  },
+  languageConfirmText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

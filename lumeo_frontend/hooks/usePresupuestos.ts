@@ -37,7 +37,6 @@ export function usePresupuestos() {
     } catch (err: any) {
       // Ignorar errores de cancelación
       if (err?.message === 'CANCELED' || err?.canceled) {
-        console.log('Petición de presupuestos cancelada (es normal)');
         setLoading(false);
         return;
       }

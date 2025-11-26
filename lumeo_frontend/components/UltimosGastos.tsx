@@ -4,12 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUltimosGastos } from '@/hooks/useUltimosGastos';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface UltimosGastosProps {
   usuarioId: number | null | undefined;
 }
 
 export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
+  const { t } = useTranslation();
   const { gastos, loading, error } = useUltimosGastos(usuarioId);
   const { currencySymbol } = useCurrencySymbol();
 
@@ -17,7 +19,8 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    return `${day}/${month}`;
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const formatCurrency = (amount: number, posicionSimbolo?: string) => {
@@ -28,7 +31,7 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Últimos Gastos</Text>
+        <Text style={styles.title}>{t('components.lastExpenses.title')}</Text>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -39,7 +42,7 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
   if (error) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Últimos Gastos</Text>
+        <Text style={styles.title}>{t('components.lastExpenses.title')}</Text>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={24} color="#F44336" />
           <Text style={styles.errorText}>{error}</Text>
@@ -51,10 +54,10 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
   if (!gastos || gastos.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Últimos Gastos</Text>
+        <Text style={styles.title}>{t('components.lastExpenses.title')}</Text>
         <View style={styles.emptyContainer}>
           <Ionicons name="wallet-outline" size={48} color="#CCCCCC" />
-          <Text style={styles.emptyText}>No hay gastos recientes</Text>
+          <Text style={styles.emptyText}>{t('components.lastExpenses.noExpenses')}</Text>
         </View>
       </View>
     );
@@ -63,7 +66,7 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Últimos Gastos</Text>
+        <Text style={styles.title}>{t('components.lastExpenses.title')}</Text>
         <Ionicons name="receipt-outline" size={24} color="#007AFF" />
       </View>
 

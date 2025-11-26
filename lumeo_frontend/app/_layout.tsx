@@ -23,7 +23,6 @@ export default function RootLayout() {
       // Intentar ocultar inmediatamente
       const hideNavBar = async () => {
         await NavigationBar.setVisibilityAsync('hidden');
-        await NavigationBar.setBackgroundColorAsync('#00000000'); // Transparente
       };
       
       hideNavBar();
@@ -48,6 +47,10 @@ export default function RootLayout() {
             <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
             <Stack.Screen name="password-reset-success" options={{ headerShown: false }} />
             <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+            <Stack.Screen name="change-email" options={{ headerShown: false }} />
+            <Stack.Screen name="email-change-success" options={{ headerShown: false }} />
+            <Stack.Screen name="change-password" options={{ headerShown: false }} />
+            <Stack.Screen name="password-change-success" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style="auto" />

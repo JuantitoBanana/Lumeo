@@ -38,7 +38,7 @@ function TransactionGroupDetailModal({
   currencySymbol,
   onDelete,
 }: TransactionGroupDetailModalProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [transaccion, setTransaccion] = useState<TransaccionGrupal | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -58,7 +58,7 @@ function TransactionGroupDetailModal({
       setTransaccion(data);
     } catch (error) {
       console.error('Error al cargar detalle de transacción grupal:', error);
-      Alert.alert('Error', 'No se pudo cargar el detalle de la transacción');
+      Alert.alert(t('common.error'), t('groupDetail.loadDetailError'));
       onClose();
     } finally {
       setLoading(false);
@@ -86,12 +86,12 @@ function TransactionGroupDetailModal({
 
   const handleDelete = () => {
     Alert.alert(
-      'Eliminar Transacción',
-      '¿Estás seguro de que deseas eliminar esta transacción grupal?',
+      t('groupDetail.deleteTransaction'),
+      t('groupDetail.deleteConfirm'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: confirmDelete,
         },
@@ -105,12 +105,12 @@ function TransactionGroupDetailModal({
     setDeleting(true);
     try {
       await transaccionGrupalService.delete(transactionId);
-      Alert.alert('Éxito', 'Transacción eliminada correctamente');
+      Alert.alert(t('common.success'), t('groupDetail.deleteSuccess'));
       onClose();
       onDelete(); // Refrescar lista
     } catch (error) {
       console.error('Error al eliminar transacción:', error);
-      Alert.alert('Error', 'No se pudo eliminar la transacción');
+      Alert.alert(t('common.error'), t('groupDetail.deleteError'));
     } finally {
       setDeleting(false);
     }
@@ -131,7 +131,7 @@ function TransactionGroupDetailModal({
         <View style={styles.modalContent}>
           {/* Header del modal */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Detalle de Transacción</Text>
+            <Text style={styles.modalTitle}>{t('groupDetail.transactionDetail')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
               <Ionicons name="close" size={28} color="#666" />
             </TouchableOpacity>
@@ -143,7 +143,7 @@ function TransactionGroupDetailModal({
           {loading ? (
             <View style={styles.modalLoadingContainer}>
               <ActivityIndicator size="large" color="#007AFF" />
-              <Text style={styles.modalLoadingText}>Cargando...</Text>
+              <Text style={styles.modalLoadingText}>{t('common.loading')}</Text>
             </View>
           ) : transaccion ? (
             <ScrollView 
@@ -155,17 +155,17 @@ function TransactionGroupDetailModal({
             >
               {/* Título */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Título</Text>
+                <Text style={styles.modalSectionTitle}>{t('groupDetail.title')}</Text>
                 <Text style={styles.transactionTitleValue}>{transaccion.titulo}</Text>
               </View>
 
               {/* Tipo */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Tipo</Text>
+                <Text style={styles.modalSectionTitle}>{t('groupDetail.type')}</Text>
                 <View style={styles.typeBadgeContainer}>
                   <View style={[styles.typeBadge, { backgroundColor: isIngreso ? '#E8F5E9' : '#FFEBEE' }]}>
                     <Text style={[styles.typeText, { color: isIngreso ? '#4CAF50' : '#F44336' }]}>
-                      {transaccion.nombreTipo || (isIngreso ? 'Ingreso' : 'Gasto')}
+                      {transaccion.nombreTipo || (isIngreso ? t('groupDetail.income') : t('groupDetail.expense'))}
                     </Text>
                   </View>
                 </View>
@@ -173,7 +173,7 @@ function TransactionGroupDetailModal({
 
               {/* Importe Total */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Importe Total</Text>
+                <Text style={styles.modalSectionTitle}>{t('groupDetail.amount')}</Text>
                 <Text style={[styles.totalAmount, { color: isIngreso ? '#4CAF50' : '#F44336' }]}>
                   {isIngreso ? '+' : '-'}{formatCurrency(transaccion.importe)}
                 </Text>
@@ -187,7 +187,7 @@ function TransactionGroupDetailModal({
 
               {/* División de Importes */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>División por Persona</Text>
+                <Text style={styles.modalSectionTitle}>{t('groupDetail.distribution')}</Text>
                 {transaccion.transaccionesIndividuales && transaccion.transaccionesIndividuales.length > 0 ? (
                   <View style={styles.divisionList}>
                     {transaccion.transaccionesIndividuales.map((individual) => {
@@ -215,20 +215,20 @@ function TransactionGroupDetailModal({
                     })}
                   </View>
                 ) : (
-                  <Text style={styles.noDataText}>No hay división de importes disponible</Text>
+                  <Text style={styles.noDataText}>{t('groupDetail.noDistribution')}</Text>
                 )}
               </View>
 
               {/* Detalles Adicionales */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Información Adicional</Text>
+                <Text style={styles.modalSectionTitle}>{t('groupDetail.additionalInfo')}</Text>
 
                 <View style={styles.detailRow}>
                   <View style={styles.detailIcon}>
                     <Ionicons name="calendar-outline" size={20} color="#666" />
                   </View>
                   <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>Fecha</Text>
+                    <Text style={styles.detailLabel}>{t('groupDetail.date')}</Text>
                     <Text style={styles.detailValue}>{formatDate(transaccion.fechaTransaccion)}</Text>
                   </View>
                 </View>
@@ -239,7 +239,7 @@ function TransactionGroupDetailModal({
                       <Ionicons name="people-outline" size={20} color="#666" />
                     </View>
                     <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>Grupo</Text>
+                      <Text style={styles.detailLabel}>{t('registerGroupTransaction.groupInfo')}</Text>
                       <Text style={styles.detailValue}>{transaccion.nombreGrupo}</Text>
                     </View>
                   </View>
@@ -251,7 +251,7 @@ function TransactionGroupDetailModal({
                       <Ionicons name="document-text-outline" size={20} color="#666" />
                     </View>
                     <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>Nota</Text>
+                      <Text style={styles.detailLabel}>{t('groupDetail.note')}</Text>
                       <Text style={styles.detailValue}>{transaccion.nota}</Text>
                     </View>
                   </View>
@@ -275,7 +275,7 @@ function TransactionGroupDetailModal({
                 ) : (
                   <>
                     <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
-                    <Text style={styles.deleteButtonText}>Eliminar</Text>
+                    <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -288,6 +288,7 @@ function TransactionGroupDetailModal({
 }
 
 export default function GroupDetailScreen() {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams();
   const idGrupo = params.id ? Number(params.id) : null;
@@ -308,6 +309,10 @@ export default function GroupDetailScreen() {
   const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
   const [nombreUsuarioNuevo, setNombreUsuarioNuevo] = useState('');
   const [addingMember, setAddingMember] = useState(false);
+
+  // Estados para el modal de eliminar grupo
+  const [deleteGroupModalVisible, setDeleteGroupModalVisible] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState(false);
 
   useEffect(() => {
     if (idGrupo && usuario?.id) {
@@ -347,7 +352,7 @@ export default function GroupDetailScreen() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(language === 'en' ? 'en-US' : 'es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -371,12 +376,12 @@ export default function GroupDetailScreen() {
 
   const handleConfirmAddMember = async () => {
     if (!nombreUsuarioNuevo.trim()) {
-      Alert.alert('Error', 'Por favor, introduce un nombre de usuario');
+      Alert.alert(t('common.error'), t('createGroup.errors.enterUsername'));
       return;
     }
 
     if (!idGrupo) {
-      Alert.alert('Error', 'No se puede añadir miembro sin ID de grupo');
+      Alert.alert(t('common.error'), t('groupDetail.errorNoGroupId'));
       return;
     }
 
@@ -388,8 +393,8 @@ export default function GroupDetailScreen() {
 
       if (!response.existe || !response.idUsuario) {
         Alert.alert(
-          'Usuario no encontrado',
-          `El usuario "${nombreUsuarioNuevo}" no existe en el sistema.`
+          t('common.error'),
+          t('createGroup.errors.userNotExists', { username: nombreUsuarioNuevo })
         );
         setAddingMember(false);
         return;
@@ -398,7 +403,7 @@ export default function GroupDetailScreen() {
       // Verificar si el usuario ya es miembro del grupo
       const yaEsMiembro = grupoData?.miembros.some(m => m.idUsuario === response.idUsuario);
       if (yaEsMiembro) {
-        Alert.alert('Usuario ya existe', `El usuario ${response.nombreUsuario} ya es miembro de este grupo.`);
+        Alert.alert(t('common.error'), t('createGroup.errors.userAlreadyAdded'));
         setAddingMember(false);
         return;
       }
@@ -406,7 +411,7 @@ export default function GroupDetailScreen() {
       // Añadir el usuario al grupo
       try {
         await grupoService.agregarMiembroAGrupo(idGrupo, nombreUsuarioNuevo.trim());
-        Alert.alert('Éxito', `Usuario ${response.nombreUsuario} añadido al grupo correctamente`);
+        Alert.alert(t('common.success'), t('createGroup.userAddedSuccess', { username: response.nombreUsuario }));
         
         // Recargar datos del grupo
         await fetchGrupoData();
@@ -417,8 +422,8 @@ export default function GroupDetailScreen() {
         // Si el endpoint no está implementado (404), mostrar mensaje temporal
         if (error?.response?.status === 404) {
           Alert.alert(
-            'Función en desarrollo',
-            'El endpoint para añadir miembros aún no está implementado en el backend.'
+            t('groupMembers.inDevelopment'),
+            t('groupMembers.inDevelopmentMsg')
           );
         } else {
           throw error;
@@ -426,7 +431,7 @@ export default function GroupDetailScreen() {
       }
     } catch (error) {
       console.error('Error al añadir miembro:', error);
-      Alert.alert('Error', 'No se pudo añadir el miembro al grupo');
+      Alert.alert(t('common.error'), t('groupDetail.addMemberError'));
     } finally {
       setAddingMember(false);
     }
@@ -453,6 +458,44 @@ export default function GroupDetailScreen() {
     fetchTransacciones();
   };
 
+  const handleDeleteGroup = () => {
+    setDeleteGroupModalVisible(true);
+  };
+
+  const handleCloseDeleteGroupModal = () => {
+    setDeleteGroupModalVisible(false);
+  };
+
+  const handleConfirmDeleteGroup = async () => {
+    if (!idGrupo) return;
+
+    setDeletingGroup(true);
+    try {
+      await grupoService.delete(idGrupo);
+      Alert.alert(t('common.success'), t('groupDetail.deleteGroupSuccess'));
+      setDeleteGroupModalVisible(false);
+      router.replace('/groups');
+    } catch (error: any) {
+      console.error('Error al eliminar grupo:', error);
+      
+      // Verificar si es un error de constraint de foreign key
+      const errorMessage = error?.error?.message || error?.message || '';
+      const isConstraintError = errorMessage.includes('foreign key constraint') || 
+                               errorMessage.includes('usuario_grupo');
+      
+      if (isConstraintError) {
+        Alert.alert(
+          t('common.error'), 
+          t('groupDetail.deleteGroupConstraintError')
+        );
+      } else {
+        Alert.alert(t('common.error'), t('groupDetail.deleteGroupError'));
+      }
+    } finally {
+      setDeletingGroup(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -467,7 +510,7 @@ export default function GroupDetailScreen() {
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Cargando grupo...</Text>
+          <Text style={styles.loadingText}>{t('groupDetail.loading')}</Text>
         </View>
       </View>
     );
@@ -487,9 +530,9 @@ export default function GroupDetailScreen() {
         </View>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-          <Text style={styles.errorText}>{error || 'Grupo no encontrado'}</Text>
+          <Text style={styles.errorText}>{error || t('groupDetail.errorLoading')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
-            <Text style={styles.retryButtonText}>Volver</Text>
+            <Text style={styles.retryButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -509,12 +552,20 @@ export default function GroupDetailScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>
           {grupoData.grupo.nombre}
         </Text>
-        <TouchableOpacity 
-          style={styles.membersButton} 
-          onPress={() => router.push(`/group-members?idGrupo=${idGrupo}`)}
-        >
-          <Ionicons name="person" size={20} color="#007AFF" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.headerDeleteButton} 
+            onPress={handleDeleteGroup}
+          >
+            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.membersButton} 
+            onPress={() => router.push(`/group-members?idGrupo=${idGrupo}`)}
+          >
+            <Ionicons name="person" size={20} color="#007AFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 
@@ -524,7 +575,7 @@ export default function GroupDetailScreen() {
         {/* Descripción del grupo */}
         {grupoData.grupo.descripcion && (
           <View style={styles.descriptionCard}>
-            <Text style={styles.descriptionLabel}>Descripción</Text>
+            <Text style={styles.descriptionLabel}>{t('createGroup.descriptionLabel')}</Text>
             <Text style={styles.descriptionText}>{grupoData.grupo.descripcion}</Text>
           </View>
         )}
@@ -536,7 +587,7 @@ export default function GroupDetailScreen() {
             onPress={handleAddMembers}
           >
             <Ionicons name="person-add" size={24} color="#007AFF" />
-            <Text style={styles.actionButtonText}>Añadir personas</Text>
+            <Text style={styles.actionButtonText}>{t('createGroup.addPeopleLabel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -545,26 +596,26 @@ export default function GroupDetailScreen() {
           >
             <Ionicons name="add-circle" size={24} color="#FFFFFF" />
             <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary]}>
-              Crear transacción
+              {t('groupDetail.addTransaction')}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Sección de transacciones */}
         <View style={styles.transactionsSection}>
-          <Text style={styles.sectionTitle}>Transacciones del grupo</Text>
+          <Text style={styles.sectionTitle}>{t('groupDetail.transactions')}</Text>
           
           {loadingTransacciones ? (
             <View style={styles.loadingTransactions}>
               <ActivityIndicator size="small" color="#007AFF" />
-              <Text style={styles.loadingTransactionsText}>Cargando...</Text>
+              <Text style={styles.loadingTransactionsText}>{t('common.loading')}</Text>
             </View>
           ) : transacciones.length === 0 ? (
             <View style={styles.emptyTransactions}>
               <Ionicons name="receipt-outline" size={48} color="#999" />
-              <Text style={styles.emptyTransactionsText}>Sin transacciones</Text>
+              <Text style={styles.emptyTransactionsText}>{t('groupDetail.noTransactions')}</Text>
               <Text style={styles.emptyTransactionsSubtext}>
-                Aún no hay transacciones en este grupo
+                {t('groupDetail.noTransactionsText')}
               </Text>
             </View>
           ) : (
@@ -586,7 +637,7 @@ export default function GroupDetailScreen() {
                     <View style={styles.transactionInfo}>
                       <Text style={styles.transactionTitle}>{transaccion.titulo}</Text>
                       <Text style={styles.transactionCategory}>
-                        {transaccion.nombreCategoria || 'Sin categoría'}
+                        {transaccion.nombreCategoria || t('coinsScreen.unknown')}
                       </Text>
                     </View>
                   </View>
@@ -630,15 +681,15 @@ export default function GroupDetailScreen() {
             onPress={handleCancelAddMember}
           />
           <View style={styles.addMemberModalContent}>
-            <Text style={styles.addMemberModalTitle}>Añadir Miembro</Text>
+            <Text style={styles.addMemberModalTitle}>{t('groupDetail.addMemberTitle')}</Text>
             
             <View style={styles.addMemberDivider} />
             
             <View style={styles.addMemberInputContainer}>
-              <Text style={styles.addMemberLabel}>Nombre de usuario</Text>
+              <Text style={styles.addMemberLabel}>{t('createGroup.usernamePlaceholder')}</Text>
               <TextInput
                 style={styles.addMemberInput}
-                placeholder="Introduce el nombre de usuario"
+                placeholder={t('groupDetail.addMemberPlaceholder')}
                 value={nombreUsuarioNuevo}
                 onChangeText={setNombreUsuarioNuevo}
                 placeholderTextColor="#999"
@@ -653,7 +704,7 @@ export default function GroupDetailScreen() {
                 onPress={handleCancelAddMember}
                 disabled={addingMember}
               >
-                <Text style={styles.addMemberCancelButtonText}>Cancelar</Text>
+                <Text style={styles.addMemberCancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -664,12 +715,58 @@ export default function GroupDetailScreen() {
                 {addingMember ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.addMemberConfirmButtonText}>Añadir</Text>
+                  <Text style={styles.addMemberConfirmButtonText}>{t('createGroup.addButton')}</Text>
                 )}
               </TouchableOpacity>
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Modal de confirmación para eliminar grupo */}
+      <Modal
+        visible={deleteGroupModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseDeleteGroupModal}
+      >
+        <Pressable style={styles.deleteModalOverlay} onPress={handleCloseDeleteGroupModal}>
+          <Pressable style={styles.deleteModalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.deleteModalHeader}>
+              <Ionicons name="warning" size={48} color="#FF3B30" />
+              <Text style={styles.deleteModalTitle}>{t('groupDetail.deleteGroupTitle')}</Text>
+            </View>
+
+            <Text style={styles.deleteModalMessage}>
+              {t('groupDetail.deleteGroupMessage', { name: grupoData?.grupo.nombre || '' })}
+            </Text>
+            <Text style={styles.deleteModalWarning}>
+              {t('groupDetail.deleteGroupWarning')}
+            </Text>
+
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCloseDeleteGroupModal}
+                disabled={deletingGroup}
+              >
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.confirmDeleteButton, deletingGroup && styles.confirmDeleteButtonDisabled]}
+                onPress={handleConfirmDeleteGroup}
+                disabled={deletingGroup}
+              >
+                {deletingGroup ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmDeleteButtonText}>{t('groupDetail.deleteGroup')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -719,6 +816,19 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 40,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerDeleteButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFE5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
@@ -794,7 +904,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     gap: 8,
     borderWidth: 1,
     borderColor: '#007AFF',
@@ -809,9 +920,10 @@ const styles = StyleSheet.create({
     borderColor: '#007AFF',
   },
   actionButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#007AFF',
+    flexShrink: 1,
   },
   actionButtonTextPrimary: {
     color: '#FFFFFF',
@@ -1196,6 +1308,80 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   addMemberConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  // Estilos del modal de eliminación de grupo
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  deleteModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  deleteModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: 12,
+  },
+  deleteModalMessage: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  deleteModalWarning: {
+    fontSize: 14,
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '600',
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#FF3B30',
+    alignItems: 'center',
+  },
+  confirmDeleteButtonDisabled: {
+    opacity: 0.6,
+  },
+  confirmDeleteButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
