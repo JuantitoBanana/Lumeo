@@ -98,7 +98,7 @@ export const GraficoCategoria: React.FC<GraficoCategoriaProps> = memo(({ gastos,
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

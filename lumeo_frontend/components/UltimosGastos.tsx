@@ -102,7 +102,7 @@ const UltimosGastos = memo(({ usuarioId }: UltimosGastosProps) => {
       </ScrollView>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

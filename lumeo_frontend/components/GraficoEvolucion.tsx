@@ -105,7 +105,7 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = memo(({ evoluci
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
