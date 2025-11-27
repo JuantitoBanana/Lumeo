@@ -48,7 +48,7 @@ export default function SelectGroupTransactionScreen() {
           <View style={styles.placeholder} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#FF9500" />
           <Text style={styles.loadingText}>{t('selectGroupTransaction.loading')}</Text>
         </View>
       </View>
@@ -76,7 +76,7 @@ export default function SelectGroupTransactionScreen() {
       >
         {/* Info card */}
         <View style={styles.infoCard}>
-          <Ionicons name="information-circle" size={24} color="#007AFF" />
+          <Ionicons name="information-circle" size={24} color="#FF9500" />
           <Text style={styles.infoText}>
             {t('selectGroupTransaction.infoText')}
           </Text>
@@ -115,7 +115,7 @@ export default function SelectGroupTransactionScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.groupIconContainer}>
-                    <Ionicons name="people" size={32} color="#007AFF" />
+                    <Ionicons name="people" size={32} color="#FF9500" />
                   </View>
                   
                   <View style={styles.groupInfo}>
@@ -161,7 +161,7 @@ export default function SelectGroupTransactionScreen() {
             style={styles.secondaryButton}
             onPress={handleCreateGroup}
           >
-            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+            <Ionicons name="add-circle-outline" size={24} color="#FF9500" />
             <Text style={styles.secondaryButtonText}>{t('selectGroupTransaction.createNewGroupButton')}</Text>
           </TouchableOpacity>
         )}
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
@@ -258,12 +258,12 @@ const styles = StyleSheet.create({
   createGroupButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: -8,
@@ -355,11 +355,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     gap: 8,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#FF9500',
   },
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#FF9500',
   },
 });

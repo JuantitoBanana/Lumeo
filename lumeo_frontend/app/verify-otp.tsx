@@ -159,7 +159,7 @@ export default function VerifyOtpScreen() {
             {/* Icon */}
             <View style={styles.iconContainer}>
               <View style={styles.iconCircle}>
-                <Ionicons name="mail-outline" size={48} color="#007AFF" />
+                <Ionicons name="mail-outline" size={48} color="#FF9500" />
               </View>
             </View>
 
@@ -212,7 +212,7 @@ export default function VerifyOtpScreen() {
                 disabled={resending || loading}
               >
                 {resending ? (
-                  <ActivityIndicator size="small" color="#007AFF" style={styles.resendLoader} />
+                  <ActivityIndicator size="small" color="#FF9500" style={styles.resendLoader} />
                 ) : (
                   <Text style={styles.resendLink}>{t('verifyOtp.resendCode')}</Text>
                 )}
@@ -228,13 +228,13 @@ export default function VerifyOtpScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   headerContainer: {
     paddingTop: Platform.OS === 'ios' ? 90 : 70,
     paddingBottom: 20,
     paddingHorizontal: 30,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   title: {
     fontSize: 32,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -306,11 +306,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   otpInputFilled: {
-    borderColor: '#007AFF',
+    borderColor: '#FF9500',
     backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonDisabled: {
-    backgroundColor: '#99c7ff',
+    backgroundColor: '#FFCC80',
   },
   buttonText: {
     color: '#fff',
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '600',
   },
   resendLoader: {

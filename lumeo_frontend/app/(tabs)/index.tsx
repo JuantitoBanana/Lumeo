@@ -1,8 +1,9 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +17,6 @@ import GraficoEvolucion from '@/components/GraficoEvolucion';
 import UltimosGastos from '@/components/UltimosGastos';
 import { apiClient } from '@/lib/api-client';
 import { eventEmitter, APP_EVENTS } from '@/lib/event-emitter';
-import { useState } from 'react';
 import { Language } from '@/contexts/I18nContext';
 import { Modal, Pressable, Platform, ToastAndroid, Alert } from 'react-native';
 
@@ -24,6 +24,7 @@ export default function HomeScreen() {
   const { t, language, changeLanguage, availableLanguages } = useTranslation();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  
   const { usuario, loading: loadingUsuario, error: errorUsuario, refetchUsuario } = useUsuarioApi();
   const { resumen, loading: loadingResumen, error: errorResumen, refetch: refetchResumen } = useResumenFinanciero(usuario?.id || null);
   const { gastos, loading: loadingGastos, error: errorGastos, refetch: refetchGastos } = useGastosPorCategoria(usuario?.id || null);
@@ -34,6 +35,34 @@ export default function HomeScreen() {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
   const [savingLanguage, setSavingLanguage] = useState(false);
+  
+  // Estado para controlar la carga diferida de UltimosGastos
+  const [showUltimosGastos, setShowUltimosGastos] = useState(false);
+
+  // Cargar UltimosGastos después de un breve delay para priorizar el contenido principal
+  useEffect(() => {
+    if (usuario?.id && !loadingResumen) {
+      const timer = setTimeout(() => {
+        setShowUltimosGastos(true);
+      }, 300); // Cargar después de 300ms
+      return () => clearTimeout(timer);
+    }
+  }, [usuario?.id, loadingResumen]);
+
+  // Componente Skeleton para el resumen
+  const SkeletonSummary = memo(() => (
+    <View style={styles.monthlySection}>
+      <View style={styles.skeletonTitle} />
+      <View style={styles.monthlyGrid}>
+        {[1, 2, 3].map((i) => (
+          <View key={i} style={styles.monthlyItem}>
+            <View style={[styles.skeletonText, { width: '60%' }]} />
+            <View style={[styles.skeletonText, { width: '80%' }]} />
+          </View>
+        ))}
+      </View>
+    </View>
+  ));
 
   // Funciones para el selector de idioma
   const handleOpenLanguageModal = () => {
@@ -79,6 +108,8 @@ export default function HomeScreen() {
     refetchResumen();
     refetchGastos();
     refetchEvolucion();
+    // Emitir evento para refrescar UltimosGastos
+    eventEmitter.emit(APP_EVENTS.DASHBOARD_REFRESH);
   };
 
   // Escuchar cambios de divisa
@@ -129,28 +160,28 @@ export default function HomeScreen() {
     };
   }, []);
 
-  // Función para formatear cantidades monetarias
-  const formatearCantidad = (cantidad: number, simbolo: string, posicion: string = 'DESPUES') => {
-    const cantidadFormateada = cantidad.toFixed(2);
-    // Respetar la posición del símbolo según la divisa
-    if (posicion === 'ANTES') {
-      return `${simbolo}${cantidadFormateada}`;
-    } else {
-      return `${cantidadFormateada}${simbolo}`;
-    }
-  };
+  // Función para formatear cantidades monetarias (memoizada)
+  const formatearCantidad = useMemo(() => 
+    (cantidad: number, simbolo: string, posicion: string = 'DESPUES') => {
+      const cantidadFormateada = cantidad.toFixed(2);
+      // Respetar la posición del símbolo según la divisa
+      if (posicion === 'ANTES') {
+        return `${simbolo}${cantidadFormateada}`;
+      } else {
+        return `${cantidadFormateada}${simbolo}`;
+      }
+    }, []
+  );
 
-  // Determinar si aún estamos cargando datos esenciales
-  const isLoadingEssentialData = 
-    loadingUsuario || // Cargando usuario
-    (usuario && loadingResumen) || // Tenemos usuario pero cargando resumen
-    (!usuario && !loadingUsuario); // No hay usuario y no está cargando (esperando)
+  // Solo mostrar pantalla de carga inicial si NO tenemos usuario cargado
+  // Esto permite que la UI se muestre inmediatamente y los datos se carguen progresivamente
+  const showInitialLoading = user && loadingUsuario;
 
-  // Pantalla de carga inicial mientras se cargan todos los datos necesarios
-  if (user && isLoadingEssentialData) {
+  // Pantalla de carga inicial solo para usuario
+  if (showInitialLoading) {
     return (
       <View style={styles.loadingScreen}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#FF9500" />
         <Text style={styles.loadingScreenText}>{t('home.loadingInfo')}</Text>
       </View>
     );
@@ -165,7 +196,7 @@ export default function HomeScreen() {
           <View style={styles.greetingContainer}>
             {loadingUsuario ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#007AFF" />
+                <ActivityIndicator size="small" color="#FF9500" />
                 <Text style={styles.greetingText}>{t('home.loading')}</Text>
               </View>
             ) : errorUsuario ? (
@@ -183,7 +214,7 @@ export default function HomeScreen() {
               style={styles.iconButton}
               onPress={() => router.push('/groups')}
             >
-              <Ionicons name="people" size={24} color="#007AFF" />
+              <Ionicons name="people" size={24} color="#FF9500" />
             </TouchableOpacity>
           </View>
         </View>
@@ -232,7 +263,7 @@ export default function HomeScreen() {
             
             {loadingResumen ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#007AFF" />
+                <ActivityIndicator size="small" color="#FF9500" />
                 <Text style={styles.loadingText}>{t('home.loadingSummary')}</Text>
               </View>
             ) : errorResumen ? (
@@ -254,7 +285,9 @@ export default function HomeScreen() {
             </View>
             
             {/* Resumen del mes actual */}
-            {resumen ? (
+            {loadingResumen ? (
+              <SkeletonSummary />
+            ) : resumen ? (
               <View style={styles.monthlySection}>
                 <Text style={styles.monthlySectionTitle}>{t('home.monthlyResume')}</Text>
                 <View style={styles.monthlyGrid}>
@@ -284,8 +317,8 @@ export default function HomeScreen() {
             ) : null}
           </View>
 
-          {/* Panel de Últimos Gastos */}
-          <UltimosGastos usuarioId={usuario?.id} />
+          {/* Panel de Últimos Gastos - Carga diferida */}
+          {showUltimosGastos && <UltimosGastos usuarioId={usuario?.id} />}
         </ScrollView>
 
         <BottomTabBar activeTab="home" onTabRefresh={handleRefresh} />
@@ -305,13 +338,18 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {/* Imagen superior - 60% de la pantalla */}
-      <View style={styles.imageContainer}>
+      <LinearGradient
+        colors={['#FF9500', '#FFCC80']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.imageContainer}
+      >
         <Image
-          source={require('@/assets/images/logo_final.png')}
+          source={require('@/assets/images/logo_sombra.png')}
           style={styles.welcomeImage}
           contentFit="contain"
         />
-      </View>
+      </LinearGradient>
 
       {/* Panel inferior con esquinas redondeadas - 40% */}
       <View style={styles.contentPanel}>
@@ -329,7 +367,7 @@ export default function HomeScreen() {
             style={[styles.button, styles.loginButton]}
             onPress={() => router.push('/login')}
           >
-            <Text style={[styles.buttonText, { color: '#007AFF' }]}>{t('home.loginButton')}</Text>
+            <Text style={[styles.buttonText, { color: '#FF9500' }]}>{t('home.loginButton')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -369,7 +407,7 @@ export default function HomeScreen() {
                     <Text style={styles.languageItemDescription}>{lang.name}</Text>
                   </View>
                   {selectedLanguage === lang.code && (
-                    <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                    <Ionicons name="checkmark-circle" size={24} color="#FF9500" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -413,7 +451,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(0, 122, 255, 0.9)',
+    backgroundColor: 'rgba(255, 149, 0, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -422,6 +460,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     zIndex: 1000,
+    borderWidth: 3,
+    borderColor: '#000000',
   },
   loadingScreen: {
     flex: 1,
@@ -474,7 +514,7 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#FFF3E0',
   },
   mainContent: {
     flex: 1,
@@ -516,7 +556,7 @@ const styles = StyleSheet.create({
   },
   userInfoLabel: {
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#FF9500',
   },
   dashboardContent: {
     backgroundColor: '#fff',
@@ -588,7 +628,7 @@ const styles = StyleSheet.create({
   totalRow: {
     borderBottomWidth: 0,
     borderTopWidth: 2,
-    borderTopColor: '#007AFF',
+    borderTopColor: '#FF9500',
     paddingTop: 12,
     marginTop: 8,
   },
@@ -599,7 +639,7 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '600',
   },
   totalLabel: {
@@ -615,7 +655,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: '60%',
     width: '100%',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -675,10 +715,10 @@ const styles = StyleSheet.create({
   loginButton: {
     backgroundColor: '#fff',
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#FF9500',
   },
   signupButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   buttonText: {
     fontSize: 16,
@@ -833,8 +873,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   languageItemSelected: {
-    backgroundColor: '#E3F2FD',
-    borderColor: '#007AFF',
+    backgroundColor: '#FFF3E0',
+    borderColor: '#FF9500',
     borderWidth: 2,
   },
   languageItemContent: {
@@ -873,7 +913,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   languageConfirmButtonDisabled: {
@@ -883,5 +923,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // Estilos para skeleton loaders
+  skeletonBox: {
+    backgroundColor: '#E0E0E0',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  skeletonText: {
+    height: 16,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  skeletonTitle: {
+    height: 24,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    marginBottom: 12,
+    width: '60%',
+  },
+  skeletonBalance: {
+    height: 32,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    width: '50%',
+  },
+  skeletonChart: {
+    height: 200,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 12,
   },
 });

@@ -201,7 +201,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #007AFF 0%, #0051D5 100%)',
+    background: 'linear-gradient(135deg, #FF9500 0%, #0051D5 100%)',
     padding: '20px',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
@@ -257,7 +257,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '16px',
     fontWeight: '600',
     color: '#fff',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -265,7 +265,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '8px',
   },
   buttonDisabled: {
-    backgroundColor: '#99c7ff',
+    backgroundColor: '#FFCC80',
     cursor: 'not-allowed',
   },
   errorAlert: {
@@ -319,7 +319,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '40px',
     margin: '0 auto 20px',
     border: '4px solid #f3f3f3',
-    borderTop: '4px solid #007AFF',
+    borderTop: '4px solid #FF9500',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   },
@@ -340,7 +340,7 @@ if (typeof document !== 'undefined') {
     }
     
     input:focus {
-      border-color: #007AFF !important;
+      border-color: #FF9500 !important;
       background-color: #fff !important;
     }
     

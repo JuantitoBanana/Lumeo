@@ -156,7 +156,7 @@ export default function AddMoneyModal({
           <View style={styles.inputContainer}>
             <Text style={styles.label}>{t('addMoneyModal.amountLabel')}</Text>
             <View style={styles.inputWithIcon}>
-              <Ionicons name="cash-outline" size={24} color="#007AFF" style={styles.inputIcon} />
+              <Ionicons name="cash-outline" size={24} color="#FF9500" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder={t('addMoneyModal.amountPlaceholder')}
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   },
   metaRestante: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '500',
   },
   inputContainer: {
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#FF9500',
   },
   inputIcon: {
     marginRight: 12,
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#FF9500',
     marginLeft: 8,
   },
   buttonContainer: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   confirmButtonText: {

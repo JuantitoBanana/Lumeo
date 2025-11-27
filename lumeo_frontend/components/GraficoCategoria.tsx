@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 import { GastoPorCategoria } from '@/services/graficos.service';
@@ -13,35 +13,35 @@ interface GraficoCategoriaProps {
 
 const screenWidth = Dimensions.get('window').width;
 
-export const GraficoCategoria: React.FC<GraficoCategoriaProps> = ({ gastos, loading }) => {
+export const GraficoCategoria: React.FC<GraficoCategoriaProps> = memo(({ gastos, loading }) => {
   const { t } = useTranslation();
   const { currencySymbol, symbolPosition } = useCurrencySymbol();
   
   // Configuración del gráfico
-  const chartConfig = {
+  const chartConfig = useMemo(() => ({
     backgroundGradientFrom: '#ffffff',
     backgroundGradientTo: '#ffffff',
     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     strokeWidth: 2,
     barPercentage: 0.5,
     useShadowColorFromDataset: false,
-  };
+  }), []);
 
   // Transformar datos para el gráfico (sin leyenda en el gráfico)
-  const chartData = gastos.map((gasto) => ({
+  const chartData = useMemo(() => gastos.map((gasto) => ({
     name: gasto.nombreCategoria,
     population: gasto.totalGasto,
     color: gasto.color,
     legendFontColor: '#7F7F7F',
     legendFontSize: 0, // Ocultar leyenda en el gráfico
-  }));
+  })), [gastos]);
 
   // Datos para la leyenda separada
-  const legendData = gastos.map((gasto) => ({
+  const legendData = useMemo(() => gastos.map((gasto) => ({
     name: gasto.nombreCategoria,
     color: gasto.color,
     amount: gasto.totalGasto,
-  }));
+  })), [gastos]);
 
   // Si no hay datos o hay error
   if (!loading && gastos.length === 0) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUltimosGastos } from '@/hooks/useUltimosGastos';
@@ -10,7 +10,7 @@ interface UltimosGastosProps {
   usuarioId: number | null | undefined;
 }
 
-export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
+const UltimosGastos = memo(({ usuarioId }: UltimosGastosProps) => {
   const { t } = useTranslation();
   const { gastos, loading, error } = useUltimosGastos(usuarioId);
   const { currencySymbol } = useCurrencySymbol();
@@ -33,7 +33,7 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
       <View style={styles.container}>
         <Text style={styles.title}>{t('components.lastExpenses.title')}</Text>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#FF9500" />
         </View>
       </View>
     );
@@ -67,7 +67,7 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('components.lastExpenses.title')}</Text>
-        <Ionicons name="receipt-outline" size={24} color="#007AFF" />
+        <Ionicons name="receipt-outline" size={24} color="#FF9500" />
       </View>
 
       <ScrollView 
@@ -78,7 +78,7 @@ export default function UltimosGastos({ usuarioId }: UltimosGastosProps) {
         {gastos.map((gasto) => (
           <View key={gasto.id} style={styles.gastoItem}>
             <View style={styles.gastoLeft}>
-              <View style={[styles.iconContainer, { backgroundColor: gasto.categoria?.color || '#007AFF' }]}>
+              <View style={[styles.iconContainer, { backgroundColor: gasto.categoria?.color || '#FF9500' }]}>
                 <Ionicons 
                   name={(gasto.categoria?.icono as any) || 'pricetag-outline'} 
                   size={20} 
@@ -195,3 +195,5 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+
+export default UltimosGastos;

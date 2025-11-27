@@ -142,7 +142,7 @@ function TransactionGroupDetailModal({
           {/* Contenido del modal */}
           {loading ? (
             <View style={styles.modalLoadingContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <ActivityIndicator size="large" color="#FF9500" />
               <Text style={styles.modalLoadingText}>{t('common.loading')}</Text>
             </View>
           ) : transaccion ? (
@@ -200,7 +200,7 @@ function TransactionGroupDetailModal({
                         <View key={individual.id} style={styles.divisionItem}>
                           <View style={styles.personInfo}>
                             <View style={styles.personIconContainer}>
-                              <Ionicons name="person" size={20} color="#007AFF" />
+                              <Ionicons name="person" size={20} color="#FF9500" />
                             </View>
                             <View style={styles.personNameContainer}>
                               <Text style={styles.personName}>{nombreCompleto}</Text>
@@ -509,7 +509,7 @@ export default function GroupDetailScreen() {
           <View style={styles.placeholder} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#FF9500" />
           <Text style={styles.loadingText}>{t('groupDetail.loading')}</Text>
         </View>
       </View>
@@ -563,7 +563,7 @@ export default function GroupDetailScreen() {
             style={styles.membersButton} 
             onPress={() => router.push(`/group-members?idGrupo=${idGrupo}`)}
           >
-            <Ionicons name="person" size={20} color="#007AFF" />
+            <Ionicons name="person" size={20} color="#FF9500" />
           </TouchableOpacity>
         </View>
       </View>
@@ -586,7 +586,7 @@ export default function GroupDetailScreen() {
             style={styles.actionButton}
             onPress={handleAddMembers}
           >
-            <Ionicons name="person-add" size={24} color="#007AFF" />
+            <Ionicons name="person-add" size={24} color="#FF9500" />
             <Text style={styles.actionButtonText}>{t('createGroup.addPeopleLabel')}</Text>
           </TouchableOpacity>
 
@@ -607,7 +607,7 @@ export default function GroupDetailScreen() {
           
           {loadingTransacciones ? (
             <View style={styles.loadingTransactions}>
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color="#FF9500" />
               <Text style={styles.loadingTransactionsText}>{t('common.loading')}</Text>
             </View>
           ) : transacciones.length === 0 ? (
@@ -630,7 +630,7 @@ export default function GroupDetailScreen() {
                   <View style={styles.transactionLeft}>
                     <View style={[
                       styles.transactionIconContainer,
-                      { backgroundColor: '#007AFF' }
+                      { backgroundColor: '#FF9500' }
                     ]}>
                       <Text style={styles.transactionIcon}>💰</Text>
                     </View>
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E5F1FF',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
   },
   retryButtonText: {
@@ -908,7 +908,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#FF9500',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -916,13 +916,13 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   actionButtonPrimary: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#FF9500',
+    borderColor: '#FF9500',
   },
   actionButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#FF9500',
     flexShrink: 1,
   },
   actionButtonTextPrimary: {
@@ -1152,7 +1152,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#E5F1FF',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1166,7 +1166,7 @@ const styles = StyleSheet.create({
   },
   personUsername: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#FF9500',
     marginTop: 2,
   },
   personAmount: {
@@ -1297,7 +1297,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
   },
   addMemberConfirmButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   addMemberButtonDisabled: {
     opacity: 0.6,

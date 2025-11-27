@@ -49,13 +49,13 @@ export default function PasswordResetSuccessScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   headerContainer: {
     paddingTop: Platform.OS === 'ios' ? 90 : 70,
     paddingBottom: 20,
     paddingHorizontal: 30,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   title: {
     fontSize: 32,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 60,

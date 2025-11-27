@@ -525,7 +525,7 @@ export default function RegisterSharedTransactionScreen() {
                 setShowDatePicker(true);
               }}
             >
-              <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+              <Ionicons name="calendar-outline" size={24} color="#FF9500" />
               <View style={styles.datePickerTextContainer}>
                 <Text style={styles.datePickerTextSelected}>
                   {formatDateDisplay(fechaTransaccion)}
@@ -559,7 +559,7 @@ export default function RegisterSharedTransactionScreen() {
                 // Funcionalidad pendiente
               }}
             >
-              <Ionicons name="attach" size={24} color="#007AFF" />
+              <Ionicons name="attach" size={24} color="#FF9500" />
               <Text style={styles.fileButtonText}>
                 {hasFile ? t('registerSharedTransaction.fileAttached') : t('registerSharedTransaction.selectFile')}
               </Text>
@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#E0E0E0',
   },
   divisionButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   divisionButtonText: {
     fontSize: 16,
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   divisionInfo: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     padding: 12,
     borderRadius: 12,
     marginBottom: 24,
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
   },
   fileButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '500',
   },
   datePickerButton: {
@@ -919,7 +919,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   datePickerConfirmText: {
@@ -944,11 +944,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

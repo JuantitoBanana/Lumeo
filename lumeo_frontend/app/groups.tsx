@@ -83,7 +83,7 @@ export default function GroupsScreen() {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#FF9500" />
           <Text style={styles.loadingText}>{t('groups.loading')}</Text>
         </View>
       );
@@ -133,7 +133,7 @@ export default function GroupsScreen() {
             {/* Header del grupo */}
             <View style={styles.groupHeader}>
               <View style={styles.groupIconContainer}>
-                <Ionicons name="people" size={24} color="#007AFF" />
+                <Ionicons name="people" size={24} color="#FF9500" />
               </View>
               <View style={styles.groupInfo}>
                 <Text style={styles.groupTitle} numberOfLines={1}>
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
   },
   retryButtonText: {
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,

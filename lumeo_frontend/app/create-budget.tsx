@@ -164,14 +164,14 @@ export default function CreateBudgetScreen() {
               onPress={() => openMonthModal()}
             >
               <Text style={styles.selectorText}>{selectedMonth}</Text>
-              <Ionicons name="chevron-down" size={20} color="#007AFF" />
+              <Ionicons name="chevron-down" size={20} color="#FF9500" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.selector}
               onPress={() => openYearModal()}
             >
               <Text style={styles.selectorText}>{selectedYear}</Text>
-              <Ionicons name="chevron-down" size={20} color="#007AFF" />
+              <Ionicons name="chevron-down" size={20} color="#FF9500" />
             </TouchableOpacity>
           </View>
         </View>
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   },
   createButton: {
     flexDirection: 'row',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 16,
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   pickerConfirmText: {

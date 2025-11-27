@@ -36,7 +36,7 @@ export default function EmailChangeSuccessScreen() {
 
       {/* Información adicional */}
       <View style={styles.infoCard}>
-        <Ionicons name="shield-checkmark" size={24} color="#007AFF" />
+        <Ionicons name="shield-checkmark" size={24} color="#FF9500" />
         <Text style={styles.infoText}>
           {t('emailChangeSuccess.securityNote')}
         </Text>
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     padding: 16,
     borderRadius: 12,
     marginBottom: 40,
@@ -114,14 +114,14 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   backButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { EvolucionMensual } from '@/services/graficos.service';
@@ -12,12 +12,12 @@ interface GraficoEvolucionProps {
 
 const screenWidth = Dimensions.get('window').width;
 
-export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, loading }) => {
+export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = memo(({ evolucion, loading }) => {
   const { t } = useTranslation();
   const { currencySymbol, symbolPosition } = useCurrencySymbol();
   
   // Configuración del gráfico
-  const chartConfig = {
+  const chartConfig = useMemo(() => ({
     backgroundColor: '#ffffff',
     backgroundGradientFrom: '#ffffff',
     backgroundGradientTo: '#ffffff',
@@ -32,33 +32,38 @@ export const GraficoEvolucion: React.FC<GraficoEvolucionProps> = ({ evolucion, l
       fontWeight: '600',
     },
     barPercentage: 0.5, // Reducir ancho de barras al 50%
-  };
+  }), []);
 
   // Transformar datos para el gráfico (solo últimos 2 meses)
-  const ultimos2Meses = evolucion.slice(-2); // Tomar solo los últimos 2 elementos
+  const { chartData, ultimos2Meses } = useMemo(() => {
+    const ultimos2Meses = evolucion.slice(-2); // Tomar solo los últimos 2 elementos
+    
+    // Crear arrays intercalados para mostrar barras lado a lado
+    const ingresosYGastos: number[] = [];
+    const labels: string[] = [];
+    
+    ultimos2Meses.forEach((mes, index) => {
+      ingresosYGastos.push(mes.totalIngresos);
+      ingresosYGastos.push(mes.totalGastos);
+      // Agregar etiqueta con espacios para centrarla visualmente
+      labels.push(`  ${mes.abreviaturaMes}`);
+      labels.push('');
+    });
   
-  // Crear arrays intercalados para mostrar barras lado a lado
-  const ingresosYGastos: number[] = [];
-  const labels: string[] = [];
-  
-  ultimos2Meses.forEach((mes, index) => {
-    ingresosYGastos.push(mes.totalIngresos);
-    ingresosYGastos.push(mes.totalGastos);
-    // Agregar etiqueta con espacios para centrarla visualmente
-    labels.push(`  ${mes.abreviaturaMes}`);
-    labels.push('');
-  });
-  
-  const chartData = {
-    labels: labels,
-    datasets: [{
-      data: ingresosYGastos,
-      colors: ultimos2Meses.flatMap(() => [
-        (opacity = 1) => `rgba(76, 175, 80, 0.4)`, // Verde para ingresos con menor opacidad
-        (opacity = 1) => `rgba(244, 67, 54, 0.4)`, // Rojo para gastos con menor opacidad
-      ]),
-    }],
-  };
+    return {
+      chartData: {
+        labels: labels,
+        datasets: [{
+          data: ingresosYGastos,
+          colors: ultimos2Meses.flatMap(() => [
+            (opacity = 1) => `rgba(76, 175, 80, 0.4)`, // Verde para ingresos con menor opacidad
+            (opacity = 1) => `rgba(244, 67, 54, 0.4)`, // Rojo para gastos con menor opacidad
+          ]),
+        }],
+      },
+      ultimos2Meses
+    };
+  }, [evolucion]);
 
   // Si no hay datos o hay error
   if (!loading && (evolucion.length === 0 || !ultimos2Meses.length)) {

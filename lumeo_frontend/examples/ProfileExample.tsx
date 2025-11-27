@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
-    color: '#007AFF',
+    color: '#FF9500',
   },
   label: {
     fontSize: 14,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',

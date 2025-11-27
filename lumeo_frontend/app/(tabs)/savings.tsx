@@ -125,7 +125,7 @@ export default function SavingsScreen() {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#FF9500" />
           <Text style={styles.loadingText}>{t('savings.loading')}</Text>
         </View>
       );
@@ -181,7 +181,7 @@ export default function SavingsScreen() {
                     style={styles.addButton}
                     onPress={() => handleOpenModal(meta)}
                   >
-                    <Ionicons name="add-circle" size={32} color="#007AFF" />
+                    <Ionicons name="add-circle" size={32} color="#FF9500" />
                   </TouchableOpacity>
                   <TouchableOpacity 
                     style={styles.deleteButton}
@@ -352,8 +352,8 @@ export default function SavingsScreen() {
                 router.push('/(tabs)/budgets');
               }}
             >
-              <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
-                <Ionicons name="pie-chart" size={24} color="#007AFF" />
+              <View style={[styles.iconContainer, { backgroundColor: '#FFF3E0' }]}>
+                <Ionicons name="pie-chart" size={24} color="#FF9500" />
               </View>
               <View style={styles.optionTextContainer}>
                 <Text style={styles.optionTitle}>{t('savingsScreen.budgets')}</Text>
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
   },
   retryButtonText: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   percentageBadge: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   percentageText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#FF9500',
   },
   addButton: {
     width: 32,
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 6,
   },
   metaFooter: {
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

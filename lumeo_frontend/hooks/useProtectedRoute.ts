@@ -32,11 +32,13 @@ export function useProtectedRoute() {
     if (loading) return; // Don't do anything while loading
 
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup';
+    const inTabsGroup = segments[0] === '(tabs)';
+    const onIndexScreen = inTabsGroup && (!segments[1] || segments[1] === 'index');
 
-    if (!user && !inAuthGroup) {
-      // User is not signed in and is trying to access a protected route
-      // Redirect to login
-      router.replace('/login');
+    if (!user && !inAuthGroup && !onIndexScreen) {
+      // User is not signed in and is trying to access a protected route (not index)
+      // Redirect to home/index instead of login
+      router.replace('/(tabs)');
     } else if (user && inAuthGroup) {
       // User is signed in but still on an auth screen
       // Redirect to main app

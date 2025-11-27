@@ -211,7 +211,7 @@ export default function CreateGroupScreen() {
               {usuariosAgregados.map((usuario) => (
                 <View key={usuario.nombreUsuario} style={styles.userCard}>
                   <View style={styles.userAvatar}>
-                    <Ionicons name="person" size={24} color="#007AFF" />
+                    <Ionicons name="person" size={24} color="#FF9500" />
                   </View>
                   <View style={styles.userInfo}>
                     <Text style={styles.userName}>
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     flexDirection: 'row',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   createButton: {
     flexDirection: 'row',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 16,
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

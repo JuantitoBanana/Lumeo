@@ -96,7 +96,7 @@ export default function TransactionGroupDetailScreen() {
   if (loading || loadingUsuario) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#FF9500" />
         <Text style={styles.loadingText}>Cargando transacción...</Text>
       </View>
     );
@@ -176,7 +176,7 @@ export default function TransactionGroupDetailScreen() {
                 <View key={individual.id} style={styles.divisionItem}>
                   <View style={styles.personInfo}>
                     <View style={styles.personIconContainer}>
-                      <Ionicons name="person" size={20} color="#007AFF" />
+                      <Ionicons name="person" size={20} color="#FF9500" />
                     </View>
                     <Text style={styles.personName}>
                       {individual.nombreUsuario || `Usuario ${individual.idUsuario}`}
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#E5F1FF',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },

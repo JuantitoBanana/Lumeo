@@ -133,7 +133,7 @@ export default function ApiExampleScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#FF9500" />
         <Text style={styles.loadingText}>Cargando...</Text>
       </View>
     );
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     padding: 12,
     borderRadius: 6,
     alignItems: 'center',

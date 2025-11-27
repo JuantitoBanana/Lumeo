@@ -8,11 +8,22 @@ interface UseResumenFinancieroResult {
   refetch: () => Promise<void>;
 }
 
+// Caché global para mantener datos entre navegaciones
+let cachedResumen: ResumenFinanciero | null = null;
+let cachedUsuarioId: number | null = null;
+
 export function useResumenFinanciero(usuarioId: number | null): UseResumenFinancieroResult {
-  const [resumen, setResumen] = useState<ResumenFinanciero | null>(null);
+  const [resumen, setResumen] = useState<ResumenFinanciero | null>(() => {
+    // Inicializar con caché si existe y es del mismo usuario
+    if (cachedResumen && cachedUsuarioId === usuarioId) {
+      return cachedResumen;
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isFetchingRef = useRef(false); // Prevenir peticiones duplicadas
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchResumen = async () => {
     if (!usuarioId) {
@@ -24,6 +35,14 @@ export function useResumenFinanciero(usuarioId: number | null): UseResumenFinanc
       return;
     }
 
+    // Cancelar petición anterior si existe
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Crear nuevo AbortController
+    abortControllerRef.current = new AbortController();
+
     try {
       isFetchingRef.current = true;
       setLoading(true);
@@ -31,8 +50,17 @@ export function useResumenFinanciero(usuarioId: number | null): UseResumenFinanc
       
       const resumenData = await ResumenFinancieroService.getResumenFinanciero(usuarioId);
       
+      // Actualizar caché
+      cachedResumen = resumenData;
+      cachedUsuarioId = usuarioId;
+      
       setResumen(resumenData);
     } catch (err: any) {
+      // Ignorar errores de cancelación
+      if (err.name === 'AbortError' || err.message === 'CANCELED') {
+        return;
+      }
+      
       const errorMessage = err?.response?.data?.message || err?.message || 'Error desconocido';
       console.error('❌ Error al obtener resumen financiero:', err);
       setError(errorMessage);
@@ -45,8 +73,22 @@ export function useResumenFinanciero(usuarioId: number | null): UseResumenFinanc
 
   useEffect(() => {
     if (usuarioId) {
-      fetchResumen();
+      const hasCache = cachedResumen && cachedUsuarioId === usuarioId;
+      
+      // Solo cargar si:
+      // 1. No hay caché disponible, O
+      // 2. El usuario cambió
+      if (!hasCache || cachedUsuarioId !== usuarioId) {
+        fetchResumen();
+      }
     }
+    
+    // Cleanup: cancelar peticiones al desmontar
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [usuarioId]);
 
   return {

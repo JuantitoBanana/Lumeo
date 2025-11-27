@@ -35,4 +35,5 @@ export const eventEmitter = new EventEmitter();
 export const APP_EVENTS = {
   CURRENCY_CHANGED: 'currency_changed',
   TRANSACTION_DELETED: 'transaction_deleted',
+  DASHBOARD_REFRESH: 'dashboard_refresh',
 };

@@ -8,16 +8,24 @@ interface UseEvolucionMensualResult {
   refetch: () => Promise<void>;
 }
 
+// Caché global
+let cachedEvolucion: EvolucionMensual[] = [];
+let cachedEvolucionUsuarioId: number | null = null;
+let cachedMeses: number = 2;
+
 export function useEvolucionMensual(usuarioId: number | null, meses: number = 2): UseEvolucionMensualResult {
-  const [evolucion, setEvolucion] = useState<EvolucionMensual[]>([]);
+  const [evolucion, setEvolucion] = useState<EvolucionMensual[]>(() => {
+    if (cachedEvolucion.length > 0 && cachedEvolucionUsuarioId === usuarioId && cachedMeses === meses) {
+      return cachedEvolucion;
+    }
+    return [];
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
-  const lastUsuarioIdRef = useRef<number | null>(null);
-  const lastMesesRef = useRef<number>(meses);
   const fetchingRef = useRef(false);
 
-  const fetchEvolucion = async (retryCount = 0) => {
+  const fetchEvolucion = async () => {
     if (!usuarioId || usuarioId <= 0) {
       return;
     }
@@ -43,6 +51,11 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
         return;
       }
       
+      // Actualizar caché
+      cachedEvolucion = evolucionData;
+      cachedEvolucionUsuarioId = usuarioId;
+      cachedMeses = meses;
+      
       setEvolucion(evolucionData);
     } catch (err: any) {
       if (!isMountedRef.current) {
@@ -50,24 +63,12 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
       }
 
       // Si fue cancelada, no mostrar error
-      if (err.message === 'CANCELED') {
+      if (err.message === 'CANCELED' || err.name === 'AbortError') {
         return;
       }
 
       const errorMessage = err?.response?.data?.message || err?.message || 'Error desconocido';
       console.error('❌ Error al obtener evolución mensual:', err);
-      
-      // Solo reintentar en errores de red, no errores del servidor
-      const isNetworkError = !err?.response;
-      
-      if (isNetworkError && retryCount < 1 && isMountedRef.current) {
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            fetchEvolucion(retryCount + 1);
-          }
-        }, 3000);
-        return;
-      }
       
       setError(errorMessage);
       setEvolucion([]);
@@ -82,16 +83,13 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
   useEffect(() => {
     isMountedRef.current = true;
     
-    // Evitar refetch si los parámetros no cambiaron
-    if (usuarioId === lastUsuarioIdRef.current && meses === lastMesesRef.current) {
-      return;
-    }
-    
-    lastUsuarioIdRef.current = usuarioId;
-    lastMesesRef.current = meses;
-    
     if (usuarioId && usuarioId > 0) {
-      fetchEvolucion();
+      const hasCache = cachedEvolucion.length > 0 && cachedEvolucionUsuarioId === usuarioId && cachedMeses === meses;
+      
+      // Solo cargar si no hay caché o cambiaron los parámetros
+      if (!hasCache || cachedEvolucionUsuarioId !== usuarioId || cachedMeses !== meses) {
+        fetchEvolucion();
+      }
     } else {
       // Limpiar estado si no hay usuario válido
       setEvolucion([]);

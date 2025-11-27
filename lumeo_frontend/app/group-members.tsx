@@ -103,7 +103,7 @@ export default function GroupMembersScreen() {
           <View style={styles.placeholder} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#FF9500" />
           <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </View>
@@ -171,7 +171,7 @@ export default function GroupMembersScreen() {
               <View key={miembro.idUsuario} style={styles.memberCard}>
                 <View style={styles.memberLeft}>
                   <View style={styles.memberIconContainer}>
-                    <Ionicons name="person" size={24} color="#007AFF" />
+                    <Ionicons name="person" size={24} color="#FF9500" />
                   </View>
                   <View style={styles.memberInfo}>
                     <Text style={styles.memberName}>
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
   },
   retryButtonText: {
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E5F1FF',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   },
   memberUsername: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#FF9500',
   },
   deleteButton: {
     width: 40,

@@ -174,7 +174,7 @@ export default function ChangePasswordScreen() {
       >
         {/* Información */}
         <View style={styles.infoCard}>
-          <Ionicons name="shield-checkmark-outline" size={24} color="#007AFF" />
+          <Ionicons name="shield-checkmark-outline" size={24} color="#FF9500" />
           <Text style={styles.infoText}>
             {t('changePassword.securityNote')}
           </Text>
@@ -277,7 +277,7 @@ export default function ChangePasswordScreen() {
             disabled={sendingOTP || saving}
           >
             {sendingOTP ? (
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color="#FF9500" />
             ) : (
               <Text style={styles.forgotPasswordText}>
                 {t('changePassword.forgotPassword')}
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
@@ -439,14 +439,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 15,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '600',
   },
 });

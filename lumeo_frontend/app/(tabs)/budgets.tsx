@@ -151,7 +151,7 @@ export default function BudgetsScreen() {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#FF9500" />
           <Text style={styles.loadingText}>{t('budgetsScreen.loading')}</Text>
         </View>
       );
@@ -222,7 +222,7 @@ export default function BudgetsScreen() {
               style={styles.eyeButton}
               onPress={() => handleShowDetail(presupuesto)}
             >
-              <Ionicons name="eye-outline" size={24} color="#007AFF" />
+              <Ionicons name="eye-outline" size={24} color="#FF9500" />
             </TouchableOpacity>
           </View>
         ))}
@@ -296,15 +296,15 @@ export default function BudgetsScreen() {
               style={[styles.optionCard, styles.optionCardSelected]}
               onPress={() => setPickerModalVisible(false)}
             >
-              <View style={[styles.iconContainer, { backgroundColor: '#E3F2FD' }]}>
-                <Ionicons name="pie-chart" size={24} color="#007AFF" />
+              <View style={[styles.iconContainer, { backgroundColor: '#FFF3E0' }]}>
+                <Ionicons name="pie-chart" size={24} color="#FF9500" />
               </View>
               <View style={styles.optionTextContainer}>
                 <Text style={styles.optionTitle}>{t('budgetsScreen.budgets')}</Text>
                 <Text style={styles.optionDescription}>{t('savingsScreen.budgetsDescription')}</Text>
               </View>
               <View style={styles.activeIndicator}>
-                <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                <Ionicons name="checkmark-circle" size={24} color="#FF9500" />
               </View>
             </TouchableOpacity>
 
@@ -354,7 +354,7 @@ export default function BudgetsScreen() {
             <View style={styles.detailModalBody} pointerEvents="box-none">
               {loadingTransacciones ? (
                 <View style={styles.detailModalLoading}>
-                  <ActivityIndicator size="large" color="#007AFF" />
+                  <ActivityIndicator size="large" color="#FF9500" />
                   <Text style={styles.detailModalLoadingText}>{t('budgetsScreen.loadingExpenses')}</Text>
                 </View>
               ) : transacciones.filter(t => t.idTipo === 2).length === 0 ? (
@@ -376,7 +376,7 @@ export default function BudgetsScreen() {
                   renderItem={({ item: transaccion }) => (
                     <View style={styles.detailModalTransactionCard}>
                       <View style={styles.detailModalTransactionLeft}>
-                        <View style={[styles.detailModalIconContainer, { backgroundColor: transaccion.categoria?.color || '#007AFF' }]}>
+                        <View style={[styles.detailModalIconContainer, { backgroundColor: transaccion.categoria?.color || '#FF9500' }]}>
                           <Text style={styles.detailModalIconText}>
                             {transaccion.categoria?.icono || '💰'}
                           </Text>
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
   },
   retryButtonText: {
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   comparisonBudget: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#FF9500',
   },
   eyeButton: {
     position: 'absolute',
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   montoText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#FF9500',
   },
   bottomSpace: {
     height: 100,
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   },
   optionCardSelected: {
     backgroundColor: '#F0F9FF',
-    borderColor: '#007AFF',
+    borderColor: '#FF9500',
   },
   iconContainer: {
     width: 48,
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -859,6 +859,6 @@ const styles = StyleSheet.create({
   detailModalTotalBudget: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#FF9500',
   },
 });

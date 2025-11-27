@@ -368,7 +368,7 @@ export default function RegisterGroupTransactionScreen() {
   if (loadingMiembros) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#FF9500" />
         <Text style={styles.loadingText}>{t('registerGroupTransaction.loadingMembers')}</Text>
       </View>
     );
@@ -398,7 +398,7 @@ export default function RegisterGroupTransactionScreen() {
       >
         {/* Info del grupo */}
         <View style={styles.groupInfoCard}>
-          <Ionicons name="people" size={24} color="#007AFF" />
+          <Ionicons name="people" size={24} color="#FF9500" />
           <Text style={styles.groupInfoText}>{nombreGrupo}</Text>
         </View>
 
@@ -536,7 +536,7 @@ export default function RegisterGroupTransactionScreen() {
               onPress={handleOpenMembersModal}
             >
               <View style={styles.selectMembersContent}>
-                <Ionicons name="people-outline" size={24} color="#007AFF" />
+                <Ionicons name="people-outline" size={24} color="#FF9500" />
                 <Text style={styles.selectMembersText}>
                   {miembrosSeleccionados.length === 0 
                     ? t('registerGroupTransaction.selectParticipants')
@@ -554,7 +554,7 @@ export default function RegisterGroupTransactionScreen() {
                   <View key={miembro.idUsuario} style={styles.selectedMemberCard}>
                     <View style={styles.selectedMemberInfo}>
                       <View style={styles.selectedMemberAvatar}>
-                        <Ionicons name="person" size={20} color="#007AFF" />
+                        <Ionicons name="person" size={20} color="#FF9500" />
                       </View>
                       <View style={styles.selectedMemberText}>
                         <Text style={styles.selectedMemberName}>
@@ -631,7 +631,7 @@ export default function RegisterGroupTransactionScreen() {
                 setShowDatePicker(true);
               }}
             >
-              <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+              <Ionicons name="calendar-outline" size={24} color="#FF9500" />
               <View style={styles.datePickerTextContainer}>
                 <Text style={styles.datePickerTextSelected}>
                   {formatDateDisplay(fechaTransaccion)}
@@ -665,7 +665,7 @@ export default function RegisterGroupTransactionScreen() {
                 // TODO: Implementar funcionalidad de adjuntar archivo
               }}
             >
-              <Ionicons name="attach" size={24} color="#007AFF" />
+              <Ionicons name="attach" size={24} color="#FF9500" />
               <Text style={styles.fileButtonText}>
                 {hasFile ? t('registerGroupTransaction.fileAttached') : t('registerGroupTransaction.selectFile')}
               </Text>
@@ -766,7 +766,7 @@ export default function RegisterGroupTransactionScreen() {
                 >
                   <View style={styles.membersModalItemContent}>
                     <View style={styles.membersModalAvatar}>
-                      <Ionicons name="person" size={20} color="#007AFF" />
+                      <Ionicons name="person" size={20} color="#FF9500" />
                     </View>
                     <View style={styles.membersModalText}>
                       <Text style={styles.membersModalName}>
@@ -779,7 +779,7 @@ export default function RegisterGroupTransactionScreen() {
                     </View>
                   </View>
                   {tempSelectedMembers.includes(miembro.idUsuario) && (
-                    <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                    <Ionicons name="checkmark-circle" size={24} color="#FF9500" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
   groupInfoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
@@ -959,7 +959,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#E0E0E0',
   },
   divisionButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   divisionButtonText: {
     fontSize: 16,
@@ -970,7 +970,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   divisionInfo: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     padding: 12,
     borderRadius: 12,
     marginTop: 12,
@@ -984,7 +984,7 @@ const styles = StyleSheet.create({
   currentUserInfoText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#FF9500',
     textAlign: 'center',
     marginTop: 4,
   },
@@ -1059,8 +1059,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#FF9500',
+    borderColor: '#FF9500',
   },
   memberName: {
     fontSize: 16,
@@ -1070,7 +1070,7 @@ const styles = StyleSheet.create({
   memberAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#FF9500',
   },
   memberImporteContainer: {
     flexDirection: 'row',
@@ -1106,7 +1106,7 @@ const styles = StyleSheet.create({
   },
   fileButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '500',
   },
   datePickerButton: {
@@ -1183,7 +1183,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   datePickerConfirmText: {
@@ -1208,11 +1208,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1246,7 +1246,7 @@ const styles = StyleSheet.create({
   selectMembersText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#007AFF',
+    color: '#FF9500',
   },
   // Estilos para miembros seleccionados
   selectedMembersContainer: {
@@ -1273,7 +1273,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1287,7 +1287,7 @@ const styles = StyleSheet.create({
   },
   selectedMemberUsername: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#FF9500',
     marginTop: 2,
   },
   // Estilos para el modal de selección
@@ -1338,7 +1338,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1352,7 +1352,7 @@ const styles = StyleSheet.create({
   },
   membersModalUsername: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#FF9500',
     marginTop: 2,
   },
   membersModalButtons: {
@@ -1382,7 +1382,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   membersConfirmText: {

@@ -220,7 +220,7 @@ export default function ProfileScreen() {
   if (loading && !usuario) {
     return (
       <View style={styles.loadingScreen}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#FF9500" />
         <Text style={styles.loadingScreenText}>{t('profile.loadingProfile')}</Text>
       </View>
     );
@@ -255,7 +255,7 @@ export default function ProfileScreen() {
             {/* Avatar a la izquierda */}
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
-                <Ionicons name="person" size={47.5} color="#007AFF" />
+                <Ionicons name="person" size={47.5} color="#FF9500" />
               </View>
             </View>
 
@@ -283,7 +283,7 @@ export default function ProfileScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.divisaLeft}>
-                  <Ionicons name="cash-outline" size={20} color="#007AFF" />
+                  <Ionicons name="cash-outline" size={20} color="#FF9500" />
                   <Text style={styles.divisaText}>{t('profile.currency')}</Text>
                 </View>
                 <View style={styles.divisaRight}>
@@ -318,7 +318,7 @@ export default function ProfileScreen() {
             >
               <View style={styles.menuItemLeft}>
                 <View style={styles.menuIconContainer}>
-                  <Ionicons name={item.icon as any} size={24} color="#007AFF" />
+                  <Ionicons name={item.icon as any} size={24} color="#FF9500" />
                 </View>
                 <View style={styles.menuItemText}>
                   <Text style={styles.menuItemTitle}>{item.title}</Text>
@@ -360,7 +360,7 @@ export default function ProfileScreen() {
             <ScrollView style={styles.divisaList} showsVerticalScrollIndicator={false}>
               {loadingDivisas ? (
                 <View style={styles.divisaLoadingContainer}>
-                  <ActivityIndicator size="large" color="#007AFF" />
+                  <ActivityIndicator size="large" color="#FF9500" />
                   <Text style={styles.divisaLoadingText}>{t('profile.loadingCurrencies')}</Text>
                 </View>
               ) : (
@@ -380,7 +380,7 @@ export default function ProfileScreen() {
                       <Text style={styles.divisaItemDescripcion}>{divisa.descripcion}</Text>
                     </View>
                     {selectedDivisa?.id === divisa.id && (
-                      <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                      <Ionicons name="checkmark-circle" size={24} color="#FF9500" />
                     )}
                   </TouchableOpacity>
                 ))
@@ -438,7 +438,7 @@ export default function ProfileScreen() {
                     <Text style={styles.divisaItemDescripcion}>{lang.name}</Text>
                   </View>
                   {selectedLanguage === lang.code && (
-                    <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+                    <Ionicons name="checkmark-circle" size={24} color="#FF9500" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
   headerUsername: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#FF9500',
     letterSpacing: 0.5,
   },
   headerTitle: {
@@ -561,11 +561,11 @@ const styles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 38,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#007AFF',
+    borderColor: '#FF9500',
   },
   profileInfo: {
     flex: 1,
@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
   },
   divisaValue: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '500',
   },
   memberSince: {
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -760,8 +760,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   divisaItemSelected: {
-    backgroundColor: '#E3F2FD',
-    borderColor: '#007AFF',
+    backgroundColor: '#FFF3E0',
+    borderColor: '#FF9500',
     borderWidth: 2,
   },
   divisaItemContent: {
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   divisaConfirmButtonDisabled: {

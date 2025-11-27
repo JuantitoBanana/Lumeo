@@ -357,7 +357,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                   style={styles.datePickerButton}
                   onPress={onOpenDatePicker}
                 >
-                  <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+                  <Ionicons name="calendar-outline" size={24} color="#FF9500" />
                   <View style={styles.datePickerTextContainer}>
                     <Text style={styles.datePickerTextSelected}>
                       {formatDateDisplay(fechaTransaccion)}
@@ -378,7 +378,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                   <Ionicons
                     name={(transaction.categoria.icono as any) || 'pricetag-outline'}
                     size={20}
-                    color={transaction.categoria.color || '#007AFF'}
+                    color={transaction.categoria.color || '#FF9500'}
                   />
                   <Text style={styles.categoryText}>{transaction.categoria.nombre}</Text>
                 </View>
@@ -841,7 +841,7 @@ export default function TransactionsScreen() {
                 setShowDatePickerInicio(true);
               }}
             >
-              <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+              <Ionicons name="calendar-outline" size={20} color="#FF9500" />
               <View style={styles.datePickerTextContainer}>
                 <Text style={styles.datePickerLabel}>{t('coins.from')}</Text>
                 <Text style={[styles.datePickerText, fechaInicio && styles.datePickerTextSelected]}>
@@ -858,7 +858,7 @@ export default function TransactionsScreen() {
                 setShowDatePickerFin(true);
               }}
             >
-              <Ionicons name="calendar-outline" size={20} color="#007AFF" />
+              <Ionicons name="calendar-outline" size={20} color="#FF9500" />
               <View style={styles.datePickerTextContainer}>
                 <Text style={styles.datePickerLabel}>{t('coins.to')}</Text>
                 <Text style={[styles.datePickerText, fechaFin && styles.datePickerTextSelected]}>
@@ -874,7 +874,7 @@ export default function TransactionsScreen() {
       <ScrollView ref={scrollViewRef} style={styles.transactionsList} showsVerticalScrollIndicator={false}>
         {isLoadingEssential ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color="#FF9500" />
             <Text style={styles.loadingText}>{t('common.loading')}</Text>
           </View>
         ) : error ? (
@@ -944,7 +944,7 @@ export default function TransactionsScreen() {
                     style={styles.detailButton}
                     onPress={() => handleTransactionPress(transaction)}
                   >
-                    <Ionicons name="chevron-forward" size={24} color="#007AFF" />
+                    <Ionicons name="chevron-forward" size={24} color="#FF9500" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1223,7 +1223,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterChipActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   filterChipText: {
     fontSize: 14,
@@ -1245,7 +1245,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   typeChipActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
   },
   typeChipText: {
     fontSize: 14,
@@ -1282,7 +1282,7 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '600',
   },
   datePickersContainer: {
@@ -1356,7 +1356,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 8,
   },
   retryButtonText: {
@@ -1486,12 +1486,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FFF3E0',
     borderRadius: 12,
   },
   categoryText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#FF9500',
     fontWeight: '600',
   },
   typeBadge: {
@@ -1567,7 +1567,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     alignItems: 'center',
   },
   datePickerConfirmText: {
@@ -1758,12 +1758,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9500',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
     alignItems: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9500',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
