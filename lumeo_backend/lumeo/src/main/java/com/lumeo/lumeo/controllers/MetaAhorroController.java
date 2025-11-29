@@ -1,10 +1,12 @@
 package com.lumeo.lumeo.controllers;
 
 import com.lumeo.lumeo.models.MetaAhorroModel;
+import com.lumeo.lumeo.models.TransaccionModel;
 import com.lumeo.lumeo.models.usuarioModel;
 import com.lumeo.lumeo.models.DivisaModel;
 import com.lumeo.lumeo.dtos.MetaAhorroDTO;
 import com.lumeo.lumeo.services.MetaAhorroService;
+import com.lumeo.lumeo.services.TransaccionService;
 import com.lumeo.lumeo.services.UsuarioService;
 import com.lumeo.lumeo.services.ConversionDivisaService;
 import com.lumeo.lumeo.repositories.DivisaRepository;
@@ -12,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,6 +28,9 @@ public class MetaAhorroController {
     
     @Autowired
     private MetaAhorroService metaAhorroService;
+    
+    @Autowired
+    private TransaccionService transaccionService;
     
     @Autowired
     private UsuarioService usuarioService;
@@ -152,17 +160,20 @@ public class MetaAhorroController {
     }
     
     @PutMapping("/{id}/agregar-cantidad")
-    public ResponseEntity<?> agregarCantidad(@PathVariable Long id, @RequestBody Double cantidad) {
+    public ResponseEntity<?> agregarCantidad(@PathVariable Long id, @RequestBody Map<String, Object> request) {
         Optional<MetaAhorroModel> metaOptional = metaAhorroService.findById(id);
         
         if (metaOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Meta de ahorro no encontrada");
+                    .body(Map.of("error", "Meta de ahorro no encontrada"));
         }
         
-        if (cantidad == null || cantidad < 0) {
+        Double cantidad = request.get("cantidad") != null ? 
+            Double.parseDouble(request.get("cantidad").toString()) : null;
+        
+        if (cantidad == null || cantidad <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("La cantidad debe ser mayor o igual a 0");
+                    .body(Map.of("error", "La cantidad debe ser mayor a 0"));
         }
         
         MetaAhorroModel meta = metaOptional.get();
@@ -171,13 +182,30 @@ public class MetaAhorroController {
         // No permitir que exceda el objetivo
         if (nuevaCantidad > meta.getCantidadObjetivo()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("La cantidad total no puede exceder el objetivo de la meta");
+                    .body(Map.of("error", "La cantidad total excedería el objetivo de la meta"));
         }
         
+        // Actualizar meta
         meta.setCantidadActual(nuevaCantidad);
-        MetaAhorroModel metaActualizada = metaAhorroService.create(meta);
+        metaAhorroService.create(meta);
         
-        return ResponseEntity.ok(metaActualizada);
+        // Crear transacción como gasto
+        TransaccionModel transaccion = new TransaccionModel();
+        transaccion.setTitulo("Aporte a " + meta.getTitulo());
+        transaccion.setImporte(cantidad);
+        transaccion.setFechaTransaccion(LocalDate.now());
+        transaccion.setIdUsuario(meta.getIdUsuario());
+        transaccion.setIdTipo(2L); // 2 = Gasto
+        transaccion.setIdEstado(2L); // 2 = Completado
+        transaccionService.create(transaccion);
+        
+        // Retornar respuesta simple
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Aporte agregado exitosamente");
+        response.put("nuevaCantidadActual", nuevaCantidad);
+        
+        return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/{id}")

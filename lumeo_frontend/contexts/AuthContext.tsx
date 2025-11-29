@@ -1,6 +1,7 @@
 import { Session, User } from '@supabase/supabase-js';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { APP_URL } from '../constants/config';
 
 interface AuthContextType {
   user: User | null;
@@ -59,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
+          emailRedirectTo: `${APP_URL}/public/email-success`,
           data: {
             nombre: userData.firstName,           // Spanish: first name
             apellido: userData.lastName,          // Spanish: last name

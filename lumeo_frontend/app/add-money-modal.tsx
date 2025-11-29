@@ -11,10 +11,11 @@ import {
   Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import apiClient from '@/lib/api-client';
+import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useTranslation } from '../hooks/useTranslation';
+import { metaAhorroService } from '@/services/meta-ahorro.service';
 
 interface AddMoneyModalProps {
   visible: boolean;
@@ -103,22 +104,21 @@ export default function AddMoneyModal({
     setLoading(true);
 
     try {
-      await apiClient.put(`/metas-ahorro/${metaId}/agregar-cantidad`, cantidadNum);
-      // Crear transacción de tipo gasto
-      await apiClient.post('/transacciones', {
-        titulo: t('addMoneyModal.contributionLabel', { metaTitle: metaTitulo }),
-        importe: cantidadNum,
-        fechaTransaccion: new Date().toISOString().split('T')[0],
-        nota: null,
-        idUsuario: usuario.id,
-        idTipo: 2, // 2 = Gasto
-        idEstado: 2, // 2 = Completado
+      // Llamar al endpoint que actualiza la meta Y crea la transacción automáticamente
+      const response = await apiClient.put(`/metas-ahorro/${metaId}/agregar-cantidad`, {
+        cantidad: cantidadNum
       });
+      
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Error al agregar dinero:', error);
-      const errorMessage = error?.message || t('addMoneyModal.errors.failedToAdd');
+      console.error('❌ Error al agregar dinero:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+      });
+      const errorMessage = error?.response?.data?.error || error?.message || t('addMoneyModal.errors.failedToAdd');
       Alert.alert(t('common.error'), errorMessage);
     } finally {
       setLoading(false);
