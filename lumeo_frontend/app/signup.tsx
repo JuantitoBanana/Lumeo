@@ -25,7 +25,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, checkUsernameExists, checkEmailExists } = useAuth();
 
   /**
    * Handle Sign Up
@@ -73,27 +73,61 @@ export default function SignUpScreen() {
 
     setLoading(true);
 
-    const { error } = await signUp(email.trim(), password, {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      username: username.trim(),
-    });
+    try {
+      // Verificar email en backend (si está disponible)
+      const emailExists = await checkEmailExists(email.trim());
+      
+      if (emailExists) {
+        setLoading(false);
+        Alert.alert(
+          t('common.error'), 
+          'Este correo electrónico ya está registrado. Por favor, usa otro.'
+        );
+        return;
+      }
 
-    setLoading(false);
+      // Verificar username en backend (si está disponible)
+      const usernameExists = await checkUsernameExists(username.trim());
+      
+      if (usernameExists) {
+        setLoading(false);
+        Alert.alert(
+          t('common.error'), 
+          'Este nombre de usuario ya está en uso. Por favor, elige otro.'
+        );
+        return;
+      }
 
-    if (error) {
-      Alert.alert(t('signup.errors.signupError'), error.message);
-    } else {
-      Alert.alert(
-        t('signup.success.title'),
-        t('signup.success.message'),
-        [
-          {
-            text: t('signup.success.button'),
-            onPress: () => router.replace('/login'),
-          },
-        ]
-      );
+      console.log('✅ Verificaciones pasadas, procediendo con signUp...');
+
+      // Proceder con sign up - el trigger de Supabase será la última defensa
+      const { error } = await signUp(email.trim(), password, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        username: username.trim(),
+      });
+
+      setLoading(false);
+
+      if (error) {
+        console.error('❌ Error desde signUp:', error.message);
+        Alert.alert(t('common.error'), error.message);
+      } else {
+        Alert.alert(
+          t('signup.success.title'),
+          t('signup.success.message'),
+          [
+            {
+              text: t('signup.success.button'),
+              onPress: () => router.replace('/login'),
+            },
+          ]
+        );
+      }
+    } catch (error: any) {
+      setLoading(false);
+      console.error('Error en registro:', error);
+      Alert.alert(t('common.error'), 'Ocurrió un error durante el registro. Por favor, intenta de nuevo.');
     }
   };
 

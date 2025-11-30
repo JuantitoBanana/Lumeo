@@ -5,6 +5,7 @@ import com.lumeo.lumeo.repositories.CategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 public class CategoriaService extends GenericService<CategoriaModel, Long> {
@@ -15,5 +16,14 @@ public class CategoriaService extends GenericService<CategoriaModel, Long> {
     @Override
     protected JpaRepository<CategoriaModel, Long> getRepository() {
         return categoriaRepository;
+    }
+    
+    /**
+     * Obtiene las categorías disponibles para un usuario específico:
+     * - Categorías públicas (es_personalizada = false o null)
+     * - Categorías personalizadas del usuario (es_personalizada = true y id_usuario coincide)
+     */
+    public List<CategoriaModel> getCategoriasDisponiblesParaUsuario(Long idUsuario) {
+        return categoriaRepository.findCategoriasDisponiblesParaUsuario(idUsuario);
     }
 }

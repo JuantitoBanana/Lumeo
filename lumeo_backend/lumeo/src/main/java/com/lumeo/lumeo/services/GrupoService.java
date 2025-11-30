@@ -207,6 +207,38 @@ public class GrupoService extends GenericService<GrupoModel, Long> {
     }
     
     /**
+     * Agrega un miembro a un grupo existente
+     */
+    @Transactional
+    public void agregarMiembroAGrupo(Long idGrupo, String nombreUsuario) {
+        // Verificar que el grupo existe
+        Optional<GrupoModel> grupo = grupoRepository.findById(idGrupo);
+        if (grupo.isEmpty()) {
+            throw new RuntimeException("Grupo no encontrado");
+        }
+        
+        // Buscar el usuario por nombre de usuario
+        Optional<usuarioModel> usuario = usuarioRepository.findByNombreUsuario(nombreUsuario);
+        if (usuario.isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado");
+        }
+        
+        usuarioModel u = usuario.get();
+        
+        // Verificar que el usuario no esté ya en el grupo
+        Optional<UsuarioGrupoModel> relacionExistente = usuarioGrupoRepository.findByIdGrupoAndIdUsuario(idGrupo, u.getId());
+        if (relacionExistente.isPresent()) {
+            throw new RuntimeException("El usuario ya es miembro del grupo");
+        }
+        
+        // Crear la relación usuario-grupo
+        UsuarioGrupoModel relacion = new UsuarioGrupoModel();
+        relacion.setIdUsuario(u.getId());
+        relacion.setIdGrupo(idGrupo);
+        usuarioGrupoRepository.save(relacion);
+    }
+    
+    /**
      * Elimina un miembro de un grupo
      */
     @Transactional

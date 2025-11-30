@@ -411,7 +411,6 @@ export default function GroupDetailScreen() {
       // Añadir el usuario al grupo
       try {
         await grupoService.agregarMiembroAGrupo(idGrupo, nombreUsuarioNuevo.trim());
-        Alert.alert(t('common.success'), t('createGroup.userAddedSuccess', { username: response.nombreUsuario }));
         
         // Recargar datos del grupo
         await fetchGrupoData();
@@ -472,7 +471,6 @@ export default function GroupDetailScreen() {
     setDeletingGroup(true);
     try {
       await grupoService.delete(idGrupo);
-      Alert.alert(t('common.success'), t('groupDetail.deleteGroupSuccess'));
       setDeleteGroupModalVisible(false);
       router.replace('/groups');
     } catch (error: any) {

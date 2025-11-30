@@ -94,6 +94,27 @@ public class GrupoController {
     }
     
     /**
+     * Agrega un miembro a un grupo existente
+     */
+    @PostMapping("/{idGrupo}/agregar-miembro")
+    public ResponseEntity<Void> agregarMiembroAGrupo(
+            @PathVariable Long idGrupo,
+            @RequestBody java.util.Map<String, String> body) {
+        try {
+            String nombreUsuario = body.get("nombreUsuario");
+            if (nombreUsuario == null || nombreUsuario.trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            grupoService.agregarMiembroAGrupo(idGrupo, nombreUsuario);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
      * Elimina un miembro de un grupo
      */
     @DeleteMapping("/{idGrupo}/miembro/{idUsuario}")

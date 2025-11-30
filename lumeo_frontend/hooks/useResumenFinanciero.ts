@@ -64,7 +64,8 @@ export function useResumenFinanciero(usuarioId: number | null): UseResumenFinanc
       const errorMessage = err?.response?.data?.message || err?.message || 'Error desconocido';
       console.error('❌ Error al obtener resumen financiero:', err);
       setError(errorMessage);
-      setResumen(null);
+      // NO limpiar el resumen en caso de error - mantener los datos anteriores
+      // setResumen(null);
     } finally {
       setLoading(false);
       isFetchingRef.current = false;

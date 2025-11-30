@@ -69,7 +69,8 @@ export function useGastosPorCategoria(usuarioId: number | null): UseGastosPorCat
       console.error('❌ Error al obtener gastos por categoría:', err);
       
       setError(errorMessage);
-      setGastos([]);
+      // NO limpiar los gastos en caso de error - mantener los datos anteriores
+      // setGastos([]);
     } finally {
       fetchingRef.current = false;
       if (isMountedRef.current) {

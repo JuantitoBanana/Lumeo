@@ -47,6 +47,7 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
   const [tipo, setTipo] = useState<'gasto' | 'ingreso'>('gasto');
   const [importe, setImporte] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isIncome, setIsIncome] = useState(false);
 
   // Determinar si el usuario actual es el creador o el destinatario
   const isCreador = transaction?.idUsuario === usuarioId;
@@ -70,9 +71,10 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
       onFechaTransaccionChange(new Date(transaction.fechaTransaccion));
 
       // Determinar tipo basado en idTipo o nombre del tipo
-      const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
+      const transactionIsIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
         transaction.idTipo === 1;
-      setTipo(isIncome ? 'ingreso' : 'gasto');
+      setTipo(transactionIsIncome ? 'ingreso' : 'gasto');
+      setIsIncome(transactionIsIncome);
       
       setInitialized(true);
     }
@@ -376,9 +378,9 @@ function TransactionDetailModal({ visible, onClose, transaction, currencySymbol,
                 <Text style={styles.modalLabel}>{t('coinsScreen.category')}</Text>
                 <View style={styles.categoryBadge}>
                   <Ionicons
-                    name={(transaction.categoria.icono as any) || 'pricetag-outline'}
+                    name={(transaction.categoria?.icono || 'pricetag').replace(/-outline$/, '') + '-outline' as any}
                     size={20}
-                    color={transaction.categoria.color || '#FF9500'}
+                    color={isIncome ? '#4CAF50' : '#FF6B6B'}
                   />
                   <Text style={styles.categoryText}>{transaction.categoria.nombre}</Text>
                 </View>
@@ -509,8 +511,8 @@ export default function TransactionsScreen() {
   const { currencySymbol } = useCurrencySymbol();
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>('Todas');
+  const [selectedType, setSelectedType] = useState<string | null>(t('coinsScreen.all'));
   const [selectedTransaction, setSelectedTransaction] = useState<Transaccion | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -649,6 +651,8 @@ export default function TransactionsScreen() {
   const clearDateRange = () => {
     setFechaInicio(null);
     setFechaFin(null);
+    setSelectedCategory('Todas');
+    setSelectedType(t('coinsScreen.all'));
   };
 
   // Extraer categorías únicas de las transacciones
@@ -773,9 +777,18 @@ export default function TransactionsScreen() {
 
       {/* Filtros */}
       <View style={styles.filtersContainer}>
+        {/* Header de filtros con botón limpiar */}
+        <View style={styles.filterHeaderRow}>
+          <Text style={styles.filterLabel}>{t('coinsScreen.category')}</Text>
+          {(fechaInicio || fechaFin || selectedCategory !== 'Todas' || selectedType !== t('coinsScreen.all')) && (
+            <TouchableOpacity onPress={clearDateRange} style={styles.clearButton}>
+              <Text style={styles.clearButtonText}>{t('coins.clear')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        
         {/* Filtro por categoría */}
         <View style={styles.filterSection}>
-          <Text style={styles.filterLabel}>{t('coinsScreen.category')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
             {categories.map((category) => (
               <TouchableOpacity
@@ -824,14 +837,7 @@ export default function TransactionsScreen() {
 
         {/* Filtro por rango de fechas */}
         <View style={styles.filterSection}>
-          <View style={styles.dateRangeHeader}>
-            <Text style={styles.filterLabel}>{t('coins.dateRange')}</Text>
-            {(fechaInicio || fechaFin) && (
-              <TouchableOpacity onPress={clearDateRange} style={styles.clearButton}>
-                <Text style={styles.clearButtonText}>{t('coins.clear')}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <Text style={styles.filterLabel}>{t('coins.dateRange')}</Text>
           <View style={styles.datePickersContainer}>
             {/* Fecha inicio */}
             <TouchableOpacity
@@ -901,8 +907,8 @@ export default function TransactionsScreen() {
           filteredTransactions.map((transaction) => {
             const isIncome = transaction.tipoTransaccion?.nombre?.toLowerCase().includes('ingreso') ||
               transaction.idTipo === 1;
-            const categoryIcon = transaction.categoria?.icono || 'pricetag-outline';
-            const categoryColor = transaction.categoria?.color || (isIncome ? '#4CAF50' : '#F44336');
+            const categoryIcon = (transaction.categoria?.icono || 'pricetag').replace(/-outline$/, '') + '-outline' as any;
+            const categoryColor = isIncome ? '#4CAF50' : '#FF6B6B';
 
             const formatAmount = (amount: number) => {
               const position = transaction.posicionSimbolo || 'DESPUES';
@@ -1202,6 +1208,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+  },
+  filterHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   filterSection: {
     marginBottom: 12,

@@ -2,11 +2,14 @@ import { Session, User } from '@supabase/supabase-js';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { APP_URL } from '../constants/config';
+import { apiClient } from '../lib/api-client';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  checkUsernameExists: (username: string) => Promise<boolean>;
+  checkEmailExists: (email: string) => Promise<boolean>;
   signUp: (email: string, password: string, userData: UserMetadata) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -44,6 +47,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   /**
+   * Check if a username already exists in the database
+   */
+  const checkUsernameExists = async (username: string): Promise<boolean> => {
+    try {
+      console.log('🔍 Verificando username en backend:', username);
+      const response: any = await apiClient.get(`/public/check-username/${username}`);
+      console.log('📦 Respuesta del backend:', response.data);
+      
+      if (response.data && typeof response.data.exists === 'boolean') {
+        console.log(`✅ Username "${username}" existe: ${response.data.exists}`);
+        return response.data.exists;
+      }
+      
+      console.warn('⚠️ Respuesta del backend no válida, asumiendo que NO existe');
+      return false;
+    } catch (error: any) {
+      console.error('❌ Error al conectar con el backend:', error?.response?.status || error.message);
+      console.error('💡 Tip: Verifica que el backend esté corriendo en el puerto correcto');
+      // IMPORTANTE: Si hay error de conexión, retornamos false
+      // Pero el trigger de Supabase será la última línea de defensa
+      return false;
+    }
+  };
+
+  /**
+   * Check if an email already exists in the database
+   */
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      console.log('🔍 Verificando email en backend:', email);
+      const response: any = await apiClient.get(`/public/check-email/${email}`);
+      console.log('📦 Respuesta del backend:', response.data);
+      
+      if (response.data && typeof response.data.exists === 'boolean') {
+        console.log(`✅ Email "${email}" existe: ${response.data.exists}`);
+        return response.data.exists;
+      }
+      
+      console.warn('⚠️ Respuesta del backend no válida, asumiendo que NO existe');
+      return false;
+    } catch (error: any) {
+      console.error('❌ Error al conectar con el backend:', error?.response?.status || error.message);
+      // IMPORTANTE: Si hay error de conexión, retornamos false
+      // Pero el trigger de Supabase será la última línea de defensa
+      return false;
+    }
+  };
+
+  /**
    * Sign Up Function
    * Creates a new user in Supabase Auth (auth.users table)
    * The trigger will automatically create the record in public.usuario
@@ -56,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    */
   const signUp = async (email: string, password: string, userData: UserMetadata) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error} = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -70,11 +122,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
 
-      if (error) throw error;
+      console.log('📦 Respuesta completa de signUp:', JSON.stringify(data));
+      
+      // IMPORTANTE: Supabase NO lanza error cuando el email ya existe por seguridad
+      // En su lugar, retorna user con identities vacío
+      if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+        console.warn('⚠️ Usuario ya existe - identities está vacío');
+        return { error: { message: 'Este correo electrónico ya está registrado. Por favor, usa otro o inicia sesión.' } };
+      }
+
+      if (error) {
+        console.error('❌ Error de Supabase:', error.message);
+        console.error('❌ Error completo:', JSON.stringify(error));
+        
+        // Detectar errores específicos del trigger de Supabase
+        const errorMsg = error.message.toLowerCase();
+        
+        if (errorMsg.includes('nombre de usuario') || errorMsg.includes('username')) {
+          return { error: { message: 'Este nombre de usuario ya está en uso. Por favor, elige otro.' } };
+        }
+        
+        if (errorMsg.includes('correo') || errorMsg.includes('email')) {
+          return { error: { message: 'Este correo electrónico ya está registrado. Por favor, usa otro.' } };
+        }
+        
+        if (errorMsg.includes('database error') || errorMsg.includes('saving new user')) {
+          return { error: { message: 'El nombre de usuario o correo electrónico ya están en uso. Por favor, verifica los datos.' } };
+        }
+        
+        throw error;
+      }
 
       return { error: null };
     } catch (error: any) {
-      console.error('Error signing up:', error.message);
+      console.error('❌ Error en catch:', error.message);
+      
+      // Detectar errores de duplicados
+      if (error.message) {
+        const errorMsg = error.message.toLowerCase();
+        
+        if (errorMsg.includes('nombre de usuario') || errorMsg.includes('username')) {
+          return { error: { message: 'Este nombre de usuario ya está en uso. Por favor, elige otro.' } };
+        }
+        
+        if (errorMsg.includes('correo') || errorMsg.includes('email')) {
+          return { error: { message: 'Este correo electrónico ya está registrado. Por favor, usa otro.' } };
+        }
+        
+        if (errorMsg.includes('database error') || errorMsg.includes('saving new user')) {
+          return { error: { message: 'El nombre de usuario o correo electrónico ya están en uso. Por favor, verifica los datos.' } };
+        }
+      }
+      
       return { error };
     }
   };
@@ -118,6 +217,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     loading,
+    checkUsernameExists,
+    checkEmailExists,
     signUp,
     signIn,
     signOut,

@@ -42,17 +42,44 @@ CREATE POLICY "Users can insert their own profile"
 
 -- Step 4: Create the function that will be called by the trigger
 -- This function extracts user metadata and inserts it into public.usuario
+-- UPDATED: Now checks if username AND email already exist before inserting
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_username TEXT;
+  v_username_exists BOOLEAN;
+  v_email_exists BOOLEAN;
 BEGIN
-  INSERT INTO public.usuario (id, username, first_name, last_name, email)
+  -- Extract the username from metadata
+  v_username := NEW.raw_user_meta_data->>'nombre_usuario';
+  
+  -- Check if username already exists in the database
+  SELECT EXISTS(SELECT 1 FROM public.usuario WHERE nombre_usuario = v_username) INTO v_username_exists;
+  
+  IF v_username_exists THEN
+    -- Username already exists, raise an exception to rollback the Supabase Auth user creation
+    RAISE EXCEPTION 'El nombre de usuario ya está en uso';
+  END IF;
+  
+  -- Check if email already exists in the database
+  SELECT EXISTS(SELECT 1 FROM public.usuario WHERE email = NEW.email) INTO v_email_exists;
+  
+  IF v_email_exists THEN
+    -- Email already exists, raise an exception to rollback the Supabase Auth user creation
+    RAISE EXCEPTION 'El correo electrónico ya está en uso';
+  END IF;
+  
+  -- Username and email are unique, proceed with insertion
+  INSERT INTO public.usuario (uid, nombre_usuario, nombre, apellido, email, idioma)
   VALUES (
     NEW.id,
-    NEW.raw_user_meta_data->>'username',
-    NEW.raw_user_meta_data->>'first_name',
-    NEW.raw_user_meta_data->>'last_name',
-    NEW.email
+    v_username,
+    NEW.raw_user_meta_data->>'nombre',
+    NEW.raw_user_meta_data->>'apellido',
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'idioma', 'es')
   );
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

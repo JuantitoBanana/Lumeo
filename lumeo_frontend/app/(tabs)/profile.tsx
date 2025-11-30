@@ -205,15 +205,6 @@ export default function ProfileScreen() {
       subtitle: t('profile.menu.changeLanguageSubtitle'),
       action: handleOpenLanguageModal,
     },
-    {
-      id: 'notifications',
-      icon: 'notifications-outline',
-      title: t('profile.menu.notifications'),
-      subtitle: t('profile.menu.notificationsSubtitle'),
-      action: () => {
-        // TODO: Implementar configuración de notificaciones
-      },
-    },
   ];
 
   // Pantalla de carga mientras se obtiene el usuario

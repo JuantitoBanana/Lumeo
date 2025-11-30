@@ -46,4 +46,14 @@ public class CategoriaController {
         }
         return ResponseEntity.notFound().build();
     }
+    
+    /**
+     * Obtiene las categorías disponibles para un usuario específico
+     * Incluye categorías públicas y personalizadas del usuario
+     */
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<List<CategoriaModel>> getCategoriasParaUsuario(@PathVariable Long idUsuario) {
+        List<CategoriaModel> categorias = categoriaService.getCategoriasDisponiblesParaUsuario(idUsuario);
+        return ResponseEntity.ok(categorias);
+    }
 }

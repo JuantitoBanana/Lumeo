@@ -57,7 +57,6 @@ export default function CreateGroupScreen() {
       if (resultado.existe) {
         setUsuariosAgregados([...usuariosAgregados, resultado]);
         setNombreUsuarioInput('');
-        Alert.alert(t('common.success'), t('createGroup.userAddedSuccess', { username: resultado.nombreUsuario }));
       } else {
         Alert.alert(t('common.error'), t('createGroup.errors.userNotExists', { username: nombreUsuarioInput }));
       }
@@ -102,9 +101,7 @@ export default function CreateGroupScreen() {
 
       await grupoService.crearGrupoConUsuarios(grupoData, usuario.id);
 
-      Alert.alert(t('common.success'), t('createGroup.successMessage'), [
-        { text: t('common.ok'), onPress: () => router.back() }
-      ]);
+      router.back();
     } catch (error: any) {
       console.error('Error al crear grupo:', error);
       const errorMessage = error?.message || t('createGroup.errors.failedToCreate');

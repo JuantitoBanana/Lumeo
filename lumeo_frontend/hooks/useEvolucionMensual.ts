@@ -71,7 +71,8 @@ export function useEvolucionMensual(usuarioId: number | null, meses: number = 2)
       console.error('❌ Error al obtener evolución mensual:', err);
       
       setError(errorMessage);
-      setEvolucion([]);
+      // NO limpiar la evolución en caso de error - mantener los datos anteriores
+      // setEvolucion([]);
     } finally {
       fetchingRef.current = false;
       if (isMountedRef.current) {

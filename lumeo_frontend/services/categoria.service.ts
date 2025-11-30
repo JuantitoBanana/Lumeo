@@ -49,6 +49,14 @@ export class CategoriaService {
   async searchByName(nombre: string): Promise<Categoria[]> {
     return apiClient.get<Categoria[]>(`${this.endpoint}?nombre=${encodeURIComponent(nombre)}`);
   }
+
+  /**
+   * Obtiene las categorías disponibles para un usuario específico
+   * Incluye categorías públicas y personalizadas del usuario
+   */
+  async getCategoriasParaUsuario(idUsuario: number): Promise<Categoria[]> {
+    return apiClient.get<Categoria[]>(`${this.endpoint}/usuario/${idUsuario}`);
+  }
 }
 
 // Exportar instancia singleton

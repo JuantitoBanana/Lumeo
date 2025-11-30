@@ -67,17 +67,19 @@ public class GraficosService {
         
         System.out.println("📅 Período: " + inicioMes + " a " + finMes);
         
-        // Obtener transacciones del mes actual
-        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioAndFechaBetween(usuarioId, inicioMes, finMes);
+        // Obtener transacciones del mes actual con categoría cargada
+        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioAndFechaBetweenWithCategoria(usuarioId, inicioMes, finMes);
         System.out.println("📊 Transacciones encontradas: " + transacciones.size());
         
         // Agrupar gastos por categoría
         Map<Long, GastoPorCategoriaDTO> gastosPorCategoria = new HashMap<>();
         
         for (TransaccionModel transaccion : transacciones) {
-            // Solo procesar gastos (id_tipo = 2) que tengan categoría
+            // Solo procesar gastos (id_tipo = 2) que tengan categoría con es_personalizada = false
             if (transaccion.getIdTipo() != null && transaccion.getIdTipo() == 2L && 
-                transaccion.getIdCategoria() != null) {
+                transaccion.getIdCategoria() != null &&
+                transaccion.getCategoria() != null &&
+                Boolean.FALSE.equals(transaccion.getCategoria().getEsPersonalizada())) {
                 
                 // El campo 'importe' contiene el importe ORIGINAL
                 Double importeOriginal = transaccion.getImporte();

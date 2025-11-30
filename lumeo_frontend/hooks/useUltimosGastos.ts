@@ -59,9 +59,10 @@ export const useUltimosGastos = (usuarioId: number | null | undefined) => {
         return;
       }
       
-      // Si hay caché del mismo usuario, no recargar
+      // Si hay caché del mismo usuario Y ya hicimos fetch inicial, usar caché
       const hasCache = cachedUltimosGastos.length > 0 && cachedUltimosGastosUsuarioId === usuarioId;
-      if (hasCache) {
+      if (hasCache && hasInitialFetchRef.current) {
+        setGastos(cachedUltimosGastos);
         return;
       }
 
@@ -103,6 +104,7 @@ export const useUltimosGastos = (usuarioId: number | null | undefined) => {
         console.error('❌ Error obteniendo últimos gastos:', err);
         if (isMountedRef.current) {
           setError(err.response?.data?.message || 'Error al cargar últimos gastos');
+          // NO limpiar gastos en caso de error - mantener datos anteriores
         }
       } finally {
         if (isMountedRef.current) {
@@ -128,6 +130,7 @@ export const useUltimosGastos = (usuarioId: number | null | undefined) => {
   
   const refetch = async () => {
     if (usuarioId) {
+      // Resetear flags para permitir nueva carga
       hasInitialFetchRef.current = false;
       fetchingRef.current = false;
       lastUsuarioIdRef.current = null;
@@ -156,10 +159,12 @@ export const useUltimosGastos = (usuarioId: number | null | undefined) => {
           cachedUltimosGastosUsuarioId = usuarioId;
           
           setGastos(gastosTransformados);
+          hasInitialFetchRef.current = true;
         }
       } catch (err: any) {
         if (err.message !== 'CANCELED' && isMountedRef.current) {
           setError(err.response?.data?.message || 'Error al cargar últimos gastos');
+          // NO limpiar gastos en caso de error - mantener datos anteriores
         }
       } finally {
         if (isMountedRef.current) {

@@ -20,6 +20,8 @@ import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import apiClient from '@/lib/api-client';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from '../hooks/useTranslation';
+import CategorySelectorModal from '@/components/CategorySelectorModal';
+import { Categoria } from '@/types/api';
 
 type TransactionType = 'gasto' | 'ingreso';
 
@@ -36,6 +38,8 @@ export default function RegisterTransactionScreen() {
   const [nota, setNota] = useState('');
   const [hasFile, setHasFile] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Categoria | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const handleImporteChange = (text: string) => {
     // Permitir solo números y comas/puntos decimales
@@ -117,6 +121,7 @@ export default function RegisterTransactionScreen() {
         fechaTransaccion: fechaTransaccion.toISOString().split('T')[0], // Formato: YYYY-MM-DD
         nota: nota.trim() || null,
         idUsuario: usuario.id,
+        idCategoria: selectedCategory?.id || null,
         idTipo: tipo === 'ingreso' ? 1 : 2, // 1 = Ingreso, 2 = Gasto
         idEstado: 3, // 3 = Pagada (transacciones normales están pagadas inmediatamente)
       };
@@ -266,6 +271,27 @@ export default function RegisterTransactionScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Categoría (opcional) */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>{t('registerTransaction.categoryLabel')}</Text>
+            <TouchableOpacity 
+              style={styles.categoryButton}
+              onPress={() => setShowCategoryModal(true)}
+            >
+              <Ionicons 
+                name={selectedCategory ? "pricetag" : "pricetag-outline"} 
+                size={24} 
+                color="#FF9500" 
+              />
+              <View style={styles.categoryTextContainer}>
+                <Text style={selectedCategory ? styles.categoryTextSelected : styles.categoryTextPlaceholder}>
+                  {selectedCategory ? selectedCategory.nombre : t('registerTransaction.selectCategory')}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
+
           {/* Nota (opcional) */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('registerTransaction.noteLabel')}</Text>
@@ -279,22 +305,6 @@ export default function RegisterTransactionScreen() {
               textAlignVertical="top"
               placeholderTextColor="#999"
             />
-          </View>
-
-          {/* Adjuntar archivo (opcional) */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>{t('registerTransaction.fileLabel')}</Text>
-            <TouchableOpacity 
-              style={styles.fileButton}
-              onPress={() => {
-                // Funcionalidad pendiente
-              }}
-            >
-              <Ionicons name="attach" size={24} color="#FF9500" />
-              <Text style={styles.fileButtonText}>
-                {hasFile ? t('registerTransaction.fileAttached') : t('registerTransaction.selectFile')}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.bottomSpace} />
@@ -368,6 +378,17 @@ export default function RegisterTransactionScreen() {
             </Pressable>
           </Pressable>
         </Modal>
+      )}
+
+      {/* Category Selector Modal */}
+      {usuario?.id && (
+        <CategorySelectorModal
+          visible={showCategoryModal}
+          onClose={() => setShowCategoryModal(false)}
+          onSelectCategory={setSelectedCategory}
+          selectedCategoryId={selectedCategory?.id}
+          userId={usuario.id}
+        />
       )}
     </KeyboardAvoidingView>
   );
@@ -595,6 +616,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  categoryTextContainer: {
+    flex: 1,
+  },
+  categoryTextSelected: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  categoryTextPlaceholder: {
+    fontSize: 16,
+    color: '#999',
   },
   bottomSpace: {
     height: 20,

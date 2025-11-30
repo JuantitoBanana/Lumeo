@@ -53,6 +53,26 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
     }
     
     /**
+     * Override del método editById para cargar relaciones antes de devolver
+     */
+    @Override
+    @Transactional
+    public Optional<TransaccionModel> editById(Long id, TransaccionModel updatedEntity) {
+        return transaccionRepository.findById(id)
+                .map(existingEntity -> {
+                    TransaccionModel saved = transaccionRepository.save(updatedEntity);
+                    // Recargar con relaciones para evitar LazyInitializationException
+                    return transaccionRepository.findByIdUsuarioOrIdDestinatarioWithRelations(
+                        saved.getIdUsuario(), 
+                        saved.getIdUsuario()
+                    ).stream()
+                        .filter(t -> t.getId().equals(saved.getId()))
+                        .findFirst()
+                        .orElse(saved);
+                });
+    }
+    
+    /**
      * Obtiene todas las transacciones de un usuario
      * @param idUsuario ID del usuario
      * @return Lista de transacciones del usuario

@@ -20,6 +20,8 @@ import { grupoService } from '@/services/grupo.service';
 import { transaccionGrupalService } from '@/services/transaccion-grupal.service';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from '../hooks/useTranslation';
+import CategorySelectorModal from '../components/CategorySelectorModal';
+import { Categoria } from '../types/api';
 
 type TransactionType = 'gasto' | 'ingreso';
 type DivisionType = 'igual' | 'exacto';
@@ -59,6 +61,10 @@ export default function RegisterGroupTransactionScreen() {
   // Modal de selección de usuarios
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [tempSelectedMembers, setTempSelectedMembers] = useState<number[]>([]);
+
+  // Categoría
+  const [selectedCategory, setSelectedCategory] = useState<Categoria | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   useEffect(() => {
     if (idGrupo && usuario?.id) {
@@ -327,6 +333,7 @@ export default function RegisterGroupTransactionScreen() {
         nota: nota.trim() || null,
         idGrupo: idGrupo,
         idTipo: tipo === 'ingreso' ? 1 : 2,
+        idCategoria: selectedCategory?.id || null,
         transaccionesIndividuales: transaccionesIndividuales,
       });
 
@@ -641,6 +648,29 @@ export default function RegisterGroupTransactionScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Categoría (opcional) */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>{t('registerGroupTransaction.categoryLabel')}</Text>
+            <TouchableOpacity 
+              style={styles.categoryButton}
+              onPress={() => setShowCategoryModal(true)}
+            >
+              <Ionicons name="pricetag-outline" size={24} color="#FF9500" />
+              <View style={styles.categoryTextContainer}>
+                {selectedCategory ? (
+                  <Text style={styles.categoryTextSelected}>
+                    {selectedCategory.nombre}
+                  </Text>
+                ) : (
+                  <Text style={styles.categoryTextPlaceholder}>
+                    {t('registerGroupTransaction.selectCategory')}
+                  </Text>
+                )}
+              </View>
+              <Ionicons name="chevron-down" size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
+
           {/* Nota (opcional) */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('registerGroupTransaction.noteLabel')}</Text>
@@ -654,22 +684,6 @@ export default function RegisterGroupTransactionScreen() {
               textAlignVertical="top"
               placeholderTextColor="#999"
             />
-          </View>
-
-          {/* Adjuntar archivo (opcional) */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>{t('registerGroupTransaction.fileLabel')}</Text>
-            <TouchableOpacity 
-              style={styles.fileButton}
-              onPress={() => {
-                // TODO: Implementar funcionalidad de adjuntar archivo
-              }}
-            >
-              <Ionicons name="attach" size={24} color="#FF9500" />
-              <Text style={styles.fileButtonText}>
-                {hasFile ? t('registerGroupTransaction.fileAttached') : t('registerGroupTransaction.selectFile')}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.bottomSpace} />
@@ -802,6 +816,20 @@ export default function RegisterGroupTransactionScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Modal de selección de categoría */}
+      {usuario?.id && (
+        <CategorySelectorModal
+          visible={showCategoryModal}
+          onClose={() => setShowCategoryModal(false)}
+          onSelectCategory={(categoria) => {
+            setSelectedCategory(categoria);
+            setShowCategoryModal(false);
+          }}
+          selectedCategoryId={selectedCategory?.id}
+          userId={usuario.id}
+        />
+      )}
     </View>
   );
 }
@@ -1126,6 +1154,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1a1a1a',
     fontWeight: '500',
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    gap: 12,
+  },
+  categoryTextContainer: {
+    flex: 1,
+  },
+  categoryTextSelected: {
+    fontSize: 16,
+    color: '#1a1a1a',
+    fontWeight: '500',
+  },
+  categoryTextPlaceholder: {
+    fontSize: 16,
+    color: '#999',
   },
   modalOverlay: {
     flex: 1,

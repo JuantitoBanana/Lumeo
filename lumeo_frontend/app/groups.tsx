@@ -157,7 +157,7 @@ export default function GroupsScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton} 
-          onPress={() => router.back()}
+          onPress={() => router.replace('/')}
         >
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>

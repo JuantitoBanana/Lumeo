@@ -46,7 +46,8 @@ export interface Transaccion {
 export interface Categoria {
   id?: number;
   nombre: string;
-  descripcion?: string;
+  esPersonalizada?: boolean;
+  idUsuario?: number;
   color?: string;
   icono?: string;
 }

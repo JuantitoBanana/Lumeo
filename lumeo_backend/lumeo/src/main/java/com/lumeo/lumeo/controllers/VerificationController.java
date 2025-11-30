@@ -1,13 +1,22 @@
 package com.lumeo.lumeo.controllers;
 
+import com.lumeo.lumeo.services.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/public") // O la ruta base que prefieras
+@RequestMapping("/api/public")
 public class VerificationController {
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping(value = "/email-success", produces = MediaType.TEXT_HTML_VALUE)
     public String emailSuccess() {
@@ -62,5 +71,17 @@ public class VerificationController {
                 </body>
                 </html>
                 """;
+    }
+
+    @GetMapping("/check-username/{username}")
+    public ResponseEntity<Map<String, Boolean>> checkUsername(@PathVariable String username) {
+        boolean exists = usuarioService.existsByNombreUsuario(username);
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
+    @GetMapping("/check-email/{email}")
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@PathVariable String email) {
+        boolean exists = usuarioService.existsByEmail(email);
+        return ResponseEntity.ok(Map.of("exists", exists));
     }
 }

@@ -71,7 +71,6 @@ export default function GroupMembersScreen() {
     try {
       // TODO: Implementar endpoint para eliminar miembro del grupo
       await grupoService.eliminarMiembroDeGrupo(idGrupo, memberToDelete.idUsuario);
-      Alert.alert(t('common.success'), t('groupMembers.deleteSuccess'));
       await fetchGrupoData();
     } catch (error: any) {
       console.error('Error al eliminar miembro:', error);

@@ -52,6 +52,20 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
     List<TransaccionModel> findByIdUsuarioAndFechaBetween(@Param("idUsuario") Long idUsuario, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
     
     /**
+     * Busca transacciones de un usuario en un rango de fechas con categoría cargada
+     * @param idUsuario ID del usuario
+     * @param startDate Fecha de inicio
+     * @param endDate Fecha de fin
+     * @return Lista de transacciones con categoría cargada
+     */
+    @Query("SELECT DISTINCT t FROM TransaccionModel t " +
+           "LEFT JOIN FETCH t.categoria " +
+           "WHERE t.idUsuario = :idUsuario " +
+           "AND t.fechaTransaccion >= :startDate " +
+           "AND t.fechaTransaccion <= :endDate")
+    List<TransaccionModel> findByIdUsuarioAndFechaBetweenWithCategoria(@Param("idUsuario") Long idUsuario, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    /**
      * Busca los últimos 5 gastos de un usuario (tipo transacción = 2)
      * @param idUsuario ID del usuario
      * @return Lista de los últimos 5 gastos ordenados por fecha descendente

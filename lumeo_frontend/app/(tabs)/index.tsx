@@ -4,10 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useResumenFinanciero } from '@/hooks/useResumenFinanciero';
 import { useGastosPorCategoria } from '../../hooks/useGastosPorCategoria';
@@ -48,6 +50,19 @@ export default function HomeScreen() {
       return () => clearTimeout(timer);
     }
   }, [usuario?.id, loadingResumen]);
+
+  // Refrescar datos cuando la pantalla recibe el foco
+  useFocusEffect(
+    React.useCallback(() => {
+      if (usuario?.id) {
+        refetchResumen();
+        refetchGastos();
+        refetchEvolucion();
+        // Emitir evento para refrescar UltimosGastos
+        eventEmitter.emit(APP_EVENTS.DASHBOARD_REFRESH);
+      }
+    }, [usuario?.id])
+  );
 
   // Componente Skeleton para el resumen
   const SkeletonSummary = memo(() => (
@@ -131,7 +146,7 @@ export default function HomeScreen() {
     return () => {
       unsubscribe();
     };
-  }, [refetchUsuario, refetchResumen, refetchGastos, refetchEvolucion]);
+  }, []);
 
   // Escuchar eliminación de transacciones
   useEffect(() => {
@@ -151,7 +166,7 @@ export default function HomeScreen() {
     return () => {
       unsubscribe();
     };
-  }, [refetchUsuario, refetchResumen, refetchGastos, refetchEvolucion]);
+  }, []);
 
   // Cleanup: Cancelar todas las peticiones pendientes cuando se desmonta el componente
   useEffect(() => {
@@ -261,7 +276,7 @@ export default function HomeScreen() {
               )}
             </View>
             
-            {loadingResumen ? (
+            {loadingResumen && !resumen ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color="#FF9500" />
                 <Text style={styles.loadingText}>{t('home.loadingSummary')}</Text>
@@ -275,17 +290,17 @@ export default function HomeScreen() {
               <View style={styles.chartsRow}>
                 <GraficoCategoria 
                   gastos={gastos} 
-                  loading={loadingGastos} 
+                  loading={loadingGastos && gastos.length === 0} 
                 />
                 <GraficoEvolucion 
                   evolucion={evolucion} 
-                  loading={loadingEvolucion} 
+                  loading={loadingEvolucion && evolucion.length === 0} 
                 />
               </View>
             </View>
             
             {/* Resumen del mes actual */}
-            {loadingResumen ? (
+            {loadingResumen && !resumen ? (
               <SkeletonSummary />
             ) : resumen ? (
               <View style={styles.monthlySection}>

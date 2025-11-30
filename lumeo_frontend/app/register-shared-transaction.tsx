@@ -21,6 +21,8 @@ import apiClient from '@/lib/api-client';
 import { usuarioService } from '@/services/usuario.service';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from '../hooks/useTranslation';
+import CategorySelectorModal from '../components/CategorySelectorModal';
+import { Categoria } from '../types/api';
 
 type TransactionType = 'gasto' | 'ingreso';
 type DivisionType = 'igual' | 'porcentaje' | 'exacto';
@@ -44,6 +46,10 @@ export default function RegisterSharedTransactionScreen() {
   const [divisionTipo, setDivisionTipo] = useState<DivisionType>('igual');
   const [porcentajeDestinatario, setPorcentajeDestinatario] = useState('');
   const [importeExactoDestinatario, setImporteExactoDestinatario] = useState('');
+
+  // Categoría
+  const [selectedCategory, setSelectedCategory] = useState<Categoria | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const handleImporteChange = (text: string) => {
     // Permitir solo números y comas/puntos decimales
@@ -235,6 +241,7 @@ export default function RegisterSharedTransactionScreen() {
         idEstado: 1, // 1 = Pendiente (para transacciones compartidas)
         idDestinatario: usuarioDestinatario.id,
         importeDestinatario: importeDestinatarioCalc,
+        idCategoria: selectedCategory?.id || null,
       };
 
       // Guardar en la API
@@ -535,6 +542,29 @@ export default function RegisterSharedTransactionScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Categoría (opcional) */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>{t('registerSharedTransaction.categoryLabel')}</Text>
+            <TouchableOpacity 
+              style={styles.categoryButton}
+              onPress={() => setShowCategoryModal(true)}
+            >
+              <Ionicons name="pricetag-outline" size={24} color="#FF9500" />
+              <View style={styles.categoryTextContainer}>
+                {selectedCategory ? (
+                  <Text style={styles.categoryTextSelected}>
+                    {selectedCategory.nombre}
+                  </Text>
+                ) : (
+                  <Text style={styles.categoryTextPlaceholder}>
+                    {t('registerSharedTransaction.selectCategory')}
+                  </Text>
+                )}
+              </View>
+              <Ionicons name="chevron-down" size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
+
           {/* Nota (opcional) */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>{t('registerSharedTransaction.noteLabel')}</Text>
@@ -548,22 +578,6 @@ export default function RegisterSharedTransactionScreen() {
               textAlignVertical="top"
               placeholderTextColor="#999"
             />
-          </View>
-
-          {/* Adjuntar archivo (opcional) */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>{t('registerSharedTransaction.fileLabel')}</Text>
-            <TouchableOpacity 
-              style={styles.fileButton}
-              onPress={() => {
-                // Funcionalidad pendiente
-              }}
-            >
-              <Ionicons name="attach" size={24} color="#FF9500" />
-              <Text style={styles.fileButtonText}>
-                {hasFile ? t('registerSharedTransaction.fileAttached') : t('registerSharedTransaction.selectFile')}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.bottomSpace} />
@@ -637,6 +651,20 @@ export default function RegisterSharedTransactionScreen() {
             </Pressable>
           </Pressable>
         </Modal>
+      )}
+
+      {/* Modal de selección de categoría */}
+      {usuario?.id && (
+        <CategorySelectorModal
+          visible={showCategoryModal}
+          onClose={() => setShowCategoryModal(false)}
+          onSelectCategory={(categoria) => {
+            setSelectedCategory(categoria);
+            setShowCategoryModal(false);
+          }}
+          selectedCategoryId={selectedCategory?.id}
+          userId={usuario.id}
+        />
       )}
     </KeyboardAvoidingView>
   );
@@ -862,6 +890,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1a1a1a',
     fontWeight: '500',
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    gap: 12,
+  },
+  categoryTextContainer: {
+    flex: 1,
+  },
+  categoryTextSelected: {
+    fontSize: 16,
+    color: '#1a1a1a',
+    fontWeight: '500',
+  },
+  categoryTextPlaceholder: {
+    fontSize: 16,
+    color: '#999',
   },
   modalOverlay: {
     flex: 1,
