@@ -14,7 +14,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useMetasAhorro } from '@/hooks/useMetasAhorro';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
 import { formatearCantidad } from '@/lib/currency-utils';
@@ -254,7 +253,7 @@ export default function SavingsScreen() {
       )}
 
       {/* Bottom Tab Bar */}
-      <BottomTabBar activeTab="stats" onTabRefresh={handleRefresh} />
+      
 
       {/* Modal para agregar dinero */}
       {selectedMeta && (

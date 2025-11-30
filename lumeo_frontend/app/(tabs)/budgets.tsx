@@ -15,7 +15,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { Picker } from '@react-native-picker/picker';
 import { usePresupuestos, Presupuesto } from '@/hooks/usePresupuestos';
 import { useCurrencySymbol } from '@/hooks/useCurrencySymbol';
@@ -249,9 +248,6 @@ export default function BudgetsScreen() {
 
       {/* Contenido */}
       {renderContent()}
-
-      {/* Bottom Tab Bar */}
-      <BottomTabBar activeTab="stats" onTabRefresh={handleRefresh} />
 
       {/* Botón flotante para crear nuevo presupuesto */}
       <TouchableOpacity 

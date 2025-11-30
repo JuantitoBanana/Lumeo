@@ -6,7 +6,6 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 
-import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -335,8 +334,6 @@ export default function HomeScreen() {
           {/* Panel de Últimos Gastos - Carga diferida */}
           {showUltimosGastos && <UltimosGastos usuarioId={usuario?.id} />}
         </ScrollView>
-
-        <BottomTabBar activeTab="home" onTabRefresh={handleRefresh} />
       </View>
     );
   }

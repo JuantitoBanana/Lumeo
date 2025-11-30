@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
-import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useRouter } from 'expo-router';
 import { DivisaService, Divisa } from '@/services/divisa.service';
 import { usuarioService } from '@/services/usuario.service';
@@ -334,8 +333,6 @@ export default function ProfileScreen() {
         {/* Space for bottom tab bar */}
         <View style={styles.bottomSpace} />
       </ScrollView>
-
-      <BottomTabBar activeTab="profile" onTabRefresh={handleRefresh} />
 
       {/* Modal de selector de divisas */}
       <Modal visible={showDivisaModal} transparent={true} animationType="fade">

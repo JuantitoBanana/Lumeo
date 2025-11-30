@@ -18,21 +18,33 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
-    // Ocultar la barra de navegación en Android
+    // Ocultar la barra de navegación en Android y configurar modo inmersivo
     if (Platform.OS === 'android') {
-      // Intentar ocultar inmediatamente
-      const hideNavBar = async () => {
-        await NavigationBar.setVisibilityAsync('hidden');
+      const configureImmersiveMode = async () => {
+        try {
+          // Ocultar barra de navegación
+          await NavigationBar.setVisibilityAsync('hidden');
+          // Comportamiento para que al deslizar aparezca sobre el contenido sin redimensionar
+          await NavigationBar.setBehaviorAsync('overlay-swipe');
+        } catch (e) {
+          console.error('Error configuring navigation bar:', e);
+        }
       };
       
-      hideNavBar();
+      configureImmersiveMode();
       
-      // Volver a intentar después de un delay (para dispositivos MIUI/Xiaomi)
-      const timeout = setTimeout(() => {
-        hideNavBar();
-      }, 500);
-      
-      return () => clearTimeout(timeout);
+      // Listener para mantener oculto si la app vuelve al primer plano
+      const subscription = NavigationBar.addVisibilityListener(({ visibility }) => {
+        if (visibility === 'visible') {
+          setTimeout(() => {
+            configureImmersiveMode();
+          }, 3000); // Volver a ocultar después de 3 segundos si aparece
+        }
+      });
+
+      return () => {
+        subscription.remove();
+      };
     }
   }, []);
 
@@ -53,7 +65,7 @@ export default function RootLayout() {
             <Stack.Screen name="password-change-success" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
-          <StatusBar style="auto" />
+          <StatusBar style="auto" hidden={true} />
         </ThemeProvider>
       </I18nProvider>
     </AuthProvider>

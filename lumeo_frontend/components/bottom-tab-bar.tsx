@@ -1,67 +1,102 @@
 import { Ionicons } from '@expo/vector-icons';
-import { usePathname, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import AddTransactionModal from '../app/add-transaction-modal';
 
-export type TabRoute = 'home' | 'coins' | 'add' | 'stats' | 'profile';
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const TAB_BAR_MARGIN = 20;
+const TAB_BAR_WIDTH = SCREEN_WIDTH - (TAB_BAR_MARGIN * 2);
+const TAB_COUNT = 5;
+const TAB_WIDTH = TAB_BAR_WIDTH / TAB_COUNT;
+const DOT_SIZE = 6;
 
-interface BottomTabBarProps {
-  activeTab?: TabRoute;
-  onTabRefresh?: () => void; // Callback para refrescar la pantalla activa
-}
-
-export function BottomTabBar({ activeTab = 'home', onTabRefresh }: BottomTabBarProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+export function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const [modalVisible, setModalVisible] = useState(false);
+  const translateX = useSharedValue(0);
 
   const tabs = [
-    { id: 'home' as TabRoute, icon: 'home', label: 'Inicio', route: '/(tabs)' },
-    { id: 'coins' as TabRoute, icon: 'cash', label: 'Monedas', route: '/(tabs)/coins' },
-    { id: 'add' as TabRoute, icon: 'add-circle', label: 'Añadir', route: '/(tabs)/add' },
-    { id: 'stats' as TabRoute, icon: 'wallet', label: 'Metas', route: '/(tabs)/savings' },
-    { id: 'profile' as TabRoute, icon: 'person', label: 'Perfil', route: '/(tabs)/profile' },
+    { key: 'home', icon: 'home', label: 'Inicio', routeName: 'index' },
+    { key: 'coins', icon: 'cash', label: 'Monedas', routeName: 'coins' },
+    { key: 'add', icon: 'add-circle', label: 'Añadir', routeName: 'add', isAddButton: true },
+    { key: 'stats', icon: 'wallet', label: 'Metas', routeName: 'savings', relatedRoutes: ['budgets'] },
+    { key: 'profile', icon: 'person', label: 'Perfil', routeName: 'profile' },
   ];
 
-  const handleTabPress = (route: string, tabId: TabRoute) => {
-    // Si es el botón de añadir, abrir el modal
-    if (tabId === 'add') {
-      setModalVisible(true);
-    } else if (tabId === 'home') {
-      // Para el tab home, siempre navegar al dashboard (resetear stack)
-      router.replace('/(tabs)');
-      // Si ya estábamos en home, hacer refresh
-      if (activeTab === 'home' && onTabRefresh) {
-        onTabRefresh();
-      }
-    } else if (activeTab === tabId && onTabRefresh) {
-      // Si ya estamos en este tab, ejecutar refresh
-      onTabRefresh();
-    } else {
-      router.push(route as any);
+  // Determinar el índice activo basado en la ruta actual
+  const currentRouteName = state.routes[state.index].name;
+  const activeTabIndex = tabs.findIndex(tab => 
+    tab.routeName === currentRouteName || tab.relatedRoutes?.includes(currentRouteName)
+  );
+
+  useEffect(() => {
+    if (activeTabIndex !== -1) {
+      const targetX = (activeTabIndex * TAB_WIDTH) + (TAB_WIDTH - DOT_SIZE) / 2;
+      translateX.value = withSpring(targetX, {
+        damping: 25,
+        stiffness: 150,
+        mass: 1,
+      });
     }
-  };
+  }, [activeTabIndex]);
+
+  const animatedDotStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+      opacity: activeTabIndex === -1 ? 0 : 1, // Ocultar punto si no hay tab activo
+    };
+  });
 
   return (
     <>
       <View style={styles.container}>
         <View style={styles.tabBar}>
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const isAddButton = tab.id === 'add';
+          <Animated.View style={[styles.dot, animatedDotStyle]} />
+          
+          {tabs.map((tab, index) => {
+            const isFocused = index === activeTabIndex;
+            const isAddButton = tab.isAddButton;
+
+            const onPress = () => {
+              if (isAddButton) {
+                setModalVisible(true);
+                return;
+              }
+
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: tab.key, // Esto es un poco fake porque no tenemos la key real de la ruta aquí si no la buscamos
+                canPreventDefault: true,
+              });
+
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(tab.routeName);
+              }
+            };
+
+            const onLongPress = () => {
+              if (isAddButton) return;
+              navigation.emit({
+                type: 'tabLongPress',
+                target: tab.key,
+              });
+            };
 
             return (
               <TouchableOpacity
-                key={tab.id}
+                key={tab.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                onPress={onPress}
+                onLongPress={onLongPress}
                 style={[styles.tab, isAddButton && styles.addButton]}
-                onPress={() => handleTabPress(tab.route, tab.id)}
                 activeOpacity={0.7}
               >
                 <Ionicons
                   name={tab.icon as any}
-                  size={isAddButton ? 40 : 33}
-                  color={isActive ? '#000' : '#666'}
+                  size={isAddButton ? 40 : 28}
+                  color={isFocused ? '#FF6D00' : '#FFB74D'}
                 />
               </TouchableOpacity>
             );
@@ -80,39 +115,46 @@ export function BottomTabBar({ activeTab = 'home', onTabRefresh }: BottomTabBarP
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 0 : -32,
-    left: 0,
-    right: 0,
+    bottom: 25,
+    left: TAB_BAR_MARGIN,
+    right: TAB_BAR_MARGIN,
     backgroundColor: 'transparent',
   },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    height: Platform.OS === 'ios' ? 80 : 90,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 20,
+    height: 70,
+    borderRadius: 35,
     alignItems: 'center',
+    justifyContent: 'flex-start',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: -2,
+      height: 10,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     elevation: 10,
-    overflow: 'hidden',
+    position: 'relative',
   },
   tab: {
-    flex: 1,
+    width: TAB_WIDTH,
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 0 : 10,
+    zIndex: 1,
   },
   addButton: {
-    // Eliminar el marginTop negativo para mejor alineación
+    // No special styling needed
+  },
+  dot: {
+    position: 'absolute',
+    bottom: 15,
+    left: 0,
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    backgroundColor: '#FF6D00',
+    zIndex: 0,
   },
 });

@@ -15,7 +15,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useTransacciones } from '@/hooks/useTransacciones';
@@ -960,8 +959,6 @@ export default function TransactionsScreen() {
         {/* Espacio para el tab bar */}
         <View style={styles.bottomSpace} />
       </ScrollView>
-
-      <BottomTabBar activeTab="coins" onTabRefresh={handleRefresh} />
 
       {/* Modal de detalle de transacción */}
       <TransactionDetailModal
