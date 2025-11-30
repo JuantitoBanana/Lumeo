@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import AddTransactionModal from '../app/add-transaction-modal';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TAB_BAR_MARGIN = 20;
@@ -13,6 +14,7 @@ const TAB_WIDTH = TAB_BAR_WIDTH / TAB_COUNT;
 const DOT_SIZE = 6;
 
 export function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { user } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const translateX = useSharedValue(0);
 
@@ -47,6 +49,8 @@ export function BottomTabBar({ state, descriptors, navigation }: BottomTabBarPro
       opacity: activeTabIndex === -1 ? 0 : 1, // Ocultar punto si no hay tab activo
     };
   });
+
+  if (!user) return null;
 
   return (
     <>
