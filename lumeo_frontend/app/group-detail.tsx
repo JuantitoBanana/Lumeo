@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '@/contexts/AuthContext';
 import { grupoService, GrupoConMiembros } from '@/services/grupo.service';
 import { transaccionGrupalService, TransaccionGrupal } from '@/services/transaccion-grupal.service';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
@@ -293,6 +295,7 @@ export default function GroupDetailScreen() {
   const params = useLocalSearchParams();
   const idGrupo = params.id ? Number(params.id) : null;
   
+  const { loading: authLoading } = useAuth();
   const { usuario, loading: loadingUsuario } = useUsuarioApi();
   const { currencySymbol } = useCurrencySymbol();
   const [grupoData, setGrupoData] = useState<GrupoConMiembros | null>(null);
@@ -315,11 +318,38 @@ export default function GroupDetailScreen() {
   const [deletingGroup, setDeletingGroup] = useState(false);
 
   useEffect(() => {
-    if (idGrupo && usuario?.id) {
-      fetchGrupoData();
-      fetchTransacciones();
+    // Si todavía está cargando la autenticación o el usuario, no hacer nada aún
+    if (authLoading || loadingUsuario) {
+      return;
     }
-  }, [idGrupo, usuario?.id]);
+
+    // Si no hay ID de grupo, mostrar error
+    if (!idGrupo) {
+      setLoading(false);
+      setError('ID de grupo no válido');
+      return;
+    }
+
+    // Si no hay usuario después de cargar, mostrar error
+    if (!usuario?.id) {
+      setLoading(false);
+      setError('Usuario no encontrado');
+      return;
+    }
+
+    // Si tenemos idGrupo y usuario, cargar datos
+    fetchGrupoData();
+    fetchTransacciones();
+  }, [idGrupo, usuario?.id, loadingUsuario, authLoading]);
+
+  // Recargar datos cuando la pantalla recibe foco
+  useFocusEffect(
+    React.useCallback(() => {
+      if (idGrupo && usuario?.id) {
+        fetchTransacciones();
+      }
+    }, [idGrupo, usuario?.id])
+  );
 
   const fetchGrupoData = async () => {
     if (!idGrupo) return;

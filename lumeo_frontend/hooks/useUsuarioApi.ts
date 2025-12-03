@@ -10,7 +10,8 @@ import { Usuario } from '../types/api';
 export function useUsuarioApi() {
   const { user, session } = useAuth();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [loading, setLoading] = useState(false);
+  // Inicializar loading en true si hay un usuario autenticado, ya que vamos a cargar sus datos
+  const [loading, setLoading] = useState(!!user?.id);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
 
@@ -18,10 +19,13 @@ export function useUsuarioApi() {
     isMountedRef.current = true;
     
     if (user?.id) {
+      // Si el loading estaba en false (por ejemplo, al cambiar de usuario), lo ponemos en true
+      if (!loading) setLoading(true);
       fetchUsuario();
     } else {
       setUsuario(null);
       setError(null);
+      setLoading(false);
     }
 
     return () => {

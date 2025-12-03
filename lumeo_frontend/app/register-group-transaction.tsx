@@ -337,11 +337,12 @@ export default function RegisterGroupTransactionScreen() {
         transaccionesIndividuales: transaccionesIndividuales,
       });
 
+      // Cerrar el estado de loading antes de navegar
+      setSaving(false);
+      
       // Navegar al detalle del grupo
-      router.replace({
-        pathname: '/group-detail',
-        params: { idGrupo: idGrupo }
-      });
+      router.back();
+      return;
     } catch (error: any) {
       console.error('Error al guardar transacción grupal:', error);
       

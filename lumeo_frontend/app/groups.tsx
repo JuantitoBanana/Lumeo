@@ -10,7 +10,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useGrupos } from '@/hooks/useGrupos';
 import { useUsuarioApi } from '@/hooks/useUsuarioApi';
 import { useTranslation } from '../hooks/useTranslation';
@@ -167,9 +166,6 @@ export default function GroupsScreen() {
 
       {/* Contenido */}
       {renderContent()}
-
-      {/* Bottom Tab Bar - Sin tab activo ya que no estamos en una pestaña principal */}
-      <BottomTabBar onTabRefresh={handleRefresh} />
     </View>
   );
 }

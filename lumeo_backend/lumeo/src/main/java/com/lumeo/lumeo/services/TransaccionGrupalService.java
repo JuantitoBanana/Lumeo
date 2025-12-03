@@ -307,4 +307,22 @@ public class TransaccionGrupalService extends GenericService<TransaccionGrupalMo
         
         return dto;
     }
+
+    /**
+     * Elimina una transacción grupal y todas sus transacciones individuales asociadas
+     * @param id ID de la transacción grupal
+     * @return true si se eliminó correctamente
+     */
+    @Override
+    @Transactional
+    public boolean delete(Long id) {
+        // 1. Buscar y eliminar las transacciones individuales asociadas
+        List<TransaccionModel> transaccionesIndividuales = transaccionRepository.findByIdTransaccionGrupal(id);
+        if (!transaccionesIndividuales.isEmpty()) {
+            transaccionRepository.deleteAll(transaccionesIndividuales);
+        }
+        
+        // 2. Eliminar la transacción grupal
+        return super.delete(id);
+    }
 }

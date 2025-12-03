@@ -3,10 +3,17 @@ echo ========================================
 echo    LUMEO BACKEND - Spring Boot
 echo ========================================
 echo.
-echo CONFIGURACION SESSION POOLER (PgBouncer):
-echo - Puerto: 5432 (Session Pooler con pool dedicado)
-echo - Pool de conexiones: 10 conexiones max
-echo - 15 conexiones dedicadas en Supabase
+
+REM Cerrar cualquier instancia previa de Java para evitar conflictos de conexiones
+call kill-java-processes.bat
+
+echo CONFIGURACION MODO EMERGENCIA:
+echo - Puerto: 5432 (Supavisor IPv4 Pooler)
+echo - Pool: 1 conexion + DevTools DESHABILITADO
+echo - Health Check DB: DESHABILITADO
+echo.
+echo IMPORTANTE: Si sigue fallando, ejecuta check-connections.sql
+echo en tu Dashboard de Supabase para ver conexiones activas.
 echo - Prepared statements: SOPORTADOS
 echo - IPv4 forzado para estabilidad
 echo.
