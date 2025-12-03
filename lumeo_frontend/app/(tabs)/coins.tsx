@@ -623,6 +623,10 @@ export default function TransactionsScreen() {
       if (event.type === 'set' && selectedDate) {
         setEditingTransactionDate(selectedDate);
       }
+      // Reabrir el modal de detalle después de cerrar el date picker
+      setTimeout(() => {
+        setModalVisible(true);
+      }, 100);
     } else {
       if (selectedDate) {
         setTransactionDateTemp(selectedDate);
