@@ -204,19 +204,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    */
   const signOut = async () => {
     try {
-      console.log('🚪 [Auth] Iniciando signOut...');
-      
-      // Limpiar estado local PRIMERO (para evitar bloqueos si Supabase falla)
+      await supabase.auth.signOut();
+      // Asegurarse de limpiar el estado local
       setUser(null);
       setSession(null);
-      console.log('✅ [Auth] Estado local limpiado');
-      
-      // Intentar logout en Supabase (puede fallar si hay problemas de red)
-      await supabase.auth.signOut();
-      console.log('✅ [Auth] SignOut de Supabase completado');
     } catch (error: any) {
-      // Aunque falle el logout en Supabase, el estado local ya está limpio
-      console.warn('⚠️ [Auth] Error en signOut de Supabase (estado local ya limpiado):', error.message);
+      console.error('Error signing out:', error.message);
     }
   };
 
