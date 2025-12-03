@@ -19,30 +19,42 @@ export const APP_URL = __DEV__
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-// Detecta el host de desarrollo cuando se usa Expo.
-// - Si estás usando Expo Go en un dispositivo físico, `debuggerHost` suele contener la IP del PC.
-// - Si usas el emulador Android (AVD), usa 10.0.2.2 para alcanzar `localhost` del host.
-const manifestAny: any = (Constants as any).manifest || (Constants as any).expoConfig || {};
-const debuggerHost: string | undefined =
-  manifestAny.debuggerHost ||
-  // algunas versiones de expo ponen la info en expoConfig.extra
-  (manifestAny.packagerOpts && (manifestAny.packagerOpts as any).debuggerHost);
-
-let devHost = 'localhost';
-if (debuggerHost) {
-  // Expo detectó la IP automáticamente (dispositivo físico o emulador)
-  devHost = debuggerHost.split(':')[0];
-} else if (Platform.OS === 'android') {
-  // Para dispositivo físico Android, usar la IP local del PC
-  // Para emulador Android, usar 10.0.2.2
-  devHost = '192.168.1.128'; // IP actual del PC
-} else if (Platform.OS === 'ios') {
-  // iOS Simulator necesita la IP real de la máquina host
-  devHost = '192.168.1.128'; // IP actual del PC
-}
+/**
+ * Detecta el host de desarrollo de forma dinámica
+ * - Emulador Android: IP hardcodeada 10.0.2.2
+ * - Dispositivos físicos: Usa la IP detectada por Expo
+ * - iOS Simulator: Usa localhost
+ */
+const getDevHost = (): string => {
+  // Para emulador Android, usar IP hardcodeada
+  if (Platform.OS === 'android') {
+    // Verificar si es emulador (los dispositivos físicos tienen hostUri)
+    const hostUri = Constants.expoConfig?.hostUri;
+    if (!hostUri || hostUri.includes('localhost')) {
+      // Es emulador, usar IP hardcodeada
+      return '10.0.2.2';
+    }
+    // Es dispositivo físico, usar IP detectada
+    return hostUri.split(':')[0];
+  }
+  
+  // Para iOS
+  if (Platform.OS === 'ios') {
+    const hostUri = Constants.expoConfig?.hostUri;
+    if (hostUri && !hostUri.includes('localhost')) {
+      // Es dispositivo físico, usar IP detectada
+      return hostUri.split(':')[0];
+    }
+    // Es simulador, usar localhost
+    return 'localhost';
+  }
+  
+  // Fallback
+  return 'localhost';
+};
 
 export const API_BASE_URL = __DEV__
-  ? `http://${devHost}:8080/api` // URL de desarrollo del backend Java (auto-detect)
+  ? `http://${getDevHost()}:8080/api` // URL de desarrollo del backend Java
   : 'https://original-wallie-lumeo-team-b6b2ddc2.koyeb.app/api'; // URL de producción en Koyeb
 
 // Timeout para las peticiones HTTP (en milisegundos)
