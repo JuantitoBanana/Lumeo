@@ -19,32 +19,30 @@ export const APP_URL = __DEV__
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-const getDevHost = () => {
-  // 1. Intentamos obtener la IP desde el manifiesto de Expo
-  // Esto funciona genial en Expo Go
-  const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest2?.extra?.expoGo?.debuggerHost;
-  
-  if (debuggerHost) {
-    return debuggerHost.split(':')[0];
-  }
+// Detecta el host de desarrollo cuando se usa Expo.
+// - Si estás usando Expo Go en un dispositivo físico, `debuggerHost` suele contener la IP del PC.
+// - Si usas el emulador Android (AVD), usa 10.0.2.2 para alcanzar `localhost` del host.
+const manifestAny: any = (Constants as any).manifest || (Constants as any).expoConfig || {};
+const debuggerHost: string | undefined =
+  manifestAny.debuggerHost ||
+  // algunas versiones de expo ponen la info en expoConfig.extra
+  (manifestAny.packagerOpts && (manifestAny.packagerOpts as any).debuggerHost);
 
-  // 2. Fallback para emulador de Android (siempre es esta IP)
-  if (Platform.OS === 'android') {
-    return '10.0.2.2';
-  }
-
-  // 3. Fallback para iOS Simulator
-  // En el simulador iOS, 'localhost' suele funcionar bien porque comparte red con el host
-  if (Platform.OS === 'ios') {
-    return 'localhost';
-  }
-
-  // Último recurso (puedes dejar localhost o manejar un error)
-  return 'localhost';
-};
+let devHost = 'localhost';
+if (debuggerHost) {
+  // Expo detectó la IP automáticamente (dispositivo físico o emulador)
+  devHost = debuggerHost.split(':')[0];
+} else if (Platform.OS === 'android') {
+  // Para dispositivo físico Android, usar la IP local del PC
+  // Para emulador Android, usar 10.0.2.2
+  devHost = '192.168.1.128'; // IP actual del PC
+} else if (Platform.OS === 'ios') {
+  // iOS Simulator necesita la IP real de la máquina host
+  devHost = '192.168.1.128'; // IP actual del PC
+}
 
 export const API_BASE_URL = __DEV__
-  ? `http://${getDevHost()}:8080/api` // URL de desarrollo del backend Java (auto-detect)
+  ? `http://${devHost}:8080/api` // URL de desarrollo del backend Java (auto-detect)
   : 'https://original-wallie-lumeo-team-b6b2ddc2.koyeb.app/api'; // URL de producción en Koyeb
 
 // Timeout para las peticiones HTTP (en milisegundos)
