@@ -52,6 +52,17 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
     List<TransaccionModel> findByIdUsuarioAndFechaBetween(@Param("idUsuario") Long idUsuario, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
     
     /**
+     * Busca transacciones de un usuario en un rango de fechas (como creador O destinatario)
+     * @param idUsuario ID del usuario
+     * @param idDestinatario ID del destinatario (mismo que idUsuario)
+     * @param startDate Fecha de inicio
+     * @param endDate Fecha de fin
+     * @return Lista de transacciones donde el usuario participa
+     */
+    @Query("SELECT t FROM TransaccionModel t WHERE (t.idUsuario = :idUsuario OR t.idDestinatario = :idDestinatario) AND t.fechaTransaccion >= :startDate AND t.fechaTransaccion <= :endDate")
+    List<TransaccionModel> findByIdUsuarioOrIdDestinatarioAndFechaBetween(@Param("idUsuario") Long idUsuario, @Param("idDestinatario") Long idDestinatario, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    /**
      * Busca transacciones de un usuario en un rango de fechas con categoría cargada
      * @param idUsuario ID del usuario
      * @param startDate Fecha de inicio
@@ -64,6 +75,21 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
            "AND t.fechaTransaccion >= :startDate " +
            "AND t.fechaTransaccion <= :endDate")
     List<TransaccionModel> findByIdUsuarioAndFechaBetweenWithCategoria(@Param("idUsuario") Long idUsuario, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    /**
+     * Busca transacciones de un usuario en un rango de fechas con categoría cargada (como creador O destinatario)
+     * @param idUsuario ID del usuario
+     * @param idDestinatario ID del destinatario (mismo que idUsuario)
+     * @param startDate Fecha de inicio
+     * @param endDate Fecha de fin
+     * @return Lista de transacciones con categoría cargada donde el usuario participa
+     */
+    @Query("SELECT DISTINCT t FROM TransaccionModel t " +
+           "LEFT JOIN FETCH t.categoria " +
+           "WHERE (t.idUsuario = :idUsuario OR t.idDestinatario = :idDestinatario) " +
+           "AND t.fechaTransaccion >= :startDate " +
+           "AND t.fechaTransaccion <= :endDate")
+    List<TransaccionModel> findByIdUsuarioOrIdDestinatarioAndFechaBetweenWithCategoria(@Param("idUsuario") Long idUsuario, @Param("idDestinatario") Long idDestinatario, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
     
     /**
      * Busca los últimos 5 gastos de un usuario (tipo transacción = 2)
@@ -88,6 +114,32 @@ public interface TransaccionRepository extends JpaRepository<TransaccionModel, L
     Double calcularGastosPorMesAnio(@Param("idUsuario") Long idUsuario, 
                                      @Param("mes") Integer mes, 
                                      @Param("anio") Integer anio);
+    
+    /**
+     * Calcula el total de gastos (tipo = 2) de un usuario para un mes y año específicos
+     * Incluye transacciones donde el usuario es creador O destinatario
+     * Para destinatario, suma importe_destinatario
+     * @param idUsuario ID del usuario
+     * @param idDestinatario ID del destinatario (mismo que idUsuario)
+     * @param mes Número del mes (1-12)
+     * @param anio Año
+     * @return Total de gastos del mes/año especificado
+     */
+    @Query(value = "SELECT COALESCE( " +
+           "  SUM(CASE " +
+           "    WHEN t.id_usuario = :idUsuario THEN t.importe " +
+           "    WHEN t.id_destinatario = :idDestinatario THEN t.importe_destinatario " +
+           "    ELSE 0 " +
+           "  END), 0.0) " +
+           "FROM transaccion t " +
+           "WHERE (t.id_usuario = :idUsuario OR t.id_destinatario = :idDestinatario) " +
+           "AND t.id_tipo = 2 " +
+           "AND EXTRACT(MONTH FROM t.fecha_transaccion) = :mes " +
+           "AND EXTRACT(YEAR FROM t.fecha_transaccion) = :anio", nativeQuery = true)
+    Double calcularGastosPorMesAnioIncluyendoDestinatario(@Param("idUsuario") Long idUsuario, 
+                                                           @Param("idDestinatario") Long idDestinatario,
+                                                           @Param("mes") Integer mes, 
+                                                           @Param("anio") Integer anio);
     
     /**
      * Busca transacciones de un usuario filtradas por mes y año

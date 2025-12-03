@@ -89,7 +89,7 @@ export const GraficoCategoria: React.FC<GraficoCategoriaProps> = memo(({ gastos,
               <View key={index} style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: item.color }]} />
                 <Text style={styles.legendText}>
-                  {item.name}: {formatearCantidad(item.amount, currencySymbol, symbolPosition, 0)}
+                  {item.name}: {formatearCantidad(item.amount, currencySymbol, symbolPosition, 2)}
                 </Text>
               </View>
             ))}

@@ -55,8 +55,8 @@ public class ResumenFinancieroService {
             }
         }
         
-        // Obtener todas las transacciones del usuario
-        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuario(usuarioId);
+        // Obtener todas las transacciones del usuario (como creador O como destinatario)
+        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioOrIdDestinatario(usuarioId, usuarioId);
         System.out.println("📊 Transacciones encontradas: " + transacciones.size());
         
         // Inicializar variables para cálculos
@@ -67,8 +67,21 @@ public class ResumenFinancieroService {
         for (TransaccionModel transaccion : transacciones) {
             System.out.println("🔍 Procesando transacción: " + transaccion.getId() + " - " + transaccion.getTitulo());
             
-            // El campo 'importe' ahora contiene el importe ORIGINAL
-            Double importeOriginal = transaccion.getImporte();
+            // Determinar si el usuario es el creador o el destinatario
+            boolean esCreador = transaccion.getIdUsuario().equals(usuarioId);
+            boolean esDestinatario = transaccion.getIdDestinatario() != null && transaccion.getIdDestinatario().equals(usuarioId);
+            
+            // El importe a usar depende del rol del usuario en la transacción
+            Double importeOriginal;
+            if (esDestinatario) {
+                // Si es destinatario, usar importe_destinatario
+                importeOriginal = transaccion.getImporteDestinatario();
+                System.out.println("👤 Usuario es DESTINATARIO, usando importe_destinatario: " + importeOriginal);
+            } else {
+                // Si es creador, usar importe normal
+                importeOriginal = transaccion.getImporte();
+                System.out.println("👤 Usuario es CREADOR, usando importe: " + importeOriginal);
+            }
             
             // Convertir desde la divisa original a la divisa actual del usuario
             Double importe = importeOriginal;
@@ -123,8 +136,8 @@ public class ResumenFinancieroService {
         
         System.out.println("📅 Calculando datos mensuales de " + inicioMes + " a " + finMes);
         
-        // Obtener transacciones del mes actual
-        List<TransaccionModel> transaccionesMes = transaccionRepository.findByIdUsuarioAndFechaBetween(usuarioId, inicioMes, finMes);
+        // Obtener transacciones del mes actual (como creador O destinatario)
+        List<TransaccionModel> transaccionesMes = transaccionRepository.findByIdUsuarioOrIdDestinatarioAndFechaBetween(usuarioId, usuarioId, inicioMes, finMes);
         System.out.println("📊 Transacciones del mes encontradas: " + transaccionesMes.size());
         
         BigDecimal ingresosMensuales = BigDecimal.ZERO;
@@ -132,8 +145,18 @@ public class ResumenFinancieroService {
         
         // Procesar transacciones del mes
         for (TransaccionModel transaccion : transaccionesMes) {
-            // El campo 'importe' contiene el importe ORIGINAL
-            Double importeOriginal = transaccion.getImporte();
+            // Determinar si el usuario es el creador o el destinatario
+            boolean esDestinatario = transaccion.getIdDestinatario() != null && transaccion.getIdDestinatario().equals(usuarioId);
+            
+            // El importe a usar depende del rol del usuario en la transacción
+            Double importeOriginal;
+            if (esDestinatario) {
+                // Si es destinatario, usar importe_destinatario
+                importeOriginal = transaccion.getImporteDestinatario();
+            } else {
+                // Si es creador, usar importe normal
+                importeOriginal = transaccion.getImporte();
+            }
             
             // Convertir desde la divisa original a la divisa actual del usuario
             Double importe = importeOriginal;

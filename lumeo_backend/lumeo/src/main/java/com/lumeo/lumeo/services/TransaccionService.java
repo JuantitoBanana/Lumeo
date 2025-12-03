@@ -259,13 +259,14 @@ public class TransaccionService extends GenericService<TransaccionModel, Long> {
     
     /**
      * Calcula el total de gastos (tipo = 2) de un usuario para un mes y año específicos
+     * Incluye transacciones compartidas donde el usuario es destinatario
      * @param idUsuario ID del usuario
      * @param mes Número del mes (1-12)
      * @param anio Año
      * @return Total de gastos del mes/año
      */
     public Double calcularGastosPorMesAnio(Long idUsuario, Integer mes, Integer anio) {
-        return transaccionRepository.calcularGastosPorMesAnio(idUsuario, mes, anio);
+        return transaccionRepository.calcularGastosPorMesAnioIncluyendoDestinatario(idUsuario, idUsuario, mes, anio);
     }
     
     /**

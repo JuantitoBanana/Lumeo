@@ -67,8 +67,8 @@ public class GraficosService {
         
         System.out.println("📅 Período: " + inicioMes + " a " + finMes);
         
-        // Obtener transacciones del mes actual con categoría cargada
-        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioAndFechaBetweenWithCategoria(usuarioId, inicioMes, finMes);
+        // Obtener transacciones del mes actual con categoría cargada (como creador O destinatario)
+        List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioOrIdDestinatarioAndFechaBetweenWithCategoria(usuarioId, usuarioId, inicioMes, finMes);
         System.out.println("📊 Transacciones encontradas: " + transacciones.size());
         
         // Agrupar gastos por categoría
@@ -81,8 +81,18 @@ public class GraficosService {
                 transaccion.getCategoria() != null &&
                 Boolean.FALSE.equals(transaccion.getCategoria().getEsPersonalizada())) {
                 
-                // El campo 'importe' contiene el importe ORIGINAL
-                Double importeOriginal = transaccion.getImporte();
+                // Determinar si el usuario es el creador o el destinatario
+                boolean esDestinatario = transaccion.getIdDestinatario() != null && transaccion.getIdDestinatario().equals(usuarioId);
+                
+                // El importe a usar depende del rol del usuario en la transacción
+                Double importeOriginal;
+                if (esDestinatario) {
+                    // Si es destinatario, usar importe_destinatario
+                    importeOriginal = transaccion.getImporteDestinatario();
+                } else {
+                    // Si es creador, usar importe normal
+                    importeOriginal = transaccion.getImporte();
+                }
                 
                 // Convertir desde la divisa original a la divisa actual del usuario
                 Double importe = importeOriginal;
@@ -185,16 +195,26 @@ public class GraficosService {
             
             System.out.println("📅 Consultando mes: " + mesConsulta.getMonth() + " " + mesConsulta.getYear());
             
-            // Obtener transacciones del mes
-            List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioAndFechaBetween(usuarioId, inicioMes, finMes);
+            // Obtener transacciones del mes (como creador O destinatario)
+            List<TransaccionModel> transacciones = transaccionRepository.findByIdUsuarioOrIdDestinatarioAndFechaBetween(usuarioId, usuarioId, inicioMes, finMes);
             
             BigDecimal totalIngresos = BigDecimal.ZERO;
             BigDecimal totalGastos = BigDecimal.ZERO;
             
             // Procesar transacciones
             for (TransaccionModel transaccion : transacciones) {
-                // El campo 'importe' contiene el importe ORIGINAL
-                Double importeOriginal = transaccion.getImporte();
+                // Determinar si el usuario es el creador o el destinatario
+                boolean esDestinatario = transaccion.getIdDestinatario() != null && transaccion.getIdDestinatario().equals(usuarioId);
+                
+                // El importe a usar depende del rol del usuario en la transacción
+                Double importeOriginal;
+                if (esDestinatario) {
+                    // Si es destinatario, usar importe_destinatario
+                    importeOriginal = transaccion.getImporteDestinatario();
+                } else {
+                    // Si es creador, usar importe normal
+                    importeOriginal = transaccion.getImporte();
+                }
                 
                 // Convertir desde la divisa original a la divisa actual del usuario
                 Double importe = importeOriginal;
